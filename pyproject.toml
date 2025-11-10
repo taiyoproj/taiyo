@@ -7,7 +7,7 @@ authors = [
 ]
 readme = "README.md"
 license = {text = "MIT"}
-keywords = ["solr", "apache solr"]
+keywords = ["solr"]
 dependencies = [
     "httpx>=0.24.0",
     "pydantic>=2.0.0",
