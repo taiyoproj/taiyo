@@ -1,4 +1,4 @@
-from pydantic import Field, computed_field, field_serializer
+from pydantic import Field, computed_field, field_serializer, StrictFloat
 
 from taiyo.parsers.sparse.base import SparseQueryParser
 from typing import Literal
@@ -43,10 +43,10 @@ class DisMaxQueryParser(SparseQueryParser):
     tie_breaker: float = Field(
         default=0.0, alias="tie", description="Tie breaker value."
     )
-    boost_queries: Optional[List[str]] = Field(
+    boost_queries: Optional[str | List[str]] = Field(
         default=None, alias="bq", description="List of boost queries."
     )
-    boost_functons: Optional[List[str]] = Field(
+    boost_functons: Optional[str | List[str]] = Field(
         default=None, alias="bf", description="List of boost functions."
     )
 
