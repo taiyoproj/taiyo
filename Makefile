@@ -6,3 +6,9 @@ lint:
 
 test:
 	python -m pytest tests/
+
+build:
+	uv build
+
+publish-test:
+	uv publish --repository testpypi
