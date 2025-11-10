@@ -15,8 +15,8 @@ def test_lucene():
     assert params["q"] == "foo bar"
     assert params["q.op"] == "AND"
     assert params["df"] == "title"
-    assert params["sow"] == True
-    assert params["group"] == True
+    assert params["sow"]
+    assert params["group"]
     assert params["group.field"] == ["title", "description"]
 
 
@@ -44,5 +44,5 @@ def test_dismax():
     assert params["tie"] == 0.1
     assert params["bq"] == ["cat:electronics^5.0"]
     assert params["bf"] == ["recip(rord(myfield),1,2,3)"]
-    assert params["facet"] == True
+    assert params["facet"]
     assert params["facet.query"] == ["facet true"]

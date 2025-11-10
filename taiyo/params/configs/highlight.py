@@ -8,9 +8,9 @@ This module provides Pydantic models for Solr's highlighting functionality, incl
 """
 
 from enum import Enum
-from typing import List, Optional, Union, Literal
+from typing import List, Optional, Union
 
-from pydantic import Field, computed_field
+from pydantic import Field
 from taiyo.params.configs.base import ParamsConfig
 
 

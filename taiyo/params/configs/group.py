@@ -1,5 +1,5 @@
 from typing import Optional, List, Union
-from pydantic import Field, computed_field
+from pydantic import Field
 from taiyo.params.configs.base import ParamsConfig
 
 

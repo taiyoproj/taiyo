@@ -10,7 +10,7 @@ This module provides Pydantic models for Solr's faceting functionality, includin
 from enum import Enum
 from typing import Dict, List, Optional
 
-from pydantic import Field, computed_field
+from pydantic import Field
 from taiyo.params.configs.base import ParamsConfig
 
 

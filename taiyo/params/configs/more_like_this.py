@@ -1,4 +1,4 @@
-from pydantic import Field, computed_field
+from pydantic import Field
 from typing import Optional, Union
 
 from taiyo.params.configs.base import ParamsConfig

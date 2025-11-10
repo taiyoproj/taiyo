@@ -1,4 +1,4 @@
-from pydantic import Field, computed_field, field_serializer, StrictFloat
+from pydantic import Field, computed_field, field_serializer
 
 from taiyo.parsers.sparse.base import SparseQueryParser
 from typing import Literal

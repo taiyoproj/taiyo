@@ -1,5 +1,5 @@
 import httpx
-from typing import Any, Awaitable, Dict, List, Optional, Union, Type
+from typing import Any, Dict, List, Optional, Union, Type
 from urllib.parse import urljoin
 
 from taiyo.parsers.base import BaseQueryParser
@@ -108,7 +108,7 @@ class SolrClient:
                     response=error_data,
                 )
             raise SolrError(f"HTTP request failed: {str(e)}")
-    
+
     async def ping(self) -> bool:
         try:
             response = await self._request("GET", "admin/ping")
