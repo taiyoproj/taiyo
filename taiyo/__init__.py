@@ -2,9 +2,8 @@
 Taiyo - A modern Python client for Apache Solr.
 """
 
-from .client import SolrClient
 from .types import SolrDocument, SolrResponse, SolrError
-from .auth import BasicAuth, BearerAuth
+from .client import BasicAuth, BearerAuth, SolrClient, AsyncSolrClient
 from .parsers import (
     KNNQueryParser,
     KNNTextToVectorQueryParser,
@@ -18,6 +17,7 @@ from .parsers import (
 
 __version__ = "0.1.0"
 __all__ = [
+    "AsyncSolrClient",
     "SolrClient",
     "SolrQuery",
     "SolrDocument",
