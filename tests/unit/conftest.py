@@ -1,8 +1,8 @@
 import pytest
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Generator
 import httpx
 import pytest_asyncio
-from taiyo import SolrClient
+from taiyo import SolrClient, AsyncSolrClient
 from taiyo.types import SolrDocument
 from pydantic import Field
 
@@ -44,10 +44,18 @@ async def mock_httpx_client(monkeypatch) -> AsyncGenerator[None, None]:
 
 
 @pytest_asyncio.fixture
-async def solr_client(
+async def async_solr_client(
     base_url: str, collection: str, mock_httpx_client
-) -> AsyncGenerator[SolrClient, None]:
-    async with SolrClient(base_url, collection) as client:
+) -> AsyncGenerator[AsyncSolrClient, None]:
+    async with AsyncSolrClient(base_url, collection) as client:
+        yield client
+
+
+@pytest.fixture
+def sync_solr_client(
+    base_url: str, collection: str
+) -> Generator[SolrClient, None, None]:
+    with SolrClient(base_url, collection) as client:
         yield client
 
 

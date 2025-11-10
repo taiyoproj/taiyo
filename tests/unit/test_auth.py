@@ -1,7 +1,7 @@
 """Tests for authentication methods."""
 
 import httpx
-from taiyo.auth import BasicAuth, BearerAuth
+from taiyo import BasicAuth, BearerAuth
 
 
 def test_basic_auth():
