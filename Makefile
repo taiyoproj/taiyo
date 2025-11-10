@@ -4,6 +4,9 @@ format:
 lint:
 	ruff check taiyo tests
 
+lint-fix:
+	ruff check --fix taiyo tests
+
 test:
 	python -m pytest tests/
 
