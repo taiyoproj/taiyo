@@ -9,7 +9,7 @@ from .base import BaseSolrClient
 
 class AsyncSolrClient(BaseSolrClient):
     """
-    Modern async client for Apache Solr.
+    Asynchronous Python client for Apache Solr.
 
     Args:
         base_url: Base URL of the Solr instance (e.g., "http://localhost:8983/solr")
@@ -18,24 +18,13 @@ class AsyncSolrClient(BaseSolrClient):
         timeout: Request timeout in seconds
         **client_options: Additional options to pass to the httpx client
 
-    Examples:
+    Example:
         ```python
-        from taiyo import AsyncSolrClient
-        from taiyo.auth import BasicAuth, BearerAuth
-
-        # Basic authentication
+        from taiyo import AsyncSolrClient, BasicAuth
         async with AsyncSolrClient(
             "http://localhost:8983/solr",
             "my_collection",
             auth=BasicAuth("username", "password")
-        ) as client:
-            results = await client.search("*:*")
-
-        # Bearer token
-        async with AsyncSolrClient(
-            "http://localhost:8983/solr",
-            "my_collection",
-            auth=BearerAuth("my-token")
         ) as client:
             results = await client.search("*:*")
         ```
@@ -212,7 +201,7 @@ class AsyncSolrClient(BaseSolrClient):
 
 class SolrClient(BaseSolrClient):
     """
-    Synchronous client for Apache Solr.
+    Synchronous Python client for Apache Solr.
 
     Args:
         base_url: Base URL of the Solr instance (e.g., "http://localhost:8983/solr")
@@ -221,24 +210,13 @@ class SolrClient(BaseSolrClient):
         timeout: Request timeout in seconds
         **client_options: Additional options to pass to the httpx client
 
-    Examples:
+    Example:
         ```python
-        from taiyo import SolrClient
-        from taiyo.auth import BasicAuth, BearerAuth
-
-        # Basic authentication
+        from taiyo import SolrClient, BasicAuth
         with SolrClient(
             "http://localhost:8983/solr",
             "my_collection",
             auth=BasicAuth("username", "password")
-        ) as client:
-            results = client.search("*:*")
-
-        # Bearer token
-        with SolrClient(
-            "http://localhost:8983/solr",
-            "my_collection",
-            auth=BearerAuth("my-token")
         ) as client:
             results = client.search("*:*")
         ```
@@ -399,7 +377,7 @@ class SolrClient(BaseSolrClient):
         Search the Solr index.
 
         Args:
-            query: Query string, dictionary of parameters, or QueryBuilder instance
+            query: query string, dictionary of parameters, or BaseQueryParser instance
             document_model: Pydantic model class for documents
             **kwargs: Additional query parameters
 
