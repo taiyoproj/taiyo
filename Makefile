@@ -1,17 +1,20 @@
+.PHONY: format lint lint-fix
 format:
-	ruff format taiyo tests
+	uv run ruff format taiyo tests
 
 lint:
-	ruff check taiyo tests
+	uv run ruff check taiyo tests
 
 lint-fix:
 	ruff check --fix taiyo tests
 
+.PHONY: test
 test:
-	python -m pytest tests/
+	uv run pytest tests/
 
+.PHONY: build publish
 build:
 	uv build
 
-publish-test:
-	uv publish --repository testpypi
+publish:
+	uv publish --repository pypi
