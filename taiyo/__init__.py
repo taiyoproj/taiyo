@@ -4,6 +4,23 @@ Taiyo - A modern Python client for Apache Solr.
 
 from .types import SolrDocument, SolrResponse, SolrError
 from .client import BasicAuth, BearerAuth, SolrClient, AsyncSolrClient
+from .params import (
+    CommonParamsMixin,
+    DenseVectorSearchParamsMixin,
+    SpatialSearchParamsMixin,
+    FacetParamsConfig,
+    FacetMethod,
+    FacetSort,
+    GroupParamsConfig,
+    HighlightParamsConfig,
+    HighlightMethod,
+    HighlightEncoder,
+    BreakIteratorType,
+    FragListBuilder,
+    FragmentsBuilder,
+    Fragmenter,
+    MoreLikeThisParamsConfig,
+)
 from .parsers import (
     KNNQueryParser,
     KNNTextToVectorQueryParser,
@@ -33,4 +50,19 @@ __all__ = [
     "VectorSimilarityParser",
     "BoundingBoxQueryParser",
     "GeoFilterQueryParser",
+    "CommonParamsMixin",
+    "DenseVectorSearchParamsMixin",
+    "SpatialSearchParamsMixin",
+    "FacetParamsConfig",
+    "FacetMethod",
+    "FacetSort",
+    "GroupParamsConfig",
+    "HighlightParamsConfig",
+    "HighlightMethod",
+    "HighlightEncoder",
+    "BreakIteratorType",
+    "FragListBuilder",
+    "FragmentsBuilder",
+    "Fragmenter",
+    "MoreLikeThisParamsConfig",
 ]
