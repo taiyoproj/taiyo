@@ -62,24 +62,58 @@ class BaseSolrClient(ABC):
         response: Dict[str, Any],
         document_model: Type[DocumentT],
     ) -> SolrResponse[DocumentT]:
-        """Build a SolrResponse from raw Solr response data."""
+        """Build a SolrResponse from raw Solr response data.
+
+        Supports both standard search responses (with top-level 'response') and
+        grouped responses (with top-level 'grouped').
+        """
         docs: list[DocumentT] = []
-        for doc in response["response"]["docs"]:
-            try:
-                docs.append(document_model.model_validate(doc, by_name=True))
-            except ValidationError:
-                docs.append(document_model.model_validate(doc, by_alias=True))
-            except Exception:
-                raise
+        num_found: int = 0
+        start: int = 0
+
+        if "response" in response:
+            # Standard search response
+            for doc in response["response"]["docs"]:
+                try:
+                    docs.append(document_model.model_validate(doc, by_name=True))
+                except ValidationError:
+                    docs.append(document_model.model_validate(doc, by_alias=True))
+                except Exception:
+                    raise
+            num_found = response["response"]["numFound"]
+            start = response["response"]["start"]
+        elif "grouped" in response:
+            # Grouped response; flatten docs for convenience
+            for _group_field, grouped_data in response["grouped"].items():
+                groups = grouped_data.get("groups", [])
+                for g in groups:
+                    doclist = g.get("doclist", {})
+                    for doc in doclist.get("docs", []):
+                        try:
+                            docs.append(
+                                document_model.model_validate(doc, by_name=True)
+                            )
+                        except ValidationError:
+                            docs.append(
+                                document_model.model_validate(doc, by_alias=True)
+                            )
+                        except Exception:
+                            raise
+                    num_found += int(doclist.get("numFound", 0))
+            start = 0
+        else:
+            # Unknown format; attempt to be graceful
+            pass
 
         return SolrResponse[document_model](
-            status=response["responseHeader"]["status"],
-            qtime=response["responseHeader"]["QTime"],
-            num_found=response["response"]["numFound"],
-            start=response["response"]["start"],
+            status=response.get("responseHeader", {}).get("status", 0),
+            qtime=response.get("responseHeader", {}).get("QTime", 0),
+            num_found=num_found,
+            start=start,
             docs=docs,
             facet_counts=response.get("facet_counts"),
             highlighting=response.get("highlighting"),
+            extra=response,
         )
 
     @staticmethod
