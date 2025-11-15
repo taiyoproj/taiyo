@@ -106,6 +106,51 @@ class AsyncSolrClient(BaseSolrClient):
         except SolrError:
             return False
 
+    async def create_collection(
+        self,
+        name: str,
+        num_shards: int = 1,
+        replication_factor: int = 1,
+        **kwargs: Any,
+    ) -> Dict[str, Any]:
+        """
+        Create a new Solr collection using the v2 Collections API (POST /api/collections).
+
+        Args:
+            name: Name of the collection to create.
+            num_shards: Number of shards for the collection.
+            replication_factor: Replication factor for the collection.
+            **kwargs: Additional Solr parameters (included in JSON body).
+
+        Returns:
+            Response from Solr.
+        """
+        json_body = {
+            "name": name,
+            "numShards": num_shards,
+            "replicationFactor": replication_factor,
+            **kwargs,
+        }
+        return await self._request(
+            method="POST",
+            endpoint="/api/collections",
+            json=json_body,
+        )
+
+    async def delete_collection(self, name: str, **kwargs: Any) -> Dict[str, Any]:
+        """
+        Delete a Solr collection.
+
+        Args:
+            name: Name of the collection to delete.
+            **kwargs: Additional Solr parameters.
+
+        Returns:
+            Response from Solr.
+        """
+        params = {"action": "DELETE", "name": name, **kwargs}
+        return await self._request("GET", "admin/collections", params=params)
+
     async def add(
         self,
         documents: Union[SolrDocument, List[SolrDocument]],
@@ -297,6 +342,51 @@ class SolrClient(BaseSolrClient):
             return response.get("status") == "OK"
         except SolrError:
             return False
+
+    def create_collection(
+        self,
+        name: str,
+        num_shards: int = 1,
+        replication_factor: int = 1,
+        **kwargs: Any,
+    ) -> Dict[str, Any]:
+        """
+        Create a new Solr collection using the v2 Collections API (POST /api/collections).
+
+        Args:
+            name: Name of the collection to create.
+            num_shards: Number of shards for the collection.
+            replication_factor: Replication factor for the collection.
+            **kwargs: Additional Solr parameters (included in JSON body).
+
+        Returns:
+            Response from Solr.
+        """
+        json_body = {
+            "name": name,
+            "numShards": num_shards,
+            "replicationFactor": replication_factor,
+            **kwargs,
+        }
+        return self._request(
+            method="POST",
+            endpoint="/api/collections",
+            json=json_body,
+        )
+
+    def delete_collection(self, name: str, **kwargs: Any) -> Dict[str, Any]:
+        """
+        Delete a Solr collection.
+
+        Args:
+            name: Name of the collection to delete.
+            **kwargs: Additional Solr parameters.
+
+        Returns:
+            Response from Solr.
+        """
+        params = {"action": "DELETE", "name": name, **kwargs}
+        return self._request("GET", "admin/collections", params=params)
 
     def add(
         self,
