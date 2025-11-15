@@ -23,6 +23,7 @@ class SolrResponse(BaseModel, Generic[DocumentT]):
     docs: List[DocumentT]
     facet_counts: Optional[Dict[str, Any]] = None
     highlighting: Optional[Dict[str, Dict[str, List[str]]]] = None
+    extra: Optional[Dict[str, Any]] = None
 
     model_config = ConfigDict(validate_by_name=True)
 
