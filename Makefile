@@ -1,4 +1,5 @@
 .PHONY: format lint lint-fix
+
 format:
 	uv run ruff format taiyo tests
 
@@ -6,7 +7,7 @@ lint:
 	uv run ruff check taiyo tests
 
 lint-fix:
-	ruff check --fix taiyo tests
+	uv run ruff check --fix taiyo tests
 
 .PHONY: test test-unit test-integration
 
@@ -20,6 +21,7 @@ test:
 	test-unit test-integration
 
 .PHONY: build publish
+
 build:
 	uv build
 
