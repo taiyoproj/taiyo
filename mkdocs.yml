@@ -1,0 +1,43 @@
+site_name: taiyo
+site_description: Modern Python client for Apache Solr
+site_url: https://github.com/KengoA/taiyo
+repo_url: https://github.com/KengoA/taiyo
+repo_name: KengoA/taiyo
+copyright: "© 2025 Kengo Arao"
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: deep orange
+    accent: deep orange
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.path
+    - navigation.sections
+    - content.code.copy
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Clients:
+      - Overview: clients.md
+      - Authentication: auth.md
+  - Queries:
+    - Parsers:
+      - Overview: query-parsers.md
+      - Sparse: parsers/sparse.md
+      - Dense: parsers/dense.md
+      - Spatial: parsers/spatial.md
+    - Mixins & Configs: mixins-and-configs.md
+  - Models & Errors: models.md
+  - Recipes: recipes.md
