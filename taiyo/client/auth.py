@@ -2,6 +2,7 @@
 
 import base64
 from .base import BaseSolrClient
+from pydantic import SecretStr
 
 
 class SolrAuth:
@@ -33,7 +34,7 @@ class BasicAuth(SolrAuth):
         ```
     """
 
-    def __init__(self, username: str, password: str):
+    def __init__(self, username: SecretStr, password: SecretStr):
         self.username = username
         self.password = password
 
@@ -59,7 +60,7 @@ class BearerAuth(SolrAuth):
         ```
     """
 
-    def __init__(self, token: str):
+    def __init__(self, token: SecretStr):
         self.token = token
 
     def apply(self, client: BaseSolrClient) -> None:
