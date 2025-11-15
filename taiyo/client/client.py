@@ -143,13 +143,11 @@ class AsyncSolrClient(BaseSolrClient):
 
         Args:
             name: Name of the collection to delete.
-            **kwargs: Additional Solr parameters.
 
         Returns:
             Response from Solr.
         """
-        params = {"action": "DELETE", "name": name, **kwargs}
-        return await self._request("GET", "admin/collections", params=params)
+        return await self._request("DELETE", f"/api/collections/{name}")
 
     async def add(
         self,
@@ -374,19 +372,17 @@ class SolrClient(BaseSolrClient):
             json=json_body,
         )
 
-    def delete_collection(self, name: str, **kwargs: Any) -> Dict[str, Any]:
+    def delete_collection(self, name: str) -> Dict[str, Any]:
         """
         Delete a Solr collection.
 
         Args:
             name: Name of the collection to delete.
-            **kwargs: Additional Solr parameters.
 
         Returns:
             Response from Solr.
         """
-        params = {"action": "DELETE", "name": name, **kwargs}
-        return self._request("GET", "admin/collections", params=params)
+        return self._request("DELETE", f"/api/collections/{name}")
 
     def add(
         self,
