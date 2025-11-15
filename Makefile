@@ -8,9 +8,16 @@ lint:
 lint-fix:
 	ruff check --fix taiyo tests
 
-.PHONY: test
+.PHONY: test test-unit test-integration
+
+test-unit:
+	uv run pytest --cov=taiyo tests/unit
+
+test-integration:
+	uv run pytest --cov=taiyo tests/integration
+
 test:
-	uv run pytest tests/
+	test-unit test-integration
 
 .PHONY: build publish
 build:
