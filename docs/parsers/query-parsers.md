@@ -1,6 +1,3 @@
-bbox = BoundingBoxQueryParser(
-geofilt = GeoFilterQueryParser(
-
 # Query Parsers Overview
 
 Taiyo provides several families of query parsers, each in its own module mirroring the codebase structure:
