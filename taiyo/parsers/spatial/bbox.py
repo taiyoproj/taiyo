@@ -13,5 +13,5 @@ class BoundingBoxQueryParser(BaseQueryParser, SpatialSearchParamsMixin):
 
     @computed_field(alias="fq")
     @property
-    def fiter_query(self) -> str:
+    def filter_query(self) -> str:
         return f"{{!{self._def_type} sfield={self.spatial_field}}}"
