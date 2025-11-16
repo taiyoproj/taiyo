@@ -46,10 +46,10 @@ class AsyncSolrClient(BaseSolrClient):
             **client_options: Additional options to pass to the httpx client.
         """
         super().__init__(base_url, auth, timeout)
-        self.client = httpx.AsyncClient(timeout=timeout, **client_options)
+        self._client = httpx.AsyncClient(timeout=timeout, **client_options)
 
         if auth:
-            auth.apply(self.client)
+            auth.apply(self._client)
 
     async def __aenter__(self):
         return self
@@ -59,7 +59,7 @@ class AsyncSolrClient(BaseSolrClient):
 
     async def close(self):
         """Close the underlying HTTP client."""
-        await self.client.aclose()
+        await self._client.aclose()
 
     async def _request(
         self,
@@ -74,7 +74,7 @@ class AsyncSolrClient(BaseSolrClient):
         url = self._build_url(endpoint)
 
         try:
-            response = await self.client.request(
+            response = await self._client.request(
                 method=method, url=url, params=params, json=json, **kwargs
             )
             response.raise_for_status()
@@ -290,10 +290,10 @@ class SolrClient(BaseSolrClient):
             **client_options: Additional options to pass to the httpx client.
         """
         super().__init__(base_url, auth, timeout)
-        self.client = httpx.Client(timeout=timeout, **client_options)
+        self._client = httpx.Client(timeout=timeout, **client_options)
 
         if auth:
-            auth.apply(self.client)
+            auth.apply(self._client)
 
     def __enter__(self):
         return self
@@ -303,7 +303,7 @@ class SolrClient(BaseSolrClient):
 
     def close(self):
         """Close the underlying HTTP client."""
-        self.client.close()
+        self._client.close()
 
     def _request(
         self,
@@ -318,7 +318,7 @@ class SolrClient(BaseSolrClient):
         url = self._build_url(endpoint)
 
         try:
-            response = self.client.request(
+            response = self._client.request(
                 method=method, url=url, params=params, json=json, **kwargs
             )
             response.raise_for_status()
