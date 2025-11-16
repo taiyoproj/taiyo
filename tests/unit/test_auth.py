@@ -5,11 +5,14 @@ from taiyo import BasicAuth, BearerAuth
 
 def test_basic_auth():
     """Test Basic authentication."""
+
     class MockClient:
         def __init__(self):
             self.headers = {}
+
         def set_headers(self, key, value):
             self.headers[key] = value
+
     client = MockClient()
     auth = BasicAuth("user", "pass")
     auth.apply(client)
@@ -21,11 +24,14 @@ def test_basic_auth():
 
 def test_bearer_auth():
     """Test Bearer token authentication."""
+
     class MockClient:
         def __init__(self):
             self.headers = {}
+
         def set_headers(self, key, value):
             self.headers[key] = value
+
     client = MockClient()
     auth = BearerAuth("test-token")
     auth.apply(client)
