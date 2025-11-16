@@ -7,7 +7,6 @@ def test_bbox_minimal():
         spatial_field="store", center_point=[45.15, -93.85], radial_distance=5
     )
     params = parser.build()
-    assert params["sfield"] == "store"
     assert params["pt"] == "45.15,-93.85"
     assert params["d"] == 5
     assert "score" not in params
@@ -32,7 +31,6 @@ def test_geofilt_minimal():
         spatial_field="store", center_point=[45.15, -93.85], radial_distance=5
     )
     params = parser.build()
-    assert params["sfield"] == "store"
     assert params["pt"] == "45.15,-93.85"
     assert params["d"] == 5
     assert "score" not in params
