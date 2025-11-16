@@ -1,4 +1,3 @@
-import pytest
 from taiyo.parsers import (
     DisMaxQueryParser,
     ExtendedDisMaxQueryParser,
@@ -22,13 +21,14 @@ COLLECTION = f"test_taiyo_integration_{_rand}"
 
 
 def test_dismax_and_edismax_queries():
-    with SolrClient(SOLR_URL, COLLECTION) as client:
+    with SolrClient(SOLR_URL) as client:
         create_collection_with_schema(client)
         docs = [
             Store(id="1", name="Alpha", vector=[0.0, 0.0]),
             Store(id="2", name="Beta", vector=[1.0, 1.0]),
             Store(id="3", name="Gamma", vector=[2.0, 2.0]),
         ]
+        client.set_collection(COLLECTION)
         client.add(docs)
         client.commit()
         time.sleep(1)
@@ -65,13 +65,14 @@ def test_dismax_and_edismax_queries():
 
 
 def test_faceting_and_highlighting():
-    with SolrClient(SOLR_URL, COLLECTION) as client:
+    with SolrClient(SOLR_URL) as client:
         create_collection_with_schema(client)
         docs = [
             Store(id="1", name="Alpha", vector=[0.0, 0.0]),
             Store(id="2", name="Alpha", vector=[1.0, 1.0]),
             Store(id="3", name="Beta", vector=[2.0, 2.0]),
         ]
+        client.set_collection(COLLECTION)
         client.add(docs)
         client.commit()
         time.sleep(1)
@@ -106,15 +107,15 @@ def test_faceting_and_highlighting():
                 raise
 
 
-@pytest.mark.integration
 def test_grouping():
-    with SolrClient(SOLR_URL, COLLECTION) as client:
+    with SolrClient(SOLR_URL) as client:
         create_collection_with_schema(client)
         docs = [
             Store(id="1", name="Alpha", vector=[0.0, 0.0]),
             Store(id="2", name="Alpha", vector=[1.0, 1.0]),
             Store(id="3", name="Beta", vector=[2.0, 2.0]),
         ]
+        client.set_collection(COLLECTION)
         client.add(docs)
         client.commit()
         time.sleep(1)
@@ -142,13 +143,14 @@ def test_grouping():
 
 
 def test_spatial_bbox_and_geofilt():
-    with SolrClient(SOLR_URL, COLLECTION) as client:
+    with SolrClient(SOLR_URL) as client:
         create_collection_with_schema(client)
         docs = [
             Store(id="1", name="Alpha", vector=[0.0, 0.0]),
             Store(id="2", name="Beta", vector=[1.0, 1.0]),
             Store(id="3", name="Gamma", vector=[2.0, 2.0]),
         ]
+        client.set_collection(COLLECTION)
         client.add(docs)
         client.commit()
         time.sleep(1)
@@ -224,7 +226,9 @@ def create_collection_with_schema(client: SolrClient):
     }
     try:
         client._request(
-            "POST", "schema/fieldtypes", json={"add-field-type": vector_field_type}
+            "POST",
+            f"{COLLECTION}/schema/fieldtypes",
+            json={"add-field-type": vector_field_type},
         )
     except SolrError as e:
         # Ignore 'already exists' errors for field types
@@ -292,7 +296,7 @@ def create_collection_with_schema(client: SolrClient):
 
 
 def test_solr_end_to_end():
-    with SolrClient(SOLR_URL, COLLECTION) as client:
+    with SolrClient(SOLR_URL) as client:
         create_collection_with_schema(client)
         # Add documents
         docs = [
@@ -300,6 +304,7 @@ def test_solr_end_to_end():
             Store(id="2", name="Beta", vector=[1.0, 1.0]),
             Store(id="3", name="Gamma", vector=[2.0, 2.0]),
         ]
+        client.set_collection(COLLECTION)
         client.add(docs)
         client.commit()
         time.sleep(1)
