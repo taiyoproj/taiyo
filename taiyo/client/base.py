@@ -1,5 +1,5 @@
 from typing import Any, Dict, Optional, Union, Type, TYPE_CHECKING
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from urllib.parse import urljoin
 from pydantic import ValidationError
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from .auth import SolrAuth
 
 
-class BaseSolrClient(ABC):
+class BaseSolrClient:
     """
     Base class for Solr clients.
 
@@ -49,8 +49,13 @@ class BaseSolrClient(ABC):
         self.collection = collection
         return None
 
-    def set_headers(self, key: str, value: Any) -> None:
+    def set_header(self, key: str, value: Any) -> None:
         self._client.headers[key] = value
+        return None
+
+    def unset_header(self, key: str) -> None:
+        if key in self._client.headers:
+            del self._client.headers[key]
         return None
 
     @abstractmethod
