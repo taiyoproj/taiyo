@@ -5,6 +5,7 @@ from pydantic import ValidationError
 
 from taiyo.parsers.base import BaseQueryParser
 from ..types import SolrResponse, DocumentT
+from httpx import Client, AsyncClient
 
 if TYPE_CHECKING:
     from .auth import SolrAuth
@@ -38,6 +39,7 @@ class BaseSolrClient(ABC):
         self.timeout = timeout
         self.auth = auth
         self.collection = None
+        self._client: Client | AsyncClient
 
     def _build_url(self, endpoint: str) -> str:
         """Build the full URL for a Solr API endpoint."""
@@ -45,6 +47,10 @@ class BaseSolrClient(ABC):
 
     def set_collection(self, collection: str) -> None:
         self.collection = collection
+        return None
+
+    def set_headers(self, key: str, value: Any) -> None:
+        self._client.headers[key] = value
         return None
 
     @abstractmethod
