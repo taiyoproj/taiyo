@@ -5,7 +5,10 @@ from taiyo.params.mixins.base import ParamsMixin
 
 class SpatialSearchParamsMixin(ParamsMixin):
     spatial_field: str = Field(
-        ..., alias="sfield", description="Spatial indexed field (required)"
+        ...,
+        alias="sfield",
+        exclude=True,
+        description="Spatial indexed field (required)",
     )
     center_point: list[float] = Field(
         ..., alias="pt", description="Center point (lat,lon or x,y) (required)"
