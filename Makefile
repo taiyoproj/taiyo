@@ -56,10 +56,10 @@ publish:
 # Documentation
 .PHONY: docs docs-serve docs-clean
 docs:
-	mkdocs build
+	uv run zensical build
 
 docs-serve:
-	mkdocs serve
+	uv run zensical serve
 
 docs-clean:
-	mkdocs build --clean
+	uv run zensical clean
