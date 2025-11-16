@@ -1,3 +1,4 @@
+# Linting and formatting
 .PHONY: format lint lint-fix
 
 format:
@@ -6,6 +7,7 @@ format:
 lint:
 	uv run ruff check taiyo tests
 
+# Testing
 .PHONY: test test-unit solr-up solr-down solr-logs test-integration
 
 solr-up:
@@ -42,11 +44,22 @@ test-unit:
 test:
 	test-unit test-integration
 
-
-.PHONY: build publish
+# Build and publish
+.PHONY: build publish docs docs-serve docs-clean
 
 build:
 	uv build
 
 publish:
 	uv publish --repository pypi
+
+# Documentation
+.PHONY: docs docs-serve docs-clean
+docs:
+	mkdocs build
+
+docs-serve:
+	mkdocs serve
+
+docs-clean:
+	mkdocs build --clean
