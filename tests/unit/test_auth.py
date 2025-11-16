@@ -10,7 +10,7 @@ def test_basic_auth():
         def __init__(self):
             self.headers = {}
 
-        def set_headers(self, key, value):
+        def set_header(self, key, value):
             self.headers[key] = value
 
     client = MockClient()
@@ -29,7 +29,7 @@ def test_bearer_auth():
         def __init__(self):
             self.headers = {}
 
-        def set_headers(self, key, value):
+        def set_header(self, key, value):
             self.headers[key] = value
 
     client = MockClient()

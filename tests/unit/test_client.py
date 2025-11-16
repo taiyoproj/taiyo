@@ -13,6 +13,8 @@ from tests.unit.mocks import (
     mock_facet_response,
     mock_highlight_response,
 )
+import types
+from taiyo.client.base import BaseSolrClient
 
 
 # ============================================================================
@@ -420,3 +422,44 @@ def test_sync_error_handling(sync_solr_client: SolrClient, monkeypatch):
 
     assert exc_info.value.status_code == 400
     assert exc_info.value.response["error"]["message"] == error_message
+
+
+# ============================================================================
+# BaseSolrClient Tests
+# ============================================================================
+
+
+class DummySolrClient(BaseSolrClient):
+    def __init__(self, base_url, auth=None, timeout=10.0):
+        super().__init__(base_url, auth, timeout)
+        # Use a simple dict for headers for testing
+        self._client = types.SimpleNamespace(headers={})
+
+    def _request(self, *a, **k):
+        return {}
+
+
+def test_base_solr_client_set_collection():
+    client = DummySolrClient("http://localhost:8983/solr")
+    client.set_collection("my_collection")
+    assert client.collection == "my_collection"
+
+
+def test_base_solr_client_set_headers_single():
+    client = DummySolrClient("http://localhost:8983/solr")
+    client.set_header("X-Test", "value")
+    assert client._client.headers["X-Test"] == "value"
+    client.unset_header("X-Test")
+    assert "X-Test" not in client._client.headers
+
+
+def test_base_solr_client_set_headers_dict():
+    client = DummySolrClient("http://localhost:8983/solr")
+    client.set_header("A", "1")
+    client.set_header("B", "2")
+    assert client._client.headers["A"] == "1"
+    assert client._client.headers["B"] == "2"
+    client.unset_header("A")
+    client.unset_header("B")
+    assert "A" not in client._client.headers
+    assert "B" not in client._client.headers
