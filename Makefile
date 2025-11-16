@@ -44,6 +44,14 @@ test-unit:
 test:
 	test-unit test-integration
 
+.PHONY: dev-setup
+
+dev-setup:
+	@echo "Setting up development environment using uv..."
+	# Upgrade pip/setuptools in uv's environment then install editable package with dev extras
+	uv run python -m pip install --upgrade pip setuptools wheel
+	uv run pip install -e ".[dev]"
+
 # Build and publish
 .PHONY: build publish docs docs-serve docs-clean
 
