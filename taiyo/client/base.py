@@ -24,7 +24,6 @@ class BaseSolrClient(ABC):
     def __init__(
         self,
         base_url: str,
-        collection: str,
         auth: Optional["SolrAuth"] = None,
         timeout: float = 10.0,
     ):
@@ -36,13 +35,17 @@ class BaseSolrClient(ABC):
             timeout: Request timeout in seconds. Defaults to 10.
         """
         self.base_url = base_url.rstrip("/")
-        self.collection = collection
         self.timeout = timeout
         self.auth = auth
+        self.collection = None
 
     def _build_url(self, endpoint: str) -> str:
         """Build the full URL for a Solr API endpoint."""
-        return urljoin(f"{self.base_url}/{self.collection}/", endpoint)
+        return urljoin(f"{self.base_url}/", endpoint)
+
+    def set_collection(self, collection: str) -> None:
+        self.collection = collection
+        return None
 
     @abstractmethod
     def _request(
