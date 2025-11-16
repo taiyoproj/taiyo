@@ -11,7 +11,7 @@ lint:
 .PHONY: test test-unit solr-up solr-down solr-logs test-integration
 
 solr-up:
-	docker-compose up -d
+	docker compose up -d
 	@echo "Waiting for Solr to be ready..."
 	@i=0; while [ $$i -lt 30 ]; do \
 		if curl -sf http://localhost:8983/solr/admin/info/system > /dev/null 2>&1; then \
@@ -26,13 +26,13 @@ solr-up:
 	exit 1
 
 solr-down:
-	docker-compose down
+	docker compose down
 
 solr-logs:
-	docker-compose logs -f solr
+	docker compose logs -f solr
 
 solr-clean:
-	docker-compose down -v
+	dockercompose down -v
 
 test-integration: solr-up
 	uv run pytest --cov=taiyo tests/integration || (docker-compose down && exit 1)
