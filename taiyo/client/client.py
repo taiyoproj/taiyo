@@ -17,16 +17,18 @@ class AsyncSolrClient(BaseSolrClient):
         timeout: Request timeout in seconds
         **client_options: Additional options to pass to the httpx client
 
-    Example:
+    Usage:
         ```python
         from taiyo import AsyncSolrClient, BasicAuth
         async with AsyncSolrClient(
             "http://localhost:8983/solr",
-            "my_collection",
             auth=BasicAuth("username", "password")
         ) as client:
+            client.set_collection("my_collection")
             results = await client.search("*:*")
         ```
+    Note:
+        You must call `set_collection()` before using methods that require a collection.
     """
 
     def __init__(
@@ -39,7 +41,6 @@ class AsyncSolrClient(BaseSolrClient):
         """
         Args:
             base_url: Base URL of the Solr instance i.e. http://localhost:8983/solr.
-            collection: Name of the Solr collection.
             auth: Authentication method to use (optional).
             timeout: Request timeout in seconds. Defaults to 10.
             **client_options: Additional options to pass to the httpx client.
@@ -256,21 +257,22 @@ class SolrClient(BaseSolrClient):
 
     Args:
         base_url: Base URL of the Solr instance (e.g., "http://localhost:8983/solr")
-        collection: Name of the Solr collection
         auth: Authentication method to use (optional)
         timeout: Request timeout in seconds
         **client_options: Additional options to pass to the httpx client
 
-    Example:
+    Usage:
         ```python
         from taiyo import SolrClient, BasicAuth
         with SolrClient(
             "http://localhost:8983/solr",
-            "my_collection",
             auth=BasicAuth("username", "password")
         ) as client:
+            client.set_collection("my_collection")
             results = client.search("*:*")
         ```
+    Note:
+        You must call `set_collection()` before using methods that require a collection.
     """
 
     def __init__(
@@ -283,7 +285,6 @@ class SolrClient(BaseSolrClient):
         """
         Args:
             base_url: Base URL of the Solr instance i.e. http://localhost:8983/solr.
-            collection: Name of the Solr collection.
             auth: Authentication method to use (optional).
             timeout: Request timeout in seconds. Defaults to 10.
             **client_options: Additional options to pass to the httpx client.
