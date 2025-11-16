@@ -31,7 +31,7 @@ url = "https://pypi.org/simple"
 publish-url = "https://upload.pypi.org/legacy/"
 
 [tool.ruff]
-line-length = 100
+line-length = 88
 fix = true
 
 [tool.ruff.lint.pydocstyle]
