@@ -192,10 +192,10 @@ class Store(SolrDocument):
 
 
 def create_collection_with_schema(client: SolrClient):
-    import requests
+    import httpx
 
     try:
-        resp = requests.get(
+        resp = httpx.get(
             f"http://localhost:8983/solr/{COLLECTION}/schema/fields/vector", timeout=5
         )
         print("[DEBUG] Solr 'vector' field schema:", resp.json())
