@@ -13,7 +13,6 @@ class AsyncSolrClient(BaseSolrClient):
 
     Args:
         base_url: Base URL of the Solr instance (e.g., "http://localhost:8983/solr")
-        collection: Name of the Solr collection
         auth: Authentication method to use (optional)
         timeout: Request timeout in seconds
         **client_options: Additional options to pass to the httpx client
@@ -33,7 +32,6 @@ class AsyncSolrClient(BaseSolrClient):
     def __init__(
         self,
         base_url: str,
-        collection: str,
         auth: Optional[SolrAuth] = None,
         timeout: float = 10.0,
         **client_options: Any,
@@ -46,7 +44,7 @@ class AsyncSolrClient(BaseSolrClient):
             timeout: Request timeout in seconds. Defaults to 10.
             **client_options: Additional options to pass to the httpx client.
         """
-        super().__init__(base_url, collection, auth, timeout)
+        super().__init__(base_url, auth, timeout)
         self.client = httpx.AsyncClient(timeout=timeout, **client_options)
 
         if auth:
@@ -101,7 +99,7 @@ class AsyncSolrClient(BaseSolrClient):
             True if Solr is available, False otherwise
         """
         try:
-            response = await self._request("GET", "admin/ping")
+            response = await self._request("GET", "admin/info/system")
             return response.get("status") == "OK"
         except SolrError:
             return False
@@ -164,6 +162,9 @@ class AsyncSolrClient(BaseSolrClient):
         Returns:
             Response from Solr
         """
+        if not self.collection:
+            raise ValueError("collection needs to be specified via set_collection().")
+
         if not isinstance(documents, list):
             documents = [documents]
 
@@ -192,6 +193,9 @@ class AsyncSolrClient(BaseSolrClient):
         Returns:
             Response from Solr
         """
+        if not self.collection:
+            raise ValueError("collection needs to be specified via set_collection().")
+
         if not query and not ids:
             raise ValueError("Either query or ids must be provided")
 
@@ -217,7 +221,9 @@ class AsyncSolrClient(BaseSolrClient):
             Response from Solr
         """
         return await self._request(
-            method="GET", endpoint="update", params={"commit": "true"}
+            method="GET",
+            endpoint=f"{self.collection}/update",
+            params={"commit": "true"},
         )
 
     async def search(
@@ -238,7 +244,9 @@ class AsyncSolrClient(BaseSolrClient):
             SolrResponse with docs as a list of document_model instances (subclass of SolrDocument).
         """
         params = self._build_search_params(query, **kwargs)
-        response = await self._request(method="GET", endpoint="select", params=params)
+        response = await self._request(
+            method="GET", endpoint=f"{self.collection}/select", params=params
+        )
         return self._build_search_response(response, document_model)
 
 
@@ -268,7 +276,6 @@ class SolrClient(BaseSolrClient):
     def __init__(
         self,
         base_url: str,
-        collection: str,
         auth: Optional[SolrAuth] = None,
         timeout: float = 10.0,
         **client_options: Any,
@@ -281,7 +288,7 @@ class SolrClient(BaseSolrClient):
             timeout: Request timeout in seconds. Defaults to 10.
             **client_options: Additional options to pass to the httpx client.
         """
-        super().__init__(base_url, collection, auth, timeout)
+        super().__init__(base_url, auth, timeout)
         self.client = httpx.Client(timeout=timeout, **client_options)
 
         if auth:
@@ -336,7 +343,7 @@ class SolrClient(BaseSolrClient):
             True if Solr is available, False otherwise
         """
         try:
-            response = self._request("GET", "admin/ping")
+            response = self._request("GET", "admin/info/system")
             return response.get("status") == "OK"
         except SolrError:
             return False
@@ -405,7 +412,7 @@ class SolrClient(BaseSolrClient):
         params = {"commit": "true"} if commit else {}
         return self._request(
             method="POST",
-            endpoint="update/json/docs",
+            endpoint=f"{self.collection}/update/json/docs",
             params=params,
             json=[doc.model_dump(exclude_unset=True) for doc in documents],
         )
@@ -439,7 +446,7 @@ class SolrClient(BaseSolrClient):
         params = {"commit": "true"} if commit else {}
         return self._request(
             method="POST",
-            endpoint="update",
+            endpoint=f"{self.collection}/update",
             params=params,
             json={"delete": delete_query},
         )
@@ -451,7 +458,11 @@ class SolrClient(BaseSolrClient):
         Returns:
             Response from Solr
         """
-        return self._request(method="GET", endpoint="update", params={"commit": "true"})
+        return self._request(
+            method="GET",
+            endpoint=f"{self.collection}/update",
+            params={"commit": "true"},
+        )
 
     def search(
         self,
@@ -471,5 +482,7 @@ class SolrClient(BaseSolrClient):
             SolrResponse with docs as a list of document_model instances (subclass of SolrDocument).
         """
         params = self._build_search_params(query, **kwargs)
-        response = self._request(method="GET", endpoint="select", params=params)
+        response = self._request(
+            method="GET", endpoint=f"{self.collection}/select", params=params
+        )
         return self._build_search_response(response, document_model)
