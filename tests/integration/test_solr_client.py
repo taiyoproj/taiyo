@@ -256,7 +256,9 @@ def create_collection_with_schema(client: SolrClient):
     ]
     for field in schema_fields:
         try:
-            client._request("POST", f"{COLLECTION}/schema/fields", json={"add-field": field})
+            client._request(
+                "POST", f"{COLLECTION}/schema/fields", json={"add-field": field}
+            )
         except SolrError as e:
             # Ignore 'already exists' errors for fields/types (robust: check all error locations and raw text)
             if hasattr(e, "response") and isinstance(e.response, dict):

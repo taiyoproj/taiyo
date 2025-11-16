@@ -30,7 +30,7 @@ async def test_async_ping_success(async_solr_client: AsyncSolrClient, monkeypatc
         response._request = request
         return response
 
-    monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
     assert await async_solr_client.ping() is True
 
 
@@ -44,7 +44,7 @@ async def test_async_ping_failure(async_solr_client: AsyncSolrClient, monkeypatc
         response._request = request
         return response
 
-    monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
     assert await async_solr_client.ping() is False
 
 
@@ -66,7 +66,7 @@ async def test_async_add_single_document(
         response._request = request
         return response
 
-    monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
     async_solr_client.set_collection(collection)
     response = await async_solr_client.add(sample_doc)
     assert response["responseHeader"]["status"] == 0
@@ -87,7 +87,7 @@ async def test_async_add_multiple_documents(
         response._request = request
         return response
 
-    monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
     async_solr_client.set_collection(collection)
     response = await async_solr_client.add(sample_docs)
     assert response["responseHeader"]["status"] == 0
@@ -108,7 +108,7 @@ async def test_async_delete_by_id(async_solr_client: AsyncSolrClient, monkeypatc
         response._request = request
         return response
 
-    monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
     async_solr_client.set_collection(collection)
     response = await async_solr_client.delete(ids=ids)
     assert response["responseHeader"]["status"] == 0
@@ -129,7 +129,7 @@ async def test_async_delete_by_query(async_solr_client: AsyncSolrClient, monkeyp
         response._request = request
         return response
 
-    monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
     async_solr_client.set_collection(collection)
     response = await async_solr_client.delete(query=query)
     assert response["responseHeader"]["status"] == 0
@@ -149,7 +149,7 @@ async def test_async_search_basic(
         response._request = request
         return response
 
-    monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
     async_solr_client.set_collection(collection)
     response = await async_solr_client.search("title:test", MyDocument)
     assert response.num_found == len(sample_docs)
@@ -174,7 +174,7 @@ async def test_async_search_with_facets(
         response._request = request
         return response
 
-    monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
     async_solr_client.set_collection(collection)
     response = await async_solr_client.search(
         "*:*", facet="true", facet_field="category"
@@ -200,7 +200,7 @@ async def test_async_search_with_highlighting(
         response._request = request
         return response
 
-    monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
     async_solr_client.set_collection(collection)
     response = await async_solr_client.search("test", hl="true", hl_fl="title")
     assert response.highlighting == highlights
@@ -220,7 +220,7 @@ async def test_async_error_handling(async_solr_client: AsyncSolrClient, monkeypa
         response._request = request
         return response
 
-    monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
 
     with pytest.raises(SolrError) as exc_info:
         await async_solr_client.search("invalid:query]")
@@ -243,7 +243,7 @@ def test_sync_ping_success(sync_solr_client: SolrClient, monkeypatch):
         response._request = request
         return response
 
-    monkeypatch.setattr(sync_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
     assert sync_solr_client.ping() is True
 
 
@@ -256,7 +256,7 @@ def test_sync_ping_failure(sync_solr_client: SolrClient, monkeypatch):
         response._request = request
         return response
 
-    monkeypatch.setattr(sync_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
     assert sync_solr_client.ping() is False
 
 
@@ -277,7 +277,7 @@ def test_sync_add_single_document(
         response._request = request
         return response
 
-    monkeypatch.setattr(sync_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
     response = sync_solr_client.add(sample_doc)
     assert response["responseHeader"]["status"] == 0
 
@@ -296,7 +296,7 @@ def test_sync_add_multiple_documents(
         response._request = request
         return response
 
-    monkeypatch.setattr(sync_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
     response = sync_solr_client.add(sample_docs)
     assert response["responseHeader"]["status"] == 0
 
@@ -315,7 +315,7 @@ def test_sync_delete_by_id(sync_solr_client: SolrClient, monkeypatch):
         response._request = request
         return response
 
-    monkeypatch.setattr(sync_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
     response = sync_solr_client.delete(ids=ids)
     assert response["responseHeader"]["status"] == 0
 
@@ -334,7 +334,7 @@ def test_sync_delete_by_query(sync_solr_client: SolrClient, monkeypatch):
         response._request = request
         return response
 
-    monkeypatch.setattr(sync_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
     response = sync_solr_client.delete(query=query)
     assert response["responseHeader"]["status"] == 0
 
@@ -350,7 +350,7 @@ def test_sync_search_basic(sync_solr_client: SolrClient, monkeypatch, sample_doc
         response._request = request
         return response
 
-    monkeypatch.setattr(sync_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
     response = sync_solr_client.search("title:test", MyDocument)
     assert response.num_found == len(sample_docs)
     assert len(response.docs) == len(sample_docs)
@@ -373,7 +373,7 @@ def test_sync_search_with_facets(
         response._request = request
         return response
 
-    monkeypatch.setattr(sync_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
     response = sync_solr_client.search("*:*", facet="true", facet_field="category")
     assert response.facet_counts is not None
     assert response.facet_counts["facet_fields"] == facets
@@ -395,7 +395,7 @@ def test_sync_search_with_highlighting(
         response._request = request
         return response
 
-    monkeypatch.setattr(sync_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
     response = sync_solr_client.search("test", hl="true", hl_fl="title")
     assert response.highlighting == highlights
 
@@ -413,7 +413,7 @@ def test_sync_error_handling(sync_solr_client: SolrClient, monkeypatch):
         response._request = request
         return response
 
-    monkeypatch.setattr(sync_solr_client.client, "request", mock_request)
+    monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
 
     with pytest.raises(SolrError) as exc_info:
         sync_solr_client.search("invalid:query]")
