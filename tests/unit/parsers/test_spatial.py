@@ -63,4 +63,4 @@ def test_geofilt_fq():
     parser = GeoFilterQueryParser(
         spatial_field="store", center_point=[0, 0], radial_distance=1
     )
-    assert parser.fiter_query == "{!geofilt sfield=store}"
+    assert parser.filter_query == "{!geofilt sfield=store}"
