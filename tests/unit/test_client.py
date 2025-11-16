@@ -4,7 +4,7 @@ import pytest
 import httpx
 from httpx import Response
 from taiyo import SolrClient, AsyncSolrClient, SolrError
-from tests.unit.conftest import MyDocument
+from tests.unit.conftest import MyDocument, collection
 from tests.unit.mocks import (
     mock_search_response,
     mock_update_response,
@@ -67,6 +67,7 @@ async def test_async_add_single_document(
         return response
 
     monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    async_solr_client.set_collection(collection)
     response = await async_solr_client.add(sample_doc)
     assert response["responseHeader"]["status"] == 0
 
@@ -87,6 +88,7 @@ async def test_async_add_multiple_documents(
         return response
 
     monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    async_solr_client.set_collection(collection)
     response = await async_solr_client.add(sample_docs)
     assert response["responseHeader"]["status"] == 0
 
@@ -107,6 +109,7 @@ async def test_async_delete_by_id(async_solr_client: AsyncSolrClient, monkeypatc
         return response
 
     monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    async_solr_client.set_collection(collection)
     response = await async_solr_client.delete(ids=ids)
     assert response["responseHeader"]["status"] == 0
 
@@ -127,6 +130,7 @@ async def test_async_delete_by_query(async_solr_client: AsyncSolrClient, monkeyp
         return response
 
     monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    async_solr_client.set_collection(collection)
     response = await async_solr_client.delete(query=query)
     assert response["responseHeader"]["status"] == 0
 
@@ -146,6 +150,7 @@ async def test_async_search_basic(
         return response
 
     monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    async_solr_client.set_collection(collection)
     response = await async_solr_client.search("title:test", MyDocument)
     assert response.num_found == len(sample_docs)
     assert len(response.docs) == len(sample_docs)
@@ -170,6 +175,7 @@ async def test_async_search_with_facets(
         return response
 
     monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    async_solr_client.set_collection(collection)
     response = await async_solr_client.search(
         "*:*", facet="true", facet_field="category"
     )
@@ -195,6 +201,7 @@ async def test_async_search_with_highlighting(
         return response
 
     monkeypatch.setattr(async_solr_client.client, "request", mock_request)
+    async_solr_client.set_collection(collection)
     response = await async_solr_client.search("test", hl="true", hl_fl="title")
     assert response.highlighting == highlights
 

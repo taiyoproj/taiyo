@@ -45,17 +45,15 @@ async def mock_httpx_client(monkeypatch) -> AsyncGenerator[None, None]:
 
 @pytest_asyncio.fixture
 async def async_solr_client(
-    base_url: str, collection: str, mock_httpx_client
+    base_url: str, mock_httpx_client
 ) -> AsyncGenerator[AsyncSolrClient, None]:
-    async with AsyncSolrClient(base_url, collection) as client:
+    async with AsyncSolrClient(base_url) as client:
         yield client
 
 
 @pytest.fixture
-def sync_solr_client(
-    base_url: str, collection: str
-) -> Generator[SolrClient, None, None]:
-    with SolrClient(base_url, collection) as client:
+def sync_solr_client(base_url: str) -> Generator[SolrClient, None, None]:
+    with SolrClient(base_url) as client:
         yield client
 
 
