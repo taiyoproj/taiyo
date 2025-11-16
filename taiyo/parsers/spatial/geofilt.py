@@ -11,6 +11,11 @@ class GeoFilterQueryParser(BaseQueryParser, SpatialSearchParamsMixin):
 
     _def_type: Literal["geofilt"] = "geofilt"
 
+    @computed_field(alias="q")
+    @property
+    def query(self) -> str:
+        return "*:*"
+
     @computed_field(alias="fq")
     @property
     def filter_query(self) -> str:
