@@ -1,7 +1,7 @@
-from .bbox import BoundingBoxQueryParser
+from .bbox import BBoxQueryParser
 from .geofilt import GeoFilterQueryParser
 
 __all__ = [
-    "BoundingBoxQueryParser",
+    "BBoxQueryParser",
     "GeoFilterQueryParser",
 ]
