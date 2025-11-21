@@ -21,14 +21,14 @@ class CharFilter(BaseModel):
     Example:
         ```python
         from taiyo.schema.enums import SolrCharFilterFactory
-        
+
         # Using enum
         char_filter = CharFilter(
             solr_class=SolrCharFilterFactory.PATTERN_REPLACE,
             pattern="([a-zA-Z])\\\\1+",
             replacement="$1$1"
         )
-        
+
         # Or using string
         char_filter = CharFilter(
             name="patternReplace",
@@ -47,7 +47,7 @@ class CharFilter(BaseModel):
         description="Char filter class (enum or string, e.g., SolrCharFilterFactory.HTML_STRIP or 'solr.HTMLStripCharFilterFactory')",
     )
 
-    @field_validator("solr_filter_class", mode="before")
+    @field_validator("solr_class", mode="before")
     @classmethod
     def validate_class(cls, v):
         """Accept both enum and string values."""
@@ -88,13 +88,13 @@ class Tokenizer(BaseModel):
     Example:
         ```python
         from taiyo.schema.enums import SolrTokenizerFactory
-        
+
         # Using enum
         tokenizer = Tokenizer(solr_class=SolrTokenizerFactory.STANDARD)
-        
+
         # Or using name
         tokenizer = Tokenizer(name="standard")
-        
+
         # Or using string class
         tokenizer = Tokenizer(solr_class="solr.StandardTokenizerFactory")
         ```
@@ -110,7 +110,7 @@ class Tokenizer(BaseModel):
         description="Tokenizer class (enum or string, e.g., SolrTokenizerFactory.STANDARD or 'solr.StandardTokenizerFactory')",
     )
 
-    @field_validator("solr_tokenizer_class", mode="before")
+    @field_validator("solr_class", mode="before")
     @classmethod
     def validate_class(cls, v):
         """Accept both enum and string values."""
@@ -151,20 +151,20 @@ class Filter(BaseModel):
     Example:
         ```python
         from taiyo.schema.enums import SolrFilterFactory
-        
+
         # Using enum
         filter = Filter(solr_class=SolrFilterFactory.LOWER_CASE)
-        
+
         # Using name
         filter = Filter(name="lowercase")
-        
+
         # With parameters using enum
         filter = Filter(
             solr_class=SolrFilterFactory.STOP,
             ignore_case=True,
             words="stopwords.txt"
         )
-        
+
         # With parameters using name
         filter = Filter(
             name="stop",
@@ -184,7 +184,7 @@ class Filter(BaseModel):
         description="Filter class (enum or string, e.g., SolrFilterFactory.LOWER_CASE or 'solr.LowerCaseFilterFactory')",
     )
 
-    @field_validator("solr_filter_class", mode="before")
+    @field_validator("solr_class", mode="before")
     @classmethod
     def validate_class(cls, v):
         """Accept both enum and string values."""
@@ -245,7 +245,7 @@ class Analyzer(BaseModel):
     char_filters: Optional[List[CharFilter]] = Field(
         default=None,
         alias="charFilters",
-        description="Character filters applied before tokenization"
+        description="Character filters applied before tokenization",
     )
     tokenizer: Optional[Tokenizer] = Field(
         default=None, description="Tokenizer for splitting text"
@@ -351,11 +351,11 @@ class SolrFieldType(BaseModel):
         ```python
         from taiyo.schema import SolrFieldType, Analyzer, Tokenizer, Filter
         from taiyo.schema.enums import (
-            SolrFieldClass, 
-            SolrTokenizerFactory, 
+            SolrFieldClass,
+            SolrTokenizerFactory,
             SolrFilterFactory
         )
-        
+
         # Using enums (recommended)
         field_type = SolrFieldType(
             name="text_general",
@@ -369,7 +369,7 @@ class SolrFieldType(BaseModel):
                 ]
             )
         )
-        
+
         # Or using strings (also supported)
         field_type = SolrFieldType(
             name="text_general",
@@ -395,7 +395,7 @@ class SolrFieldType(BaseModel):
         description="Field type class (enum or string, e.g., SolrFieldClass.TEXT or 'solr.TextField')",
     )
 
-    @field_validator("solr_field_class", mode="before")
+    @field_validator("solr_class", mode="before")
     @classmethod
     def validate_field_class(cls, v):
         """Accept both enum and string values."""
