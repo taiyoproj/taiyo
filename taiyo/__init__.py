@@ -28,7 +28,6 @@ from .parsers import (
     StandardParser,
     DisMaxQueryParser,
     ExtendedDisMaxQueryParser,
-    BoundingBoxQueryParser,
     GeoFilterQueryParser,
 )
 
@@ -48,7 +47,6 @@ __all__ = [
     "KNNQueryParser",
     "KNNTextToVectorQueryParser",
     "VectorSimilarityParser",
-    "BoundingBoxQueryParser",
     "GeoFilterQueryParser",
     "CommonParamsMixin",
     "DenseVectorSearchParamsMixin",
