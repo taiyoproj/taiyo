@@ -1,10 +1,25 @@
-"""Solr faceting models.
+"""Solr Faceting Configuration.
 
-This module provides Pydantic models for Solr's faceting functionality, including:
-- General facet parameters
-- Field-value faceting
-- Range faceting
-- Pivot (Decision Tree) faceting
+Faceting allows you to categorize search results into groups with counts,
+enabling users to refine searches by drilling down into categories.
+
+Common use cases:
+- Product filtering (category, brand, price range)
+- Search refinement (date ranges, locations)
+- Analytics and reporting
+
+Official Documentation:
+    https://solr.apache.org/guide/solr/latest/query-guide/faceting.html
+
+Example:
+    ```python
+    facet_config = FacetParamsConfig(
+        fields=['category', 'brand'],  # Facet by category and brand
+        limit=10,  # Show top 10 values per facet
+        mincount=1,  # Only show facets with at least 1 match
+        sort=FacetSort.COUNT  # Sort by count (highest first)
+    )
+    ```
 """
 
 from enum import Enum
@@ -15,38 +30,66 @@ from taiyo.params.configs.base import ParamsConfig
 
 
 class FacetMethod(str, Enum):
-    """Available faceting methods."""
+    """Faceting algorithm methods.
+    
+    Choose based on your field characteristics:
+    - ENUM: Best for fields with few distinct values (enumerates all terms)
+    - FIELD_CACHE: Best for fields with many unique terms but few per document
+    - PER_SEGMENT: Best for single-valued strings with frequent index updates
+    
+    Reference: https://solr.apache.org/guide/solr/latest/query-guide/faceting.html#the-facet-method-parameter
+    """
 
-    ENUM = "enum"
-    FIELD_CACHE = "fc"
-    PER_SEGMENT = "fcs"
+    ENUM = "enum"  # Enumerate all terms, good for low-cardinality fields
+    FIELD_CACHE = "fc"  # Use field cache, good for high-cardinality fields
+    PER_SEGMENT = "fcs"  # Per-segment faceting for faster index updates
 
 
 class FacetSort(str, Enum):
-    """Facet sorting options."""
+    """How to order facet results.
+    
+    - COUNT: Sort by frequency (most common first) - default for most use cases
+    - INDEX: Sort lexicographically (alphabetically)
+    """
 
-    COUNT = "count"
-    INDEX = "index"
+    COUNT = "count"  # Sort by count (highest first)
+    INDEX = "index"  # Sort alphabetically/lexicographically
 
 
 class RangeOther(str, Enum):
-    """Range faceting 'other' options."""
+    """Additional range buckets to include beyond start/end.
+    
+    - BEFORE: Count docs below the first range
+    - AFTER: Count docs above the last range  
+    - BETWEEN: Count docs within start and end bounds
+    - NONE: No additional counts
+    - ALL: Include all (before, after, between)
+    """
 
-    BEFORE = "before"
-    AFTER = "after"
-    BETWEEN = "between"
-    NONE = "none"
-    ALL = "all"
+    BEFORE = "before"  # Docs below first range's lower bound
+    AFTER = "after"  # Docs above last range's upper bound
+    BETWEEN = "between"  # Docs between start and end
+    NONE = "none"  # No additional buckets
+    ALL = "all"  # All additional buckets
 
 
 class RangeInclude(str, Enum):
-    """Range faceting 'include' options."""
+    """Control which range boundaries are inclusive/exclusive.
+    
+    By default, ranges are [lower, upper) - include lower, exclude upper.
+    
+    - LOWER: All ranges include their lower bound
+    - UPPER: All ranges include their upper bound
+    - EDGE: First and last ranges include their edge bounds
+    - OUTER: 'before' and 'after' ranges are inclusive
+    - ALL: Shorthand for all of the above
+    """
 
-    LOWER = "lower"
-    UPPER = "upper"
-    EDGE = "edge"
-    OUTER = "outer"
-    ALL = "all"
+    LOWER = "lower"  # Include lower bound [x, y)
+    UPPER = "upper"  # Include upper bound (x, y]
+    EDGE = "edge"  # First/last ranges include edges
+    OUTER = "outer"  # before/after ranges are inclusive
+    ALL = "all"  # All boundaries inclusive
 
 
 class RangeMethod(str, Enum):
@@ -57,7 +100,49 @@ class RangeMethod(str, Enum):
 
 
 class FacetParamsConfig(ParamsConfig):
-    """Comprehensive Solr faceting parameters."""
+    """Solr Faceting Configuration - Categorize and Count Search Results.
+    
+    Faceting breaks down search results into categories with counts, enabling
+    drill-down navigation and data analysis.
+    
+    Official Documentation:
+        https://solr.apache.org/guide/solr/latest/query-guide/faceting.html
+    
+    Common Patterns:
+        
+        Basic Field Faceting:
+        ```python
+        config = FacetParamsConfig(
+            fields=['category', 'brand'],  # Fields to facet on
+            limit=10,  # Top 10 values
+            mincount=1  # Skip empty facets
+        )
+        ```
+        
+        Range Faceting (Prices, Dates):
+        ```python
+        config = FacetParamsConfig(
+            range_field=['price'],
+            range_start={'price': '0'},
+            range_end={'price': '1000'},
+            range_gap={'price': '100'}  # $0-100, $100-200, etc.
+        )
+        ```
+        
+        Filtered Facets:
+        ```python
+        config = FacetParamsConfig(
+            fields=['color'],
+            prefix='bl',  # Only colors starting with 'bl' (blue, black)
+            mincount=5  # Only show if 5+ matches
+        )
+        ```
+    
+    Performance Tips:
+        - Use appropriate 'method' for your field type
+        - Set 'mincount' to reduce result size
+        - Consider 'threads' for parallel faceting on large datasets
+    """
 
     queries: Optional[List[str]] = Field(
         default=None,
