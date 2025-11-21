@@ -41,8 +41,7 @@ test-integration: solr-up
 test-unit:
 	uv run pytest --cov=taiyo tests/unit
 
-test:
-	test-unit test-integration
+test: test-unit test-integration
 
 .PHONY: dev-setup
 
