@@ -7,6 +7,7 @@ from taiyo.parsers import DisMaxQueryParser, ExtendedDisMaxQueryParser
 
 SOLR_URL = "http://localhost:8983/solr"
 
+
 class Product(SolrDocument):
     name: str
     description: str
@@ -26,8 +27,20 @@ def test_dismax_and_edismax_queries():
 
         # Define and add fields with text type for proper analysis
         fields = [
-            SolrField(name="name", type="text_general", stored=True, indexed=True, multi_valued=False),
-            SolrField(name="description", type="text_general", stored=True, indexed=True, multi_valued=False),
+            SolrField(
+                name="name",
+                type="text_general",
+                stored=True,
+                indexed=True,
+                multi_valued=False,
+            ),
+            SolrField(
+                name="description",
+                type="text_general",
+                stored=True,
+                indexed=True,
+                multi_valued=False,
+            ),
         ]
 
         for field in fields:
@@ -39,23 +52,23 @@ def test_dismax_and_edismax_queries():
         docs = [
             Product(
                 name="Apple MacBook Pro",
-                description="Powerful laptop with M2 chip for professional work"
+                description="Powerful laptop with M2 chip for professional work",
             ),
             Product(
                 name="Dell XPS 15",
-                description="High performance laptop with Intel processor"
+                description="High performance laptop with Intel processor",
             ),
             Product(
                 name="Apple iPhone 15",
-                description="Latest smartphone with advanced camera features"
+                description="Latest smartphone with advanced camera features",
             ),
             Product(
                 name="Samsung Galaxy S24",
-                description="Android smartphone with powerful performance"
+                description="Android smartphone with powerful performance",
             ),
             Product(
                 name="Sony Headphones",
-                description="Wireless noise cancelling headphones for music"
+                description="Wireless noise cancelling headphones for music",
             ),
         ]
         client.add(docs)
@@ -88,7 +101,9 @@ def test_dismax_and_edismax_queries():
         assert res2.num_found >= 1
         assert all(isinstance(doc, Product) for doc in res2.docs)
         # Should find smartphones
-        matching_docs = [doc for doc in res2.docs if "smartphone" in doc.description.lower()]
+        matching_docs = [
+            doc for doc in res2.docs if "smartphone" in doc.description.lower()
+        ]
         assert len(matching_docs) >= 1
 
         # Test eDisMax with boolean operators

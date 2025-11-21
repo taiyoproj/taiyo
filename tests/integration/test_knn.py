@@ -13,22 +13,23 @@ COLLECTION = f"test_taiyo_knn_{_rand}"
 
 class Movie(SolrDocument):
     """Movie document with semantic embedding vector."""
+
     title: str
     genre: str
     description: str
     embedding: list[float] = Field(
-        default_factory=list, 
-        description="Semantic embedding vector for similarity search"
+        default_factory=list,
+        description="Semantic embedding vector for similarity search",
     )
 
 
 def test_knn():
     """End-to-end test for KNN search with realistic movie recommendations.
-    
+
     This test simulates a movie recommendation system using semantic embeddings.
     The embeddings are simplified 5-dimensional vectors where dimensions roughly represent:
     - action/adventure intensity
-    - drama/emotion level  
+    - drama/emotion level
     - comedy/humor level
     - sci-fi/fantasy elements
     - romance level
@@ -56,8 +57,12 @@ def test_knn():
         fields = [
             SolrField(name="title", type="string", stored=True),
             SolrField(name="genre", type="string", stored=True),
-            SolrField(name="description", type="text_general", stored=True, multi_valued=False),
-            SolrField(name="embedding", type="movie_embedding", indexed=True, stored=False),
+            SolrField(
+                name="description", type="text_general", stored=True, multi_valued=False
+            ),
+            SolrField(
+                name="embedding", type="movie_embedding", indexed=True, stored=False
+            ),
         ]
 
         for field in fields:
@@ -69,37 +74,37 @@ def test_knn():
                 title="The Matrix",
                 genre="Sci-Fi Action",
                 description="A hacker discovers reality is a simulation",
-                embedding=[0.9, 0.3, 0.1, 0.95, 0.2]  # High action & sci-fi
+                embedding=[0.9, 0.3, 0.1, 0.95, 0.2],  # High action & sci-fi
             ),
             Movie(
                 title="Inception",
                 genre="Sci-Fi Thriller",
                 description="Dream thieves perform corporate espionage",
-                embedding=[0.8, 0.6, 0.1, 0.85, 0.1]  # Action & sci-fi with drama
+                embedding=[0.8, 0.6, 0.1, 0.85, 0.1],  # Action & sci-fi with drama
             ),
             Movie(
                 title="The Notebook",
                 genre="Romance Drama",
                 description="A love story spanning decades",
-                embedding=[0.1, 0.9, 0.1, 0.0, 0.95]  # High drama & romance
+                embedding=[0.1, 0.9, 0.1, 0.0, 0.95],  # High drama & romance
             ),
             Movie(
                 title="Superbad",
                 genre="Comedy",
                 description="High school friends have one last adventure",
-                embedding=[0.2, 0.3, 0.95, 0.0, 0.4]  # High comedy
+                embedding=[0.2, 0.3, 0.95, 0.0, 0.4],  # High comedy
             ),
             Movie(
                 title="Interstellar",
                 genre="Sci-Fi Drama",
                 description="Astronauts travel through a wormhole to save humanity",
-                embedding=[0.5, 0.8, 0.1, 0.9, 0.3]  # Sci-fi with strong drama
+                embedding=[0.5, 0.8, 0.1, 0.9, 0.3],  # Sci-fi with strong drama
             ),
             Movie(
                 title="Die Hard",
                 genre="Action Thriller",
                 description="A cop battles terrorists in a skyscraper",
-                embedding=[0.95, 0.4, 0.3, 0.0, 0.1]  # High action
+                embedding=[0.95, 0.4, 0.3, 0.0, 0.1],  # High action
             ),
         ]
         client.add(docs)
@@ -117,7 +122,9 @@ def test_knn():
             assert all(isinstance(doc, Movie) for doc in res.docs)
             # Should find The Matrix, Inception, or other sci-fi action movies
             titles = [doc.title for doc in res.docs]
-            assert any(movie in titles for movie in ["The Matrix", "Inception", "Interstellar"])
+            assert any(
+                movie in titles for movie in ["The Matrix", "Inception", "Interstellar"]
+            )
         except SolrError as e:
             print("[DEBUG] Solr KNN query error response:", getattr(e, "response", e))
             raise
