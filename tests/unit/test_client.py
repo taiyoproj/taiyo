@@ -464,6 +464,7 @@ def test_base_solr_client_set_headers_dict():
     assert "A" not in client._client.headers
     assert "B" not in client._client.headers
 
+
 @pytest.mark.asyncio
 async def test_async_add_field_type_with_schema_object(
     async_solr_client: AsyncSolrClient, monkeypatch
