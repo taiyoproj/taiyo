@@ -463,3 +463,187 @@ def test_base_solr_client_set_headers_dict():
     client.unset_header("B")
     assert "A" not in client._client.headers
     assert "B" not in client._client.headers
+
+@pytest.mark.asyncio
+async def test_async_add_field_type_with_schema_object(
+    async_solr_client: AsyncSolrClient, monkeypatch
+):
+    """Test adding field type using SolrFieldType object."""
+    from taiyo.schema import SolrFieldType, SolrFieldClass
+
+    field_type = SolrFieldType(
+        name="text_general",
+        solr_class=SolrFieldClass.TEXT,
+        position_increment_gap=100,
+    )
+
+    async def mock_request(*args, **kwargs):
+        assert kwargs["json"]["add-field-type"]["name"] == "text_general"
+        assert kwargs["json"]["add-field-type"]["class"] == "solr.TextField"
+        assert kwargs["json"]["add-field-type"]["positionIncrementGap"] == 100
+        request = httpx.Request("POST", "http://localhost:8983", json=kwargs["json"])
+        response = Response(200, json={"responseHeader": {"status": 0}})
+        response._request = request
+        return response
+
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
+    async_solr_client.set_collection(collection)
+    response = await async_solr_client.add_field_type(field_type)
+    assert response["responseHeader"]["status"] == 0
+
+
+@pytest.mark.asyncio
+async def test_async_add_field_type_with_dict(
+    async_solr_client: AsyncSolrClient, monkeypatch
+):
+    """Test adding field type using dictionary."""
+    field_type_dict = {
+        "name": "pdouble",
+        "class": "solr.DoublePointField",
+        "docValues": True,
+    }
+
+    async def mock_request(*args, **kwargs):
+        assert kwargs["json"]["add-field-type"] == field_type_dict
+        request = httpx.Request("POST", "http://localhost:8983", json=kwargs["json"])
+        response = Response(200, json={"responseHeader": {"status": 0}})
+        response._request = request
+        return response
+
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
+    async_solr_client.set_collection(collection)
+    response = await async_solr_client.add_field_type(field_type_dict)
+    assert response["responseHeader"]["status"] == 0
+
+
+@pytest.mark.asyncio
+async def test_async_add_field_with_schema_object(
+    async_solr_client: AsyncSolrClient, monkeypatch
+):
+    """Test adding field using SolrField object."""
+    from taiyo.schema import SolrField
+
+    field = SolrField(
+        name="title",
+        type="text_general",
+        indexed=True,
+        stored=True,
+    )
+
+    async def mock_request(*args, **kwargs):
+        assert kwargs["json"]["add-field"]["name"] == "title"
+        assert kwargs["json"]["add-field"]["type"] == "text_general"
+        assert kwargs["json"]["add-field"]["indexed"] is True
+        request = httpx.Request("POST", "http://localhost:8983", json=kwargs["json"])
+        response = Response(200, json={"responseHeader": {"status": 0}})
+        response._request = request
+        return response
+
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
+    async_solr_client.set_collection(collection)
+    response = await async_solr_client.add_field(field)
+    assert response["responseHeader"]["status"] == 0
+
+
+@pytest.mark.asyncio
+async def test_async_add_dynamic_field(async_solr_client: AsyncSolrClient, monkeypatch):
+    """Test adding dynamic field using SolrDynamicField object."""
+    from taiyo.schema import SolrDynamicField
+
+    field = SolrDynamicField(
+        name="*_txt",
+        type="text_general",
+        indexed=True,
+        stored=True,
+    )
+
+    async def mock_request(*args, **kwargs):
+        assert kwargs["json"]["add-dynamic-field"]["name"] == "*_txt"
+        assert kwargs["json"]["add-dynamic-field"]["type"] == "text_general"
+        request = httpx.Request("POST", "http://localhost:8983", json=kwargs["json"])
+        response = Response(200, json={"responseHeader": {"status": 0}})
+        response._request = request
+        return response
+
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
+    async_solr_client.set_collection(collection)
+    response = await async_solr_client.add_dynamic_field(field)
+    assert response["responseHeader"]["status"] == 0
+
+
+def test_sync_add_field_type_with_schema_object(
+    sync_solr_client: SolrClient, monkeypatch
+):
+    """Test adding field type using SolrFieldType object (sync)."""
+    from taiyo.schema import SolrFieldType, SolrFieldClass
+
+    field_type = SolrFieldType(
+        name="knn_vector",
+        solr_class=SolrFieldClass.DENSE_VECTOR,
+        vectorDimension=768,
+        similarityFunction="cosine",
+    )
+
+    def mock_request(*args, **kwargs):
+        assert kwargs["json"]["add-field-type"]["name"] == "knn_vector"
+        assert kwargs["json"]["add-field-type"]["class"] == "solr.DenseVectorField"
+        assert kwargs["json"]["add-field-type"]["vectorDimension"] == 768
+        request = httpx.Request("POST", "http://localhost:8983", json=kwargs["json"])
+        response = Response(200, json={"responseHeader": {"status": 0}})
+        response._request = request
+        return response
+
+    monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
+    sync_solr_client.set_collection(collection)
+    response = sync_solr_client.add_field_type(field_type)
+    assert response["responseHeader"]["status"] == 0
+
+
+def test_sync_add_field_with_schema_object(sync_solr_client: SolrClient, monkeypatch):
+    """Test adding field using SolrField object (sync)."""
+    from taiyo.schema import SolrField
+
+    field = SolrField(
+        name="vector",
+        type="knn_vector",
+        indexed=True,
+        stored=False,
+    )
+
+    def mock_request(*args, **kwargs):
+        assert kwargs["json"]["add-field"]["name"] == "vector"
+        assert kwargs["json"]["add-field"]["type"] == "knn_vector"
+        assert kwargs["json"]["add-field"]["indexed"] is True
+        assert kwargs["json"]["add-field"]["stored"] is False
+        request = httpx.Request("POST", "http://localhost:8983", json=kwargs["json"])
+        response = Response(200, json={"responseHeader": {"status": 0}})
+        response._request = request
+        return response
+
+    monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
+    sync_solr_client.set_collection(collection)
+    response = sync_solr_client.add_field(field)
+    assert response["responseHeader"]["status"] == 0
+
+
+@pytest.mark.asyncio
+async def test_async_add_field_type_without_collection_raises(
+    async_solr_client: AsyncSolrClient,
+):
+    """Test that adding field type without setting collection raises error."""
+    from taiyo.schema import SolrFieldType, SolrFieldClass
+
+    field_type = SolrFieldType(name="test", solr_class=SolrFieldClass.TEXT)
+
+    with pytest.raises(ValueError, match="collection needs to be specified"):
+        await async_solr_client.add_field_type(field_type)
+
+
+def test_sync_add_field_without_collection_raises(sync_solr_client: SolrClient):
+    """Test that adding field without setting collection raises error."""
+    from taiyo.schema import SolrField
+
+    field = SolrField(name="test", type="string")
+
+    with pytest.raises(ValueError, match="collection needs to be specified"):
+        sync_solr_client.add_field(field)
