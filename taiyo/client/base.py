@@ -20,6 +20,7 @@ class BaseSolrClient:
         collection: Name of the Solr collection
         auth: Authentication method to use (optional)
         timeout: Request timeout in seconds
+        verify: SSL certificate verification (default: True)
     """
 
     def __init__(
@@ -27,6 +28,7 @@ class BaseSolrClient:
         base_url: str,
         auth: Optional["SolrAuth"] = None,
         timeout: float = 10.0,
+        verify: Union[bool, str] = True,
     ):
         """
         Args:
@@ -34,10 +36,12 @@ class BaseSolrClient:
             collection: Name of the Solr collection.
             auth: Authentication method to use (optional).
             timeout: Request timeout in seconds. Defaults to 10.
+            verify: SSL certificate verification. Can be True (default), False, or path to CA bundle.
         """
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.auth = auth
+        self.verify = verify
         self.collection = None
         self._client: Client | AsyncClient
 

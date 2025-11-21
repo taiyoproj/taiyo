@@ -5,6 +5,7 @@ from taiyo.parsers.base import BaseQueryParser
 from ..types import SolrDocument, SolrResponse, SolrError, DocumentT
 from .auth import SolrAuth
 from .base import BaseSolrClient
+from ..schema import SolrFieldType, SolrField, SolrDynamicField
 
 
 class AsyncSolrClient(BaseSolrClient):
@@ -15,6 +16,7 @@ class AsyncSolrClient(BaseSolrClient):
         base_url: Base URL of the Solr instance (e.g., "http://localhost:8983/solr")
         auth: Authentication method to use (optional)
         timeout: Request timeout in seconds
+        verify: SSL certificate verification (default: True)
         **client_options: Additional options to pass to the httpx client
 
     Usage:
@@ -36,6 +38,7 @@ class AsyncSolrClient(BaseSolrClient):
         base_url: str,
         auth: Optional[SolrAuth] = None,
         timeout: float = 10.0,
+        verify: Union[bool, str] = True,
         **client_options: Any,
     ):
         """
@@ -43,10 +46,11 @@ class AsyncSolrClient(BaseSolrClient):
             base_url: Base URL of the Solr instance i.e. http://localhost:8983/solr.
             auth: Authentication method to use (optional).
             timeout: Request timeout in seconds. Defaults to 10.
+            verify: SSL certificate verification. Can be True (default), False, or path to CA bundle.
             **client_options: Additional options to pass to the httpx client.
         """
-        super().__init__(base_url, auth, timeout)
-        self._client = httpx.AsyncClient(timeout=timeout, **client_options)
+        super().__init__(base_url, auth, timeout, verify)
+        self._client = httpx.AsyncClient(timeout=timeout, verify=verify, **client_options)
 
         if auth:
             auth.apply(self._client)
@@ -250,6 +254,125 @@ class AsyncSolrClient(BaseSolrClient):
         )
         return self._build_search_response(response, document_model)
 
+    async def add_field_type(
+        self,
+        field_type: Union[SolrFieldType, Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """
+        Add a field type to the collection schema.
+
+        Args:
+            field_type: SolrFieldType instance or dictionary defining the field type
+
+        Returns:
+            Response from Solr Schema API
+
+        Example:
+            ```python
+            from taiyo.schema import SolrFieldType, SolrFieldClass
+
+            field_type = SolrFieldType(
+                name="text_general",
+                solr_field_class=SolrFieldClass.TEXT,
+                position_increment_gap=100
+            )
+            await client.add_field_type(field_type)
+            ```
+        """
+        if not self.collection:
+            raise ValueError("collection needs to be specified via set_collection().")
+
+        if isinstance(field_type, SolrFieldType):
+            field_type_dict = field_type.build(format="json")
+        else:
+            field_type_dict = field_type
+
+        return await self._request(
+            method="POST",
+            endpoint=f"{self.collection}/schema/fieldtypes",
+            json={"add-field-type": field_type_dict},
+        )
+
+    async def add_field(
+        self,
+        field: Union[SolrField, Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """
+        Add a field to the collection schema.
+
+        Args:
+            field: SolrField instance or dictionary defining the field
+
+        Returns:
+            Response from Solr Schema API
+
+        Example:
+            ```python
+            from taiyo.schema import SolrField
+
+            field = SolrField(
+                name="title",
+                type="text_general",
+                indexed=True,
+                stored=True
+            )
+            await client.add_field(field)
+            ```
+        """
+        if not self.collection:
+            raise ValueError("collection needs to be specified via set_collection().")
+
+        if isinstance(field, SolrField):
+            field_dict = field.build(format="json")
+        else:
+            field_dict = field
+
+        return await self._request(
+            method="POST",
+            endpoint=f"{self.collection}/schema/fields",
+            json={"add-field": field_dict},
+        )
+
+    async def add_dynamic_field(
+        self,
+        field: Union[SolrDynamicField, Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """
+        Add a dynamic field to the collection schema.
+
+        Args:
+            field: SolrDynamicField instance or dictionary defining the dynamic field
+
+        Returns:
+            Response from Solr Schema API
+
+        Example:
+            ```python
+            from taiyo.schema import SolrDynamicField
+
+            field = SolrDynamicField(
+                name="*_txt",
+                type="text_general",
+                indexed=True,
+                stored=True
+            )
+            await client.add_dynamic_field(field)
+            ```
+        """
+        if not self.collection:
+            raise ValueError("collection needs to be specified via set_collection().")
+
+        if isinstance(field, SolrDynamicField):
+            field_dict = field.build(format="json")
+        else:
+            field_dict = field
+
+        return await self._request(
+            method="POST",
+            endpoint=f"{self.collection}/schema/fields",
+            json={"add-dynamic-field": field_dict},
+        )
+
 
 class SolrClient(BaseSolrClient):
     """
@@ -259,6 +382,7 @@ class SolrClient(BaseSolrClient):
         base_url: Base URL of the Solr instance (e.g., "http://localhost:8983/solr")
         auth: Authentication method to use (optional)
         timeout: Request timeout in seconds
+        verify: SSL certificate verification (default: True)
         **client_options: Additional options to pass to the httpx client
 
     Usage:
@@ -280,6 +404,7 @@ class SolrClient(BaseSolrClient):
         base_url: str,
         auth: Optional[SolrAuth] = None,
         timeout: float = 10.0,
+        verify: Union[bool, str] = True,
         **client_options: Any,
     ):
         """
@@ -287,10 +412,11 @@ class SolrClient(BaseSolrClient):
             base_url: Base URL of the Solr instance i.e. http://localhost:8983/solr.
             auth: Authentication method to use (optional).
             timeout: Request timeout in seconds. Defaults to 10.
+            verify: SSL certificate verification. Can be True (default), False, or path to CA bundle.
             **client_options: Additional options to pass to the httpx client.
         """
-        super().__init__(base_url, auth, timeout)
-        self._client = httpx.Client(timeout=timeout, **client_options)
+        super().__init__(base_url, auth, timeout, verify)
+        self._client = httpx.Client(timeout=timeout, verify=verify, **client_options)
 
         if auth:
             auth.apply(self._client)
@@ -487,3 +613,122 @@ class SolrClient(BaseSolrClient):
             method="GET", endpoint=f"{self.collection}/select", params=params
         )
         return self._build_search_response(response, document_model)
+
+    def add_field_type(
+        self,
+        field_type: Union[SolrFieldType, Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """
+        Add a field type to the collection schema.
+
+        Args:
+            field_type: SolrFieldType instance or dictionary defining the field type
+
+        Returns:
+            Response from Solr Schema API
+
+        Example:
+            ```python
+            from taiyo.schema import SolrFieldType, SolrFieldClass
+
+            field_type = SolrFieldType(
+                name="text_general",
+                solr_field_class=SolrFieldClass.TEXT,
+                position_increment_gap=100
+            )
+            client.add_field_type(field_type)
+            ```
+        """
+        if not self.collection:
+            raise ValueError("collection needs to be specified via set_collection().")
+
+        if isinstance(field_type, SolrFieldType):
+            field_type_dict = field_type.build(format="json")
+        else:
+            field_type_dict = field_type
+
+        return self._request(
+            method="POST",
+            endpoint=f"{self.collection}/schema/fieldtypes",
+            json={"add-field-type": field_type_dict},
+        )
+
+    def add_field(
+        self,
+        field: Union[SolrField, Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """
+        Add a field to the collection schema.
+
+        Args:
+            field: SolrField instance or dictionary defining the field
+
+        Returns:
+            Response from Solr Schema API
+
+        Example:
+            ```python
+            from taiyo.schema import SolrField
+
+            field = SolrField(
+                name="title",
+                type="text_general",
+                indexed=True,
+                stored=True
+            )
+            client.add_field(field)
+            ```
+        """
+        if not self.collection:
+            raise ValueError("collection needs to be specified via set_collection().")
+
+        if isinstance(field, SolrField):
+            field_dict = field.build(format="json")
+        else:
+            field_dict = field
+
+        return self._request(
+            method="POST",
+            endpoint=f"{self.collection}/schema/fields",
+            json={"add-field": field_dict},
+        )
+
+    def add_dynamic_field(
+        self,
+        field: Union[SolrDynamicField, Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """
+        Add a dynamic field to the collection schema.
+
+        Args:
+            field: SolrDynamicField instance or dictionary defining the dynamic field
+
+        Returns:
+            Response from Solr Schema API
+
+        Example:
+            ```python
+            from taiyo.schema import SolrDynamicField
+
+            field = SolrDynamicField(
+                name="*_txt",
+                type="text_general",
+                indexed=True,
+                stored=True
+            )
+            client.add_dynamic_field(field)
+            ```
+        """
+        if not self.collection:
+            raise ValueError("collection needs to be specified via set_collection().")
+
+        if isinstance(field, SolrDynamicField):
+            field_dict = field.build(format="json")
+        else:
+            field_dict = field
+
+        return self._request(
+            method="POST",
+            endpoint=f"{self.collection}/schema/fields",
+            json={"add-dynamic-field": field_dict},
+        )
