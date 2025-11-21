@@ -50,7 +50,9 @@ class AsyncSolrClient(BaseSolrClient):
             **client_options: Additional options to pass to the httpx client.
         """
         super().__init__(base_url, auth, timeout, verify)
-        self._client = httpx.AsyncClient(timeout=timeout, verify=verify, **client_options)
+        self._client = httpx.AsyncClient(
+            timeout=timeout, verify=verify, **client_options
+        )
 
         if auth:
             auth.apply(self._client)
