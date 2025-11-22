@@ -10,7 +10,7 @@ Example:
     # Use enum for type safety
     field_type = SolrFieldType(
         name="text_general",
-        solr_field_class=SolrFieldClass.TEXT,
+        solr_class=SolrFieldClass.TEXT,
         position_increment_gap=100
     )
     ```
@@ -45,20 +45,20 @@ class SolrFieldClass(str, Enum):
         # Text field type
         text_type = SolrFieldType(
             name="text_en",
-            solr_field_class=SolrFieldClass.TEXT,
+            solr_class=SolrFieldClass.TEXT,
             analyzer=...
         )
 
         # Numeric field type
         int_type = SolrFieldType(
             name="pint",
-            solr_field_class=SolrFieldClass.INT_POINT
+            solr_class=SolrFieldClass.INT_POINT
         )
 
         # Vector field type
         vector_type = SolrFieldType(
             name="vector",
-            solr_field_class=SolrFieldClass.DENSE_VECTOR,
+            solr_class=SolrFieldClass.DENSE_VECTOR,
             vectorDimension=768
         )
         ```
@@ -135,7 +135,7 @@ class SolrTokenizerFactory(str, Enum):
 
         field_type = SolrFieldType(
             name="text_standard",
-            solr_field_class="solr.TextField",
+            solr_class="solr.TextField",
             analyzer=Analyzer(
                 tokenizer=Tokenizer(solr_tokenizer_class=SolrTokenizerFactory.STANDARD)
             )

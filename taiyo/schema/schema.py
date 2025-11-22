@@ -78,7 +78,7 @@ class Schema(BaseModel):
         # Define field types
         text_type = SolrFieldType(
             name="text_general",
-            solr_field_class=SolrFieldClass.TEXT,
+            solr_class=SolrFieldClass.TEXT,
             position_increment_gap=100,
             analyzer=Analyzer(
                 tokenizer=Tokenizer(name="standard"),

@@ -524,7 +524,7 @@ class SolrFieldType(BaseModel):
             exclude_none=True,
             exclude={
                 "name",
-                "solr_field_class",
+                "solr_class",
                 "analyzer",
                 "index_analyzer",
                 "query_analyzer",
@@ -557,7 +557,7 @@ class SolrFieldType(BaseModel):
             exclude_none=True,
             exclude={
                 "name",
-                "solr_field_class",
+                "solr_class",
                 "analyzer",
                 "index_analyzer",
                 "query_analyzer",
