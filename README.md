@@ -103,12 +103,3 @@ async with AsyncSolrClient("http://localhost:8983/solr") as client:
         p = Passenger.model_validate(doc)
         print(f"{p.name} survived, paid ${p.fare}")
 ```
-
-## Requirements
-
-- Python 3.11+
-- Apache Solr 8.0+
-
-## License
-
-MIT License. See LICENSE for details.
