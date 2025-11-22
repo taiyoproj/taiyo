@@ -186,19 +186,40 @@ class AsyncSolrClient(BaseSolrClient):
     async def delete(
         self,
         query: Optional[str] = None,
-        ids: Optional[List[str]] = None,
+        ids: Optional[Union[str, List[str]]] = None,
         commit: bool = True,
     ) -> Dict[str, Any]:
         """
         Delete documents from the index.
 
+        Supports multiple delete formats per Apache Solr specification:
+        - Single ID: {"delete": "myid"}
+        - Multiple IDs: {"delete": ["id1", "id2"]}
+        - Query: {"delete": {"query": "field:value"}}
+        - Combined: {"delete": {"id": "myid", "query": "field:value"}}
+
         Args:
             query: Delete documents matching this query
-            ids: Delete documents with these IDs
+            ids: Delete document(s) with this ID or these IDs. Can be a single string or list.
             commit: Whether to commit the changes immediately
 
         Returns:
             Response from Solr
+
+        Example:
+            ```python
+            # Delete by single ID
+            await client.delete(ids="doc1")
+
+            # Delete by multiple IDs
+            await client.delete(ids=["doc1", "doc2"])
+
+            # Delete by query
+            await client.delete(query="status:archived")
+
+            # Delete by ID and query combined
+            await client.delete(ids="doc1", query="status:archived")
+            ```
         """
         if not self.collection:
             raise ValueError("collection needs to be specified via set_collection().")
@@ -206,18 +227,28 @@ class AsyncSolrClient(BaseSolrClient):
         if not query and not ids:
             raise ValueError("Either query or ids must be provided")
 
-        delete_query = {}
-        if query:
-            delete_query["query"] = query
-        if ids:
-            delete_query["id"] = ids
+        if ids and not query:
+            if isinstance(ids, str):
+                delete_cmd = ids
+            elif isinstance(ids, list) and len(ids) == 1:
+                delete_cmd = ids[0]
+            else:
+                delete_cmd = ids
+        elif query and not ids:
+            delete_cmd = {"query": query}
+        else:
+            delete_cmd = {}
+            if query:
+                delete_cmd["query"] = query
+            if ids:
+                delete_cmd["id"] = ids if isinstance(ids, str) else ids
 
         params = {"commit": "true"} if commit else {}
         return await self._request(
             method="POST",
             endpoint="update",
             params=params,
-            json={"delete": delete_query},
+            json={"delete": delete_cmd},
         )
 
     async def commit(self) -> Dict[str, Any]:
@@ -549,47 +580,69 @@ class SolrClient(BaseSolrClient):
     def delete(
         self,
         query: Optional[str] = None,
-        ids: Optional[List[str]] = None,
+        ids: Optional[Union[str, List[str]]] = None,
         commit: bool = True,
     ) -> Dict[str, Any]:
         """
         Delete documents from the index.
 
+        Supports multiple delete formats per Apache Solr specification:
+        - Single ID: {"delete": "myid"}
+        - Multiple IDs: {"delete": ["id1", "id2"]}
+        - Query: {"delete": {"query": "field:value"}}
+        - Combined: {"delete": {"id": "myid", "query": "field:value"}}
+
         Args:
             query: Delete documents matching this query
-            ids: Delete documents with these IDs
+            ids: Delete document(s) with this ID or these IDs. Can be a single string or list.
             commit: Whether to commit the changes immediately
 
         Returns:
             Response from Solr
+
+        Example:
+            ```python
+            # Delete by single ID
+            client.delete(ids="doc1")
+
+            # Delete by multiple IDs
+            client.delete(ids=["doc1", "doc2"])
+
+            # Delete by query
+            client.delete(query="status:archived")
+
+            # Delete by ID and query combined
+            client.delete(ids="doc1", query="status:archived")
+            ```
         """
+        if not self.collection:
+            raise ValueError("collection needs to be specified via set_collection().")
+
         if not query and not ids:
             raise ValueError("Either query or ids must be provided")
 
-        delete_query = {}
-        if query:
-            delete_query["query"] = query
-        if ids:
-            # For single ID, use string; for multiple, create separate delete commands
-            if len(ids) == 1:
-                delete_query["id"] = ids[0]
+        if ids and not query:
+            if isinstance(ids, str):
+                delete_cmd = ids
+            elif isinstance(ids, list) and len(ids) == 1:
+                delete_cmd = ids[0]
             else:
-                # Multiple IDs - need to create array of delete objects
-                delete_commands = [{"id": id_val} for id_val in ids]
-                params = {"commit": "true"} if commit else {}
-                return self._request(
-                    method="POST",
-                    endpoint=f"{self.collection}/update",
-                    params=params,
-                    json={"delete": delete_commands},
-                )
+                delete_cmd = ids
+        elif query and not ids:
+            delete_cmd = {"query": query}
+        else:
+            delete_cmd = {}
+            if query:
+                delete_cmd["query"] = query
+            if ids:
+                delete_cmd["id"] = ids if isinstance(ids, str) else ids
 
         params = {"commit": "true"} if commit else {}
         return self._request(
             method="POST",
             endpoint=f"{self.collection}/update",
             params=params,
-            json={"delete": delete_query},
+            json={"delete": delete_cmd},
         )
 
     def commit(self) -> Dict[str, Any]:
