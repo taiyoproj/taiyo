@@ -51,16 +51,25 @@ nav = [
     {"Home" = "index.md"},
     {"Getting Started" = "getting-started.md"},
     {"Clients" = [
-        "clients.md",
-        "auth.md",
-        "models.md"
+        "clients/overview.md",
+        "clients/auth.md",
+        "clients/models.md"
+    ]},
+    {"Indexing" = [
+        "indexing/overview.md",
+        "indexing/schema.md",
+        "indexing/examples.md",
     ]},
     {"Query Parsers" = [
-        "parsers/query-parsers.md",
+        "parsers/overview.md",
         "parsers/sparse.md",
         "parsers/dense.md",
-        "parsers/spatial.md",
-        "mixins-and-configs.md"
+        "parsers/spatial.md"
+    ]},
+    {"Controlling Results" = [
+        "controlling-results/grouping.md",
+        "controlling-results/faceting.md",
+        "controlling-results/highlighting.md"
     ]}
 ]
 # With the "extra_css" option you can add your own CSS styling to customize
