@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: taiyoproj/taiyoproj.github.io
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           path: target
 
       - name: Copy documentation files
@@ -33,5 +33,5 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "Sync documentation from taiyo repository"
-            git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/taiyoproj/taiyoproj.github.io.git HEAD:main
+            git push
           fi
