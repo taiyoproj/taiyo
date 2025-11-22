@@ -116,32 +116,6 @@ async with AsyncSolrClient(url) as client:
     await client.commit()
 ```
 
-## Document Updates
-
-### Atomic Updates
-
-Update specific fields without reindexing the entire document:
-
-```python
-update = {
-    "title": {"set": "New Title"},
-    "views": {"inc": 1}
-}
-
-client.add(update, commit=True)
-```
-
-### Partial Updates
-
-```python
-doc = SolrDocument(
-    title="Updated Title",
-    status="published"
-)
-
-client.add(doc, commit=True)
-```
-
 ## Error Handling
 
 ```python
