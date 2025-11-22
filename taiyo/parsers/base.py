@@ -171,7 +171,7 @@ class BaseQueryParser(CommonParamsMixin):
     def group(
         self,
         *,
-        field: Optional[Union[str, List[str]]] = None,
+        by: Optional[Union[str, List[str]]] = None,
         func: Optional[str] = None,
         query: Optional[Union[str, List[str]]] = None,
         limit: int = 1,
@@ -190,7 +190,7 @@ class BaseQueryParser(CommonParamsMixin):
         a common field value. Useful for showing one result per author, category, or domain.
 
         Args:
-            field: Field(s) to group results by. Shows one representative doc per unique field value.
+            by: Field(s) to group results by. Shows one representative doc per unique field value.
                 Must be single-valued and indexed. Can specify multiple fields for separate groupings.
             func: Group by the result of a function query (e.g., 'floor(price)'). Not supported in SolrCloud/distributed searches.
             query: Create custom groups using arbitrary queries. Each query defines one group.
@@ -215,7 +215,7 @@ class BaseQueryParser(CommonParamsMixin):
 
         Examples:
             Group by author:
-            >>> parser.group(field="author", limit=3, sort="date desc", ngroups=True)
+            >>> parser.group(by="author", limit=3, sort="date desc", ngroups=True)
 
             Group by price range:
             >>> parser.group(
@@ -224,10 +224,10 @@ class BaseQueryParser(CommonParamsMixin):
             ... )
 
             Multiple field groupings:
-            >>> parser.group(field=["author", "category"], limit=2)
+            >>> parser.group(by=["author", "category"], limit=2)
         """
         config = GroupParamsConfig(
-            field=field,
+            by=by,
             func=func,
             query=query,
             limit=limit,

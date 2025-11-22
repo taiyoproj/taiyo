@@ -8,7 +8,7 @@ def test_lucene():
         query_operator="AND",
         default_field="title",
         split_on_whitespace=True,
-    ).group(field=["title", "description"])
+    ).group(by=["title", "description"])
     params = parser.build()
     assert params["q"] == "foo bar"
     assert params["q.op"] == "AND"

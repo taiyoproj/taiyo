@@ -59,7 +59,7 @@ from taiyo import GroupParamsConfig, HighlightParamsConfig
 
 parser = StandardParser(
     query="laptop",
-    group=GroupParamsConfig(field=["brand", "category"], limit=2),
+    group=GroupParamsConfig(by=["brand", "category"], limit=2),
     highlight=HighlightParamsConfig(fields=["title"], encoder="html", snippets=3),
 )
 res = client.search(parser)

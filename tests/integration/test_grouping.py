@@ -90,7 +90,7 @@ def test_grouping():
         time.sleep(1)
 
         # Test grouping
-        parser = StandardParser(query="*:*", rows=10).group(field="director")
+        parser = StandardParser(query="*:*", rows=10).group(by="director")
         res = client.search(parser, document_model=Movie)
         assert res.status == 0
         assert all(isinstance(doc, Movie) for doc in res.docs)

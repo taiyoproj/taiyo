@@ -87,7 +87,7 @@ params = parser.build()  # includes facet=true & facet.field=['category']
 from taiyo import StandardParser, GroupParamsConfig
 parser = StandardParser(
     query="laptop",
-    group=GroupParamsConfig(field=["brand", "category"], limit=2, ngroups=True),
+    group=GroupParamsConfig(by=["brand", "category"], limit=2, ngroups=True),
 )
 ```
 
