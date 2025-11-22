@@ -24,7 +24,7 @@ from .params import (
 from .parsers import (
     KNNQueryParser,
     KNNTextToVectorQueryParser,
-    VectorSimilarityParser,
+    VectorSimilarityQueryParser,
     StandardParser,
     DisMaxQueryParser,
     ExtendedDisMaxQueryParser,
@@ -46,7 +46,7 @@ __all__ = [
     "ExtendedDisMaxQueryParser",
     "KNNQueryParser",
     "KNNTextToVectorQueryParser",
-    "VectorSimilarityParser",
+    "VectorSimilarityQueryParser",
     "GeoFilterQueryParser",
     "CommonParamsMixin",
     "DenseVectorSearchParamsMixin",
