@@ -275,7 +275,7 @@ class AsyncSolrClient(BaseSolrClient):
 
             field_type = SolrFieldType(
                 name="text_general",
-                solr_field_class=SolrFieldClass.TEXT,
+                solr_class=SolrFieldClass.TEXT,
                 position_increment_gap=100
             )
             await client.add_field_type(field_type)
@@ -635,7 +635,7 @@ class SolrClient(BaseSolrClient):
 
             field_type = SolrFieldType(
                 name="text_general",
-                solr_field_class=SolrFieldClass.TEXT,
+                solr_class=SolrFieldClass.TEXT,
                 position_increment_gap=100
             )
             client.add_field_type(field_type)
