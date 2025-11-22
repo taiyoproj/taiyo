@@ -1,16 +1,14 @@
-from taiyo.params import GroupParamsConfig, FacetParamsConfig
+from taiyo.params import FacetParamsConfig
 from taiyo.parsers import StandardParser, DisMaxQueryParser
 
 
 def test_lucene():
-    group = GroupParamsConfig(field=["title", "description"])
     parser = StandardParser(
         query="foo bar",
         query_operator="AND",
         default_field="title",
         split_on_whitespace=True,
-        group=group,
-    )
+    ).group(field=["title", "description"])
     params = parser.build()
     assert params["q"] == "foo bar"
     assert params["q.op"] == "AND"
@@ -31,7 +29,7 @@ def test_dismax():
         tie_breaker=0.1,
         boost_queries=["cat:electronics^5.0"],
         boost_functons=["recip(rord(myfield),1,2,3)"],
-        facet=FacetParamsConfig(queries=["facet true"]),
+        configs=[FacetParamsConfig(queries=["facet true"])],
     )
     params = parser.build()
     assert params["defType"] == "dismax"

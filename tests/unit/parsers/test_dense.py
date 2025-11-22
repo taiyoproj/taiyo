@@ -1,7 +1,7 @@
 from taiyo.parsers import (
     KNNQueryParser,
     KNNTextToVectorQueryParser,
-    VectorSimilarityParser,
+    VectorSimilarityQueryParser,
 )
 
 
@@ -37,7 +37,7 @@ def test_knn_text_to_vector():
 
 
 def test_vector_similarity():
-    parser = VectorSimilarityParser(
+    parser = VectorSimilarityQueryParser(
         field="vector", min_return=0.7, min_traverse=0.2, vector=[0.1, 2.0, 3.9]
     )
     params = parser.build()
