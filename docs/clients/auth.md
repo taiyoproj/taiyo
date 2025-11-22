@@ -87,6 +87,67 @@ from taiyo import BearerAuth
 auth = BearerAuth(token=SecretStr("your-jwt-token-here"))
 ```
 
+### OAuth2 Authentication
+
+OAuth2 authentication with automatic token management using client credentials flow.
+
+#### Usage
+
+```python
+from taiyo import SolrClient, OAuth2Auth
+from pydantic import SecretStr
+
+auth = OAuth2Auth(
+    client_id=SecretStr("your-client-id"),
+    client_secret=SecretStr("your-client-secret"),
+    token_url="https://auth.example.com/token"
+)
+
+client = SolrClient(
+    "http://localhost:8983/solr",
+    auth=auth
+)
+```
+
+#### With Async Client
+
+```python
+from taiyo import AsyncSolrClient, OAuth2Auth
+from pydantic import SecretStr
+
+auth = OAuth2Auth(
+    client_id=SecretStr("your-client-id"),
+    client_secret=SecretStr("your-client-secret"),
+    token_url="https://auth.example.com/token"
+)
+
+async with AsyncSolrClient("http://localhost:8983/solr", auth=auth) as client:
+    results = await client.search("*:*")
+```
+
+#### Token Management
+
+The OAuth2Auth class automatically fetches and manages access tokens:
+
+```python
+from taiyo import OAuth2Auth
+from pydantic import SecretStr
+
+auth = OAuth2Auth(
+    client_id=SecretStr("client-id"),
+    client_secret=SecretStr("client-secret"),
+    token_url="https://auth.example.com/oauth/token"
+)
+
+# Token is fetched automatically on first request
+client = SolrClient("http://localhost:8983/solr", auth=auth)
+results = client.search("*:*")
+
+# Manually refresh token if needed
+auth.access_token = None
+auth.apply(client)
+```
+
 ## Configuration Examples
 
 ### Environment Variables
@@ -137,27 +198,6 @@ Example `config.json`:
     "password": "secret"
   }
 }
-```
-
-### AWS Secrets Manager
-
-```python
-import boto3
-import json
-from taiyo import SolrClient, BasicAuth
-
-def get_solr_credentials():
-    client = boto3.client('secretsmanager')
-    secret = client.get_secret_value(SecretId='solr-credentials')
-    return json.loads(secret['SecretString'])
-
-creds = get_solr_credentials()
-auth = BasicAuth(
-    username=creds['username'],
-    password=creds['password']
-)
-
-client = SolrClient(creds['url'], auth=auth)
 ```
 
 ## Authentication with Different Solr Setups
@@ -224,49 +264,6 @@ class APIKeyAuth(SolrAuth):
 
 # Usage
 auth = APIKeyAuth("my-secret-key")
-client = SolrClient("http://localhost:8983/solr", auth=auth)
-```
-
-### OAuth2 Authentication
-
-```python
-from taiyo.client.auth import SolrAuth
-import requests
-
-class OAuth2Auth(SolrAuth):
-    """OAuth2 authentication with token refresh."""
-    
-    def __init__(self, client_id: str, client_secret: str, token_url: str):
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.token_url = token_url
-        self.access_token = None
-    
-    def get_access_token(self):
-        """Fetch access token from OAuth2 server."""
-        response = requests.post(
-            self.token_url,
-            data={
-                "grant_type": "client_credentials",
-                "client_id": self.client_id,
-                "client_secret": self.client_secret
-            }
-        )
-        response.raise_for_status()
-        return response.json()["access_token"]
-    
-    def apply(self, client):
-        """Apply OAuth2 token to client."""
-        if not self.access_token:
-            self.access_token = self.get_access_token()
-        client.set_header("Authorization", f"Bearer {self.access_token}")
-
-# Usage
-auth = OAuth2Auth(
-    client_id="your-client-id",
-    client_secret="your-client-secret",
-    token_url="https://auth.example.com/token"
-)
 client = SolrClient("http://localhost:8983/solr", auth=auth)
 ```
 
