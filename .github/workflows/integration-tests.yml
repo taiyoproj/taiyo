@@ -1,0 +1,52 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install uv
+      run: curl -LsSf https://astral.sh/uv/install.sh | sh
+    
+    - name: Install dependencies
+      run: uv sync --all-extras
+    
+    - name: Start Solr
+      run: docker compose up -d
+    
+    - name: Wait for Solr to be ready
+      run: |
+        for i in {1..30}; do
+          if curl -sf http://localhost:8983/solr/admin/info/system; then
+            echo "Solr is ready!"
+            exit 0
+          fi
+          echo "Waiting for Solr... ($i/30)"
+          sleep 2
+        done
+        echo "Solr failed to start"
+        exit 1
+
+    - name: Run integration tests
+      run: uv run pytest tests/integration/ -v --cov=taiyo
+    
+    - name: Show Solr logs on failure
+      if: failure()
+      run: docker compose logs solr
+    
+    - name: Stop Solr
+      if: always()
+      run: docker compose down -v
