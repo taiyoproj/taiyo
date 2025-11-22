@@ -31,12 +31,12 @@ from taiyo.params.configs.base import ParamsConfig
 
 class FacetMethod(str, Enum):
     """Faceting algorithm methods.
-    
+
     Choose based on your field characteristics:
     - ENUM: Best for fields with few distinct values (enumerates all terms)
     - FIELD_CACHE: Best for fields with many unique terms but few per document
     - PER_SEGMENT: Best for single-valued strings with frequent index updates
-    
+
     Reference: https://solr.apache.org/guide/solr/latest/query-guide/faceting.html#the-facet-method-parameter
     """
 
@@ -47,7 +47,7 @@ class FacetMethod(str, Enum):
 
 class FacetSort(str, Enum):
     """How to order facet results.
-    
+
     - COUNT: Sort by frequency (most common first) - default for most use cases
     - INDEX: Sort lexicographically (alphabetically)
     """
@@ -58,9 +58,9 @@ class FacetSort(str, Enum):
 
 class RangeOther(str, Enum):
     """Additional range buckets to include beyond start/end.
-    
+
     - BEFORE: Count docs below the first range
-    - AFTER: Count docs above the last range  
+    - AFTER: Count docs above the last range
     - BETWEEN: Count docs within start and end bounds
     - NONE: No additional counts
     - ALL: Include all (before, after, between)
@@ -75,9 +75,9 @@ class RangeOther(str, Enum):
 
 class RangeInclude(str, Enum):
     """Control which range boundaries are inclusive/exclusive.
-    
+
     By default, ranges are [lower, upper) - include lower, exclude upper.
-    
+
     - LOWER: All ranges include their lower bound
     - UPPER: All ranges include their upper bound
     - EDGE: First and last ranges include their edge bounds
@@ -101,15 +101,15 @@ class RangeMethod(str, Enum):
 
 class FacetParamsConfig(ParamsConfig):
     """Solr Faceting Configuration - Categorize and Count Search Results.
-    
+
     Faceting breaks down search results into categories with counts, enabling
     drill-down navigation and data analysis.
-    
+
     Official Documentation:
         https://solr.apache.org/guide/solr/latest/query-guide/faceting.html
-    
+
     Common Patterns:
-        
+
         Basic Field Faceting:
         ```python
         config = FacetParamsConfig(
@@ -118,7 +118,7 @@ class FacetParamsConfig(ParamsConfig):
             mincount=1  # Skip empty facets
         )
         ```
-        
+
         Range Faceting (Prices, Dates):
         ```python
         config = FacetParamsConfig(
@@ -128,7 +128,7 @@ class FacetParamsConfig(ParamsConfig):
             range_gap={'price': '100'}  # $0-100, $100-200, etc.
         )
         ```
-        
+
         Filtered Facets:
         ```python
         config = FacetParamsConfig(
@@ -137,12 +137,14 @@ class FacetParamsConfig(ParamsConfig):
             mincount=5  # Only show if 5+ matches
         )
         ```
-    
+
     Performance Tips:
         - Use appropriate 'method' for your field type
         - Set 'mincount' to reduce result size
         - Consider 'threads' for parallel faceting on large datasets
     """
+
+    enable_key: str = "facet"
 
     queries: Optional[List[str]] = Field(
         default=None,

@@ -27,7 +27,7 @@ class HighlightMethod(str, Enum):
 
 class BreakIteratorType(str, Enum):
     """How to segment text into passages for highlighting.
-    
+
     Controls where snippets begin and end:
     - SENTENCE: Break on sentence boundaries (recommended for natural-looking snippets)
     - WORD: Break on word boundaries
@@ -35,7 +35,7 @@ class BreakIteratorType(str, Enum):
     - CHARACTER: Break anywhere
     - LINE: Break on line breaks
     - WHOLE: Treat entire field as one passage
-    
+
     Reference: https://solr.apache.org/guide/solr/latest/query-guide/highlighting.html
     """
 
@@ -84,16 +84,16 @@ class HighlightEncoder(str, Enum):
 
 class HighlightParamsConfig(ParamsConfig):
     """Configuration for Solr Highlighting.
-    
+
     Highlighting allows you to show snippets of text from documents with query terms
     emphasized (usually wrapped in <em> tags). Common use cases include:
     - Search result snippets showing matched terms in context
     - Preview text with keywords highlighted
     - Showing relevant passages from long documents
-    
+
     Official Documentation:
         https://solr.apache.org/guide/solr/latest/query-guide/highlighting.html
-    
+
     Example:
         ```python
         # Basic highlighting setup
@@ -106,13 +106,15 @@ class HighlightParamsConfig(ParamsConfig):
             tag_after='</mark>'  # HTML tag after matched term
         )
         ```
-    
+
     Note:
         - Choose highlighter method based on your needs:
           - 'unified': Most accurate, recommended (default)
           - 'original': Works with any field configuration
           - 'fastVector': Fast for large documents (requires termVectors=true)
     """
+
+    enable_key: str = "hl"
 
     method: Optional[HighlightMethod] = Field(
         default=None,
@@ -255,7 +257,7 @@ class HighlightParamsConfig(ParamsConfig):
 
     # Unified Highlighter specific parameters (most accurate, recommended)
     # Reference: https://solr.apache.org/guide/solr/latest/query-guide/highlighting.html#unified-highlighter
-    
+
     offset_source: Optional[str] = Field(
         default=None,
         alias="hl.offsetSource",
@@ -311,13 +313,13 @@ class HighlightParamsConfig(ParamsConfig):
         Default: false""",
     )
     score_k1: Optional[float] = Field(
-        default=None, 
-        alias="hl.score.k1", 
+        default=None,
+        alias="hl.score.k1",
         description="""BM25 term frequency normalization parameter.
         
         Controls how term frequency affects passage scoring.
         Set to 0 to ignore term frequency (only count distinct terms).
-        Default: 1.2"""
+        Default: 1.2""",
     )
     score_b: Optional[float] = Field(
         default=None,
@@ -329,37 +331,37 @@ class HighlightParamsConfig(ParamsConfig):
         Default: 0.75""",
     )
     score_pivot: Optional[int] = Field(
-        default=None, 
-        alias="hl.score.pivot", 
+        default=None,
+        alias="hl.score.pivot",
         description="""BM25 average passage length in characters.
         
         Passages longer than this are penalized, shorter are boosted.
-        Default: 87"""
+        Default: 87""",
     )
     bs_language: Optional[str] = Field(
-        default=None, 
-        alias="hl.bs.language", 
+        default=None,
+        alias="hl.bs.language",
         description="""BreakIterator language for text segmentation.
         
         Example: 'en' for English, 'ja' for Japanese, 'de' for German.
-        Used to intelligently break text at sentence/word boundaries."""
+        Used to intelligently break text at sentence/word boundaries.""",
     )
     bs_country: Optional[str] = Field(
-        default=None, 
-        alias="hl.bs.country", 
+        default=None,
+        alias="hl.bs.country",
         description="""BreakIterator country code.
         
         Example: 'US', 'GB', 'JP'
-        Used with bs_language for locale-specific text breaking."""
+        Used with bs_language for locale-specific text breaking.""",
     )
     bs_variant: Optional[str] = Field(
-        default=None, 
-        alias="hl.bs.variant", 
-        description="BreakIterator variant for specialized locale rules."
+        default=None,
+        alias="hl.bs.variant",
+        description="BreakIterator variant for specialized locale rules.",
     )
     bs_type: Optional[BreakIteratorType] = Field(
-        default=None, 
-        alias="hl.bs.type", 
+        default=None,
+        alias="hl.bs.type",
         description="""How to segment text into passages.
         
         - SENTENCE: Break on sentence boundaries (default, recommended)
@@ -369,14 +371,14 @@ class HighlightParamsConfig(ParamsConfig):
         - SEPARATOR: Break on custom separator (use bs_separator)
         - WHOLE: Use entire field as one passage
         
-        Default: SENTENCE"""
+        Default: SENTENCE""",
     )
     bs_separator: Optional[str] = Field(
-        default=None, 
-        alias="hl.bs.separator", 
+        default=None,
+        alias="hl.bs.separator",
         description="""Custom separator character when bs_type=SEPARATOR.
         
-        Example: '\n' to break on newlines, '|' for pipe-separated text."""
+        Example: '\n' to break on newlines, '|' for pipe-separated text.""",
     )
     weight_matches: Optional[bool] = Field(
         default=None,

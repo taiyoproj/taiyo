@@ -5,16 +5,16 @@ from taiyo.params.configs.base import ParamsConfig
 
 class GroupParamsConfig(ParamsConfig):
     """Solr Result Grouping - Collapse Results by Common Values.
-    
+
     Result grouping (also known as field collapsing) combines documents that share
     a common field value. Useful for:
     - Showing one result per author, category, or domain
     - Preventing duplicate-like results from dominating
     - Creating grouped summaries of search results
-    
+
     Official Documentation:
         https://solr.apache.org/guide/solr/latest/query-guide/result-grouping.html
-    
+
     Example - Group by Author:
         ```python
         config = GroupParamsConfig(
@@ -24,7 +24,7 @@ class GroupParamsConfig(ParamsConfig):
             ngroups=True  # Include count of total groups
         )
         ```
-    
+
     Example - Group by Price Range:
         ```python
         config = GroupParamsConfig(
@@ -32,13 +32,15 @@ class GroupParamsConfig(ParamsConfig):
             limit=5  # Up to 5 docs per price range
         )
         ```
-    
+
     Important Notes:
         - Grouped fields must be single-valued and indexed
         - group.func doesn't work in distributed (SolrCloud) searches
-        - Use 'format=\"simple\"' for flat response structure
+        - Use 'format="simple"' for flat response structure
         - 'ngroups' and 'facet' require documents co-located on same shard
     """
+
+    enable_key: str = "group"
 
     field: Optional[Union[str, List[str]]] = Field(
         default=None,

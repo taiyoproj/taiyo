@@ -6,17 +6,17 @@ from taiyo.params.configs.base import ParamsConfig
 
 class MoreLikeThisParamsConfig(ParamsConfig):
     """Solr MoreLikeThis (MLT) - Find Similar Documents.
-    
+
     MoreLikeThis finds documents similar to a given document by analyzing
     the terms that make it unique. Common use cases:
     - "Related articles" features
     - Product recommendations
     - Content discovery
     - Duplicate detection
-    
+
     Official Documentation:
         https://solr.apache.org/guide/solr/latest/query-guide/morelikethis.html
-    
+
     Basic Example:
         ```python
         config = MoreLikeThisParamsConfig(
@@ -26,7 +26,7 @@ class MoreLikeThisParamsConfig(ParamsConfig):
             max_query_terms=25  # Use top 25 most interesting terms
         )
         ```
-    
+
     Advanced Example:
         ```python
         config = MoreLikeThisParamsConfig(
@@ -38,13 +38,15 @@ class MoreLikeThisParamsConfig(ParamsConfig):
             interesting_terms='details'  # Show which terms were used
         )
         ```
-    
+
     Performance Tips:
         - Use fields with term vectors for best performance
         - Adjust min_term_freq and min_doc_freq to filter noise
         - Set max_num_tokens_parsed to limit analysis on large documents
     """
-    
+
+    enable_key: str = "mlt"
+
     fields: Optional[Union[str, list[str]]] = Field(
         default=None,
         alias="mlt.fl",
@@ -71,19 +73,19 @@ class MoreLikeThisParamsConfig(ParamsConfig):
         description="Maximum document frequency as percentage (0-100). Example: 75 means ignore terms in more than 75% of documents. Use instead of max_doc_freq for relative filtering.",
     )
     min_word_len: Optional[int] = Field(
-        default=None, 
-        alias="mlt.minwl", 
-        description="Minimum word length in characters. Words shorter than this are ignored. Example: 4 to skip 'the', 'and', 'or'."
+        default=None,
+        alias="mlt.minwl",
+        description="Minimum word length in characters. Words shorter than this are ignored. Example: 4 to skip 'the', 'and', 'or'.",
     )
     max_word_len: Optional[int] = Field(
-        default=None, 
-        alias="mlt.maxwl", 
-        description="Maximum word length in characters. Words longer than this are ignored. Useful to filter out long tokens or URLs."
+        default=None,
+        alias="mlt.maxwl",
+        description="Maximum word length in characters. Words longer than this are ignored. Useful to filter out long tokens or URLs.",
     )
     max_query_terms: Optional[int] = Field(
-        default=None, 
-        alias="mlt.maxqt", 
-        description="Maximum number of interesting terms to use in the MLT query. Default: 25. Higher values = more comprehensive but slower."
+        default=None,
+        alias="mlt.maxqt",
+        description="Maximum number of interesting terms to use in the MLT query. Default: 25. Higher values = more comprehensive but slower.",
     )
     max_num_tokens_parsed: Optional[int] = Field(
         default=None,
