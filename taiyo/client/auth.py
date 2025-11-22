@@ -26,8 +26,8 @@ class BasicAuth(SolrAuth):
     https://solr.apache.org/guide/solr/latest/deployment-guide/basic-authentication-plugin.html
 
     Args:
-        username: Username for authentication
-        password: Password for authentication
+        username: Username for authentication (str or SecretStr)
+        password: Password for authentication (str or SecretStr)
 
     Example:
         ```python
@@ -36,12 +36,15 @@ class BasicAuth(SolrAuth):
         ```
     """
 
-    def __init__(self, username: SecretStr, password: SecretStr):
-        self.username = username
-        self.password = password
+    def __init__(self, username: str | SecretStr, password: str | SecretStr):
+        self.username = (
+            username if isinstance(username, SecretStr) else SecretStr(username)
+        )
+        self.password = (
+            password if isinstance(password, SecretStr) else SecretStr(password)
+        )
 
     def apply(self, client: BaseSolrClient) -> None:
-        # Extract secret values from SecretStr objects
         username = self.username.get_secret_value()
         password = self.password.get_secret_value()
         auth_str = base64.b64encode(f"{username}:{password}".encode()).decode()
@@ -54,7 +57,7 @@ class BearerAuth(SolrAuth):
     https://solr.apache.org/guide/solr/latest/deployment-guide/jwt-authentication-plugin.html
 
     Args:
-        token: JWT token to use
+        token: JWT token to use (str or SecretStr)
 
     Example:
         ```python
@@ -63,8 +66,8 @@ class BearerAuth(SolrAuth):
         ```
     """
 
-    def __init__(self, token: SecretStr):
-        self.token = token
+    def __init__(self, token: str | SecretStr):
+        self.token = token if isinstance(token, SecretStr) else SecretStr(token)
 
     def apply(self, client: BaseSolrClient) -> None:
         client.set_header("Authorization", f"Bearer {self.token.get_secret_value()}")
@@ -75,8 +78,8 @@ class OAuth2Auth(SolrAuth):
     OAuth 2.0 authentication with token refresh.
 
     Args:
-        client_id: OAuth client ID
-        client_secret: OAuth client secret
+        client_id: OAuth client ID (str or SecretStr)
+        client_secret: OAuth client secret (str or SecretStr)
         token_url: Token endpoint URL
 
     Example:
@@ -90,9 +93,17 @@ class OAuth2Auth(SolrAuth):
         ```
     """
 
-    def __init__(self, client_id: SecretStr, client_secret: SecretStr, token_url: str):
-        self.client_id = client_id
-        self.client_secret = client_secret
+    def __init__(
+        self, client_id: str | SecretStr, client_secret: str | SecretStr, token_url: str
+    ):
+        self.client_id = (
+            client_id if isinstance(client_id, SecretStr) else SecretStr(client_id)
+        )
+        self.client_secret = (
+            client_secret
+            if isinstance(client_secret, SecretStr)
+            else SecretStr(client_secret)
+        )
         self.token_url = token_url
         self.access_token: Optional[str] = None
 
