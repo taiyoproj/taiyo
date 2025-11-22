@@ -90,9 +90,9 @@ async def main():
 
 ## Community & Support
 
-- **GitHub**: [KengoA/taiyo](https://github.com/KengoA/taiyo)
+- **GitHub**: [taiyoproj/taiyo](https://github.com/taoyoproj/taiyo)
 - **Issues**: Report bugs or request features on GitHub Issues
 
 ## License
 
-Taiyo is licensed under the MIT License. See LICENSE for details.
+Taiyo is licensed under the Apache 2.0 License. See LICENSE for details.
