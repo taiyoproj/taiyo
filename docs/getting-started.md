@@ -8,6 +8,12 @@ This guide demonstrates basic usage of Taiyo with Apache Solr.
 pip install taiyo
 ```
 
+Or using [uv](https://github.com/astral-sh/uv):
+
+```bash
+uv add taiyo
+```
+
 ## Running Solr
 
 Start a Solr instance using Docker:

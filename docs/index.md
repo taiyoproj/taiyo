@@ -23,6 +23,12 @@ The library provides a type-safe interface for interacting with Apache Solr, sup
 pip install taiyo
 ```
 
+Or using [uv](https://github.com/astral-sh/uv):
+
+```bash
+uv add taiyo
+```
+
 ### Basic Usage
 
 ```python
