@@ -1,57 +1,92 @@
 # Taiyo
 
-A modern Python client for Apache Solr with a clean, type-safe API, rich query builders, and first-class sync/async support.
+Taiyo is a Python client for Apache Solr built with httpx and Pydantic.
 
-- Simple client setup with pluggable authentication (Basic, Bearer)
-- Sync (`SolrClient`) and Async (`AsyncSolrClient`) clients with the same API
-- Strongly-typed documents via Pydantic (`SolrDocument`)
-- Search response model (`SolrResponse`) with facets and highlighting support
-- Composable query parsers: sparse (lucene, dismax/edismax), dense (KNN, vectorSimilarity), spatial (bbox, geofilt)
-- Feature configs (faceting, grouping, highlighting, more-like-this) as Pydantic models
+The library provides a type-safe interface for interacting with Apache Solr, supporting both synchronous and asynchronous operations. It includes comprehensive support for Solr's query parsers, schema management, and vector search capabilities.
 
-## Quick install
+## Features
+
+- Synchronous and asynchronous client implementations
+- Type safety with Pydantic for runtime validation and IDE support
+- Full support for Solr query parsers (standard, dismax, edismax, and specialized parsers)
+- Native support for KNN, dense vector similarity, and spatial queries
+- Programmatic schema definition and management
+- Authentication via Basic Auth and Bearer Token
+- HTTP/2 support through httpx
+- Comprehensive type annotations
+
+## Quick Start
+
+### Installation
 
 ```bash
 pip install taiyo
 ```
 
-If installing from source:
-
-```bash
-git clone https://github.com/KengoA/taiyo
-cd taiyo
-pip install -e .
-```
-
-## Quickstart
+### Basic Usage
 
 ```python
 from taiyo import SolrClient, SolrDocument
 
-class Product(SolrDocument):
-    id: str
-    title: str
-    category: str
-
-with SolrClient("http://localhost:8983/solr", "products") as client:
-    # Ping
-    assert client.ping()
-
-    # Index
-    client.add(Product(id="1", title="Wireless Mouse", category="electronics"))
+# Create a synchronous client
+with SolrClient("http://localhost:8983/solr") as client:
+    client.set_collection("my_collection")
+    
+    # Search documents
+    results = client.search("*:*")
+    print(f"Found {results.num_found} documents")
+    
+    # Add documents
+    doc = SolrDocument(title="Hello Solr", content="My first document")
+    client.add(doc)
     client.commit()
-
-    # Search (simple query string)
-    res = client.search("title:mouse", document_model=Product)
-    for doc in res.docs:
-        print(doc.id, doc.title)
 ```
 
+### Async Usage
 
-Next steps
+```python
+from taiyo import AsyncSolrClient, SolrDocument
 
-- Getting started: environment, minimal examples
-- Clients: sync vs async and authentication
-- Queries: parsers, mixins, and feature configs
-- Recipes: common tasks and patterns
+async def main():
+    async with AsyncSolrClient("http://localhost:8983/solr") as client:
+        client.set_collection("my_collection")
+        
+        # Search documents
+        results = await client.search("*:*")
+        print(f"Found {results.num_found} documents")
+        
+        # Add documents
+        doc = SolrDocument(title="Hello Solr")
+        await client.add(doc)
+        await client.commit()
+```
 
+## Use Cases
+
+- Full-text search applications with faceting and highlighting
+- Recommendation systems using vector similarity for semantic search
+- Analytics using Solr's aggregation and faceting capabilities
+- Content management with document indexing and rich metadata
+- Geospatial applications with location-based search and filtering
+
+## Documentation
+
+- [Getting Started](getting-started.md) - Basic setup and first queries
+- [Clients](clients/overview.md) - Client configuration, authentication, and usage patterns
+- [Indexing](indexing/overview.md) - Document indexing and batch operations
+- [Query Parsers](parsers/overview.md) - Query parser reference and examples
+- [Controlling Results](controlling-results/faceting.md) - Faceting, grouping, and highlighting
+
+## Requirements
+
+- Python 3.11+
+- Apache Solr 8.0+
+
+## Community & Support
+
+- **GitHub**: [KengoA/taiyo](https://github.com/KengoA/taiyo)
+- **Issues**: Report bugs or request features on GitHub Issues
+
+## License
+
+Taiyo is licensed under the MIT License. See LICENSE for details.
