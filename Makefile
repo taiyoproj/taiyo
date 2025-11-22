@@ -52,7 +52,7 @@ dev-setup:
 	uv run pip install -e ".[dev]"
 
 # Build and publish
-.PHONY: build publish-dry-run publish-test publish docs docs-serve docs-clean
+.PHONY: build publish-dry-run publish-test publish
 
 build:
 	rm -rf dist
