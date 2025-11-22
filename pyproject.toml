@@ -6,7 +6,7 @@ authors = [
     {name = "KengoA", email = "kengo@hey.com"}
 ]
 readme = "README.md"
-license = {text = "MIT"}
+license = {text = "Apache-2.0"}
 keywords = ["solr"]
 dependencies = [
     "httpx>=0.24.0",
