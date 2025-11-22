@@ -135,6 +135,27 @@ class BaseSolrClient:
         )
 
     @staticmethod
+    def _build_delete_command(
+        query: Optional[str] = None,
+        ids: Optional[Union[str, list[str]]] = None,
+    ) -> Union[str, list[str], Dict[str, Any]]:
+        """Build delete command according to Solr specification."""
+        if ids and not query:
+            if isinstance(ids, str):
+                return ids
+            if isinstance(ids, list) and len(ids) == 1:
+                return ids[0]
+            return ids
+
+        if query and not ids:
+            return {"query": query}
+
+        return {
+            "query": query,
+            "id": ids if isinstance(ids, str) else ids,
+        }
+
+    @staticmethod
     def _build_search_params(
         query: Union[str, Dict[str, Any], BaseQueryParser],
         **kwargs: Any,

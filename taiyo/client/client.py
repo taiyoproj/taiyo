@@ -224,26 +224,12 @@ class AsyncSolrClient(BaseSolrClient):
         if not self.collection:
             raise ValueError("collection needs to be specified via set_collection().")
 
-        if not query and not ids:
+        if not (query or ids):
             raise ValueError("Either query or ids must be provided")
 
-        if ids and not query:
-            if isinstance(ids, str):
-                delete_cmd = ids
-            elif isinstance(ids, list) and len(ids) == 1:
-                delete_cmd = ids[0]
-            else:
-                delete_cmd = ids
-        elif query and not ids:
-            delete_cmd = {"query": query}
-        else:
-            delete_cmd = {}
-            if query:
-                delete_cmd["query"] = query
-            if ids:
-                delete_cmd["id"] = ids if isinstance(ids, str) else ids
-
+        delete_cmd = self._build_delete_command(query=query, ids=ids)
         params = {"commit": "true"} if commit else {}
+
         return await self._request(
             method="POST",
             endpoint="update",
@@ -618,26 +604,12 @@ class SolrClient(BaseSolrClient):
         if not self.collection:
             raise ValueError("collection needs to be specified via set_collection().")
 
-        if not query and not ids:
+        if not (query or ids):
             raise ValueError("Either query or ids must be provided")
 
-        if ids and not query:
-            if isinstance(ids, str):
-                delete_cmd = ids
-            elif isinstance(ids, list) and len(ids) == 1:
-                delete_cmd = ids[0]
-            else:
-                delete_cmd = ids
-        elif query and not ids:
-            delete_cmd = {"query": query}
-        else:
-            delete_cmd = {}
-            if query:
-                delete_cmd["query"] = query
-            if ids:
-                delete_cmd["id"] = ids if isinstance(ids, str) else ids
-
+        delete_cmd = self._build_delete_command(query=query, ids=ids)
         params = {"commit": "true"} if commit else {}
+
         return self._request(
             method="POST",
             endpoint=f"{self.collection}/update",
