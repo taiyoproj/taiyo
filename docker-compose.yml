@@ -42,7 +42,7 @@ services:
         echo "Solr started, enabling authentication..."
         solr auth enable -type basicAuth -credentials solr:SolrRocks -blockUnknown true -z localhost:9983
         echo "Authentication enabled! Warming up..."
-        sleep 15
+        sleep 10
         echo "Ready for connections!"
         wait $$SOLR_PID
     healthcheck:
