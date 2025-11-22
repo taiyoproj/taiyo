@@ -55,7 +55,7 @@ class AsyncSolrClient(BaseSolrClient):
         )
 
         if auth:
-            auth.apply(self._client)
+            auth.apply(self)
 
     async def __aenter__(self):
         return self
@@ -421,7 +421,7 @@ class SolrClient(BaseSolrClient):
         self._client = httpx.Client(timeout=timeout, verify=verify, **client_options)
 
         if auth:
-            auth.apply(self._client)
+            auth.apply(self)
 
     def __enter__(self):
         return self
@@ -570,7 +570,19 @@ class SolrClient(BaseSolrClient):
         if query:
             delete_query["query"] = query
         if ids:
-            delete_query["id"] = ids
+            # For single ID, use string; for multiple, create separate delete commands
+            if len(ids) == 1:
+                delete_query["id"] = ids[0]
+            else:
+                # Multiple IDs - need to create array of delete objects
+                delete_commands = [{"id": id_val} for id_val in ids]
+                params = {"commit": "true"} if commit else {}
+                return self._request(
+                    method="POST",
+                    endpoint=f"{self.collection}/update",
+                    params=params,
+                    json={"delete": delete_commands},
+                )
 
         params = {"commit": "true"} if commit else {}
         return self._request(

@@ -41,9 +41,10 @@ class BasicAuth(SolrAuth):
         self.password = password
 
     def apply(self, client: BaseSolrClient) -> None:
-        auth_str = base64.b64encode(
-            f"{self.username}:{self.password}".encode()
-        ).decode()
+        # Extract secret values from SecretStr objects
+        username = self.username.get_secret_value()
+        password = self.password.get_secret_value()
+        auth_str = base64.b64encode(f"{username}:{password}".encode()).decode()
         client.set_header("Authorization", f"Basic {auth_str}")
 
 
@@ -66,7 +67,7 @@ class BearerAuth(SolrAuth):
         self.token = token
 
     def apply(self, client: BaseSolrClient) -> None:
-        client.set_header("Authorization", f"Bearer {self.token}")
+        client.set_header("Authorization", f"Bearer {self.token.get_secret_value()}")
 
 
 class OAuth2Auth(SolrAuth):
