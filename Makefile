@@ -52,13 +52,20 @@ dev-setup:
 	uv run pip install -e ".[dev]"
 
 # Build and publish
-.PHONY: build publish docs docs-serve docs-clean
+.PHONY: build publish-dry-run publish-test publish docs docs-serve docs-clean
 
 build:
+	rm -rf dist
 	uv build
 
+publish-dry-run:
+	uv publish --dry-run
+
+publish-test:
+	uv publish --publish-url https://test.pypi.org/legacy/
+
 publish:
-	uv publish --repository pypi
+	uv publish
 
 # Documentation
 .PHONY: docs docs-serve docs-clean
