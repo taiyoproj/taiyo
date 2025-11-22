@@ -4,7 +4,7 @@ from pydantic import Field, computed_field
 from taiyo.parsers.dense.base import DenseVectorSearchQueryParser
 
 
-class VectorSimilarityParser(DenseVectorSearchQueryParser):
+class VectorSimilarityQueryParser(DenseVectorSearchQueryParser):
     """
     Query parser for dense vector (KNN) search in Solr.
     Supports knn, knn_text_to_vector, and vectorSimilarity query parsers.

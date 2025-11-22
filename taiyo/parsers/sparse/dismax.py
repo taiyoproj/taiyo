@@ -1,6 +1,6 @@
 from pydantic import Field, computed_field, field_serializer
 
-from taiyo.parsers import BaseQueryParser
+from taiyo.parsers.base import BaseQueryParser
 from typing import Literal
 
 

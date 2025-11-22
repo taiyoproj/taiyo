@@ -1,6 +1,6 @@
 from pydantic import Field
 from typing import Literal, Optional
-from taiyo.parsers import BaseQueryParser
+from taiyo.parsers.base import BaseQueryParser
 
 
 class StandardParser(BaseQueryParser):

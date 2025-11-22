@@ -1,5 +1,9 @@
 from .sparse import StandardParser, DisMaxQueryParser, ExtendedDisMaxQueryParser
-from .dense import KNNQueryParser, KNNTextToVectorQueryParser, VectorSimilarityParser
+from .dense import (
+    KNNQueryParser,
+    KNNTextToVectorQueryParser,
+    VectorSimilarityQueryParser,
+)
 from .spatial import GeoFilterQueryParser
 from .base import BaseQueryParser
 
@@ -10,6 +14,6 @@ __all__ = [
     "ExtendedDisMaxQueryParser",
     "KNNQueryParser",
     "KNNTextToVectorQueryParser",
-    "VectorSimilarityParser",
+    "VectorSimilarityQueryParser",
     "GeoFilterQueryParser",
 ]
