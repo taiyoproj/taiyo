@@ -33,5 +33,5 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "Sync documentation from taiyo repository"
-            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/taiyoproj/taiyoproj.github.io.git HEAD:main
+            git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/taiyoproj/taiyoproj.github.io.git HEAD:main
           fi
