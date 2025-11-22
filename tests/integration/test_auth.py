@@ -10,14 +10,17 @@ from taiyo.schema import SolrField
 
 SOLR_URL = "http://localhost:8983/solr"
 SOLR_AUTH_URL = "http://localhost:8984/solr"
+
 AUTH_USERNAME_TEST = "solr"
 AUTH_PASSWORD_TEST = "SolrRocks"
 
+# Configure longer timeout
+TIMEOUT = 30.0
 
 class AuthTestDoc(SolrDocument):
     """Simple test document."""
 
-    id: str
+    name: str
     title: str
 
 
@@ -29,7 +32,7 @@ def test_basic_auth_success():
     auth = BasicAuth(username=AUTH_USERNAME_TEST, password=AUTH_PASSWORD_TEST)
 
     # Use longer timeout for auth server (first requests can be slow)
-    with SolrClient(SOLR_AUTH_URL, auth=auth, timeout=20.0) as client:
+    with SolrClient(SOLR_AUTH_URL, auth=auth, timeout=TIMEOUT) as client:
         # Create collection - should succeed with auth
         client.create_collection(collection, num_shards=1, replication_factor=1)
         time.sleep(1)
@@ -46,7 +49,7 @@ def test_basic_auth_success():
         time.sleep(1)
 
         # Index a document
-        doc = AuthTestDoc(id="1", title="Test Document")
+        doc = AuthTestDoc(name="1", title="Test Document")
         client.add([doc])
         client.commit()
         time.sleep(1)
@@ -107,7 +110,7 @@ def test_auth_on_non_auth_server():
         client.set_collection(collection)
 
         # Index a document
-        doc = AuthTestDoc(id="1", title="Test Document")
+        doc = AuthTestDoc(name="1", title="Test Document")
         client.add([doc])
         client.commit()
         time.sleep(1)
@@ -128,7 +131,7 @@ def test_basic_auth_all_operations():
     auth = BasicAuth(username=AUTH_USERNAME_TEST, password=AUTH_PASSWORD_TEST)
 
     # Use longer timeout for auth server (first requests can be slow)
-    with SolrClient(SOLR_AUTH_URL, auth=auth, timeout=30.0) as client:
+    with SolrClient(SOLR_AUTH_URL, auth=auth, timeout=TIMEOUT) as client:
         # Create collection
         client.create_collection(collection, num_shards=1, replication_factor=1)
         time.sleep(1)
@@ -145,7 +148,7 @@ def test_basic_auth_all_operations():
         time.sleep(1)
 
         # Index documents
-        docs = [AuthTestDoc(id=str(i), title=f"Document {i}") for i in range(5)]
+        docs = [AuthTestDoc(name=str(i), title=f"Document {i}") for i in range(5)]
         client.add(docs)
         client.commit()
         time.sleep(1)
@@ -155,7 +158,7 @@ def test_basic_auth_all_operations():
         assert results.num_found >= 5
 
         # Update a document
-        update_doc = AuthTestDoc(id="1", title="Updated Document")
+        update_doc = AuthTestDoc(name="1", title="Updated Document")
         client.add([update_doc])
         client.commit()
         time.sleep(1)

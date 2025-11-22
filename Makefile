@@ -13,13 +13,15 @@ lint:
 solr-up:
 	docker compose up -d
 	@echo "Waiting for Solr instances to be ready..."
-	@i=0; while [ $$i -lt 30 ]; do \
+	@i=0; while [ $$i -lt 20 ]; do \
 		if curl -sf http://localhost:8983/solr/admin/info/system > /dev/null 2>&1 && \
 		   curl -sf -u solr:SolrRocks http://localhost:8984/solr/admin/info/system > /dev/null 2>&1; then \
 			echo "Both Solr instances are ready!"; \
+			echo "Warming up auth-enabled instance..."; \
+			sleep 5; \
 			exit 0; \
 		fi; \
-		echo "Waiting... ($$i/30)"; \
+		echo "Waiting... ($$i/20)"; \
 		sleep 2; \
 		i=$$((i + 1)); \
 	done; \
@@ -39,7 +41,7 @@ solr-clean:
 	docker compose down -v
 
 test-integration: solr-up
-	uv run pytest --cov=taiyo tests/integration/test_auth.py || (docker compose down && exit 1)
+	uv run pytest --cov=taiyo tests/integration || (docker compose down && exit 1)
 	docker compose down
 
 test-unit:
