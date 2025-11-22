@@ -25,6 +25,16 @@ build-backend = "hatchling.build"
 [tool.hatch.metadata]
 allow-direct-references = true
 
+[tool.hatch.build.targets.wheel]
+packages = ["taiyo"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/taiyo",
+    "/LICENSE",
+    "/pyproject.toml",
+]
+
 [[tool.uv.index]]
 name = "pypi"
 url = "https://pypi.org/simple"
