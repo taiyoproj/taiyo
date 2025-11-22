@@ -4,7 +4,6 @@ import random
 import string
 import time
 import pytest
-from pydantic import SecretStr
 from taiyo import SolrClient, BasicAuth, SolrDocument, SolrError
 from taiyo.schema import SolrField
 
@@ -27,12 +26,10 @@ def test_basic_auth_success():
     _rand = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
     collection = f"test_auth_success_{_rand}"
 
-    # Create auth object
-    auth = BasicAuth(
-        username=SecretStr(AUTH_USERNAME_TEST), password=SecretStr(AUTH_PASSWORD_TEST)
-    )
+    auth = BasicAuth(username=AUTH_USERNAME_TEST, password=AUTH_PASSWORD_TEST)
 
-    with SolrClient(SOLR_AUTH_URL, auth=auth) as client:
+    # Use longer timeout for auth server (first requests can be slow)
+    with SolrClient(SOLR_AUTH_URL, auth=auth, timeout=20.0) as client:
         # Create collection - should succeed with auth
         client.create_collection(collection, num_shards=1, replication_factor=1)
         time.sleep(1)
@@ -69,9 +66,7 @@ def test_basic_auth_failure_wrong_password():
     collection = f"test_auth_fail_{_rand}"
 
     # Create auth object with wrong password
-    auth = BasicAuth(
-        username=SecretStr(AUTH_USERNAME_TEST), password=SecretStr("WrongPassword")
-    )
+    auth = BasicAuth(username=AUTH_USERNAME_TEST, password="WrongPassword")
 
     with pytest.raises(SolrError) as exc_info:
         with SolrClient(SOLR_AUTH_URL, auth=auth) as client:
@@ -102,9 +97,7 @@ def test_auth_on_non_auth_server():
     collection = f"test_auth_ignored_{_rand}"
 
     # Create auth object (will be ignored by non-auth server)
-    auth = BasicAuth(
-        username=SecretStr(AUTH_USERNAME_TEST), password=SecretStr(AUTH_PASSWORD_TEST)
-    )
+    auth = BasicAuth(username=AUTH_USERNAME_TEST, password=AUTH_PASSWORD_TEST)
 
     with SolrClient(SOLR_URL, auth=auth) as client:
         # This should succeed - non-auth server ignores auth headers
@@ -132,11 +125,10 @@ def test_basic_auth_all_operations():
     _rand = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
     collection = f"test_auth_ops_{_rand}"
 
-    auth = BasicAuth(
-        username=SecretStr(AUTH_USERNAME_TEST), password=SecretStr(AUTH_PASSWORD_TEST)
-    )
+    auth = BasicAuth(username=AUTH_USERNAME_TEST, password=AUTH_PASSWORD_TEST)
 
-    with SolrClient(SOLR_AUTH_URL, auth=auth) as client:
+    # Use longer timeout for auth server (first requests can be slow)
+    with SolrClient(SOLR_AUTH_URL, auth=auth, timeout=30.0) as client:
         # Create collection
         client.create_collection(collection, num_shards=1, replication_factor=1)
         time.sleep(1)

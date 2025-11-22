@@ -96,16 +96,15 @@ async def test_async_add_multiple_documents(
 
 
 @pytest.mark.asyncio
-async def test_async_delete_by_id(async_solr_client: AsyncSolrClient, monkeypatch):
+async def test_async_delete_by_ids(async_solr_client: AsyncSolrClient, monkeypatch):
     """Test deleting documents by ID."""
     ids = ["1", "2"]
 
     async def mock_request(*args, **kwargs):
-        assert kwargs["json"] == {"delete": {"id": ids}}
+        # Multiple IDs should use array format: {"delete": ["id1", "id2"]}
+        assert kwargs["json"] == {"delete": ids}
         assert kwargs["params"] == {"commit": "true"}
-        request = httpx.Request(
-            "POST", "http://localhost:8983", json={"delete": {"id": ids}}
-        )
+        request = httpx.Request("POST", "http://localhost:8983", json={"delete": ids})
         response = Response(200, json=mock_delete_response())
         response._request = request
         return response
@@ -134,6 +133,55 @@ async def test_async_delete_by_query(async_solr_client: AsyncSolrClient, monkeyp
     monkeypatch.setattr(async_solr_client._client, "request", mock_request)
     async_solr_client.set_collection(collection)
     response = await async_solr_client.delete(query=query)
+    assert response["responseHeader"]["status"] == 0
+
+
+@pytest.mark.asyncio
+async def test_async_delete_by_single_id_string(
+    async_solr_client: AsyncSolrClient, monkeypatch
+):
+    """Test deleting a single document by ID using string format."""
+    doc_id = "doc123"
+
+    async def mock_request(*args, **kwargs):
+        # Single ID should use string format: {"delete": "myid"}
+        assert kwargs["json"] == {"delete": doc_id}
+        assert kwargs["params"] == {"commit": "true"}
+        request = httpx.Request(
+            "POST", "http://localhost:8983", json={"delete": doc_id}
+        )
+        response = Response(200, json=mock_delete_response())
+        response._request = request
+        return response
+
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
+    async_solr_client.set_collection(collection)
+    response = await async_solr_client.delete(ids=doc_id)
+    assert response["responseHeader"]["status"] == 0
+
+
+@pytest.mark.asyncio
+async def test_async_delete_combined(async_solr_client: AsyncSolrClient, monkeypatch):
+    """Test deleting documents using both ID and query."""
+    doc_id = "doc123"
+    query = "status:archived"
+
+    async def mock_request(*args, **kwargs):
+        # Combined delete: {"delete": {"id": "...", "query": "..."}}
+        assert kwargs["json"] == {"delete": {"id": doc_id, "query": query}}
+        assert kwargs["params"] == {"commit": "true"}
+        request = httpx.Request(
+            "POST",
+            "http://localhost:8983",
+            json={"delete": {"id": doc_id, "query": query}},
+        )
+        response = Response(200, json=mock_delete_response())
+        response._request = request
+        return response
+
+    monkeypatch.setattr(async_solr_client._client, "request", mock_request)
+    async_solr_client.set_collection(collection)
+    response = await async_solr_client.delete(ids=doc_id, query=query)
     assert response["responseHeader"]["status"] == 0
 
 
@@ -303,21 +351,21 @@ def test_sync_add_multiple_documents(
     assert response["responseHeader"]["status"] == 0
 
 
-def test_sync_delete_by_id(sync_solr_client: SolrClient, monkeypatch):
+def test_sync_delete_by_ids(sync_solr_client: SolrClient, monkeypatch):
     """Test deleting documents by ID."""
     ids = ["1", "2"]
 
     def mock_request(*args, **kwargs):
-        assert kwargs["json"] == {"delete": {"id": ids}}
+        # Multiple IDs should use array format: {"delete": ["id1", "id2"]}
+        assert kwargs["json"] == {"delete": ids}
         assert kwargs["params"] == {"commit": "true"}
-        request = httpx.Request(
-            "POST", "http://localhost:8983", json={"delete": {"id": ids}}
-        )
+        request = httpx.Request("POST", "http://localhost:8983", json={"delete": ids})
         response = Response(200, json=mock_delete_response())
         response._request = request
         return response
 
     monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
+    sync_solr_client.set_collection(collection)
     response = sync_solr_client.delete(ids=ids)
     assert response["responseHeader"]["status"] == 0
 
@@ -337,7 +385,53 @@ def test_sync_delete_by_query(sync_solr_client: SolrClient, monkeypatch):
         return response
 
     monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
+    sync_solr_client.set_collection(collection)
     response = sync_solr_client.delete(query=query)
+    assert response["responseHeader"]["status"] == 0
+
+
+def test_sync_delete_by_single_id_string(sync_solr_client: SolrClient, monkeypatch):
+    """Test deleting a single document by ID using string format."""
+    doc_id = "doc123"
+
+    def mock_request(*args, **kwargs):
+        # Single ID should use string format: {"delete": "myid"}
+        assert kwargs["json"] == {"delete": doc_id}
+        assert kwargs["params"] == {"commit": "true"}
+        request = httpx.Request(
+            "POST", "http://localhost:8983", json={"delete": doc_id}
+        )
+        response = Response(200, json=mock_delete_response())
+        response._request = request
+        return response
+
+    monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
+    sync_solr_client.set_collection(collection)
+    response = sync_solr_client.delete(ids=doc_id)
+    assert response["responseHeader"]["status"] == 0
+
+
+def test_sync_delete_combined(sync_solr_client: SolrClient, monkeypatch):
+    """Test deleting documents using both ID and query."""
+    doc_id = "doc123"
+    query = "status:archived"
+
+    def mock_request(*args, **kwargs):
+        # Combined delete: {"delete": {"id": "...", "query": "..."}}
+        assert kwargs["json"] == {"delete": {"id": doc_id, "query": query}}
+        assert kwargs["params"] == {"commit": "true"}
+        request = httpx.Request(
+            "POST",
+            "http://localhost:8983",
+            json={"delete": {"id": doc_id, "query": query}},
+        )
+        response = Response(200, json=mock_delete_response())
+        response._request = request
+        return response
+
+    monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
+    sync_solr_client.set_collection(collection)
+    response = sync_solr_client.delete(ids=doc_id, query=query)
     assert response["responseHeader"]["status"] == 0
 
 
