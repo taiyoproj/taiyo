@@ -4,43 +4,140 @@ from ..base import BaseQueryParser
 
 
 class BBoxQueryParser(BaseQueryParser):
-    """
-    Parser for querying Solr BBoxField types with spatial predicates.
+    """BBoxField Query Parser for Apache Solr Spatial Bounding Box Search.
 
-    BBoxField is designed for indexing bounding boxes (rectangles) and supports
-    spatial predicates like Contains, Intersects, Within, IsWithin, and IsDisjointTo.
-    This is different from the bbox query parser which filters by distance from a point.
+    The BBoxField parser enables searching on indexed bounding boxes (rectangles) using
+    spatial predicates. Unlike the bbox filter parser which finds points within a distance,
+    this parser performs shape-to-shape comparisons using predicates like Contains,
+    Intersects, and Within.
 
-    The field must be indexed using WKT ENVELOPE syntax:
-        ENVELOPE(minX, maxX, maxY, minY)
-        Example: ENVELOPE(-10, 20, 15, 10)
+    Solr Reference:
+        https://solr.apache.org/guide/solr/latest/query-guide/spatial-search.html
 
-    Schema configuration example:
+    Key Features:
+        - Index and query rectangular bounding boxes
+        - Multiple spatial predicates (Contains, Intersects, Within, etc.)
+        - Advanced scoring (overlap ratio, area calculations)
+        - Efficient for rectangular region queries
+        - Supports both geographic and Cartesian coordinates
+
+    How BBoxField Works:
+        - Documents contain bounding boxes (e.g., store delivery areas, parcels, regions)
+        - Queries test spatial relationships between query shape and indexed shapes
+        - Predicates determine which documents match based on spatial relationship
+        - Scoring modes calculate relevance based on shape overlap
+
+    Spatial Predicates:
+        Contains:
+          - Matches when indexed bbox contains the query shape
+          - Use case: Find regions that fully contain a point or area
+
+        Intersects:
+          - Matches when indexed bbox intersects with query shape
+          - Use case: Find regions that overlap with an area
+
+        Within/IsWithin:
+          - Matches when indexed bbox is within the query shape
+          - Use case: Find regions fully contained by a larger area
+
+        IsDisjointTo:
+          - Matches when indexed bbox does not intersect query shape
+          - Use case: Find regions that don't overlap with an area
+
+    Scoring Modes:
+        overlapRatio:
+          - Relative overlap between shapes (0.0 to 1.0)
+          - Good for ranking by coverage
+
+        area:
+          - Absolute overlapping area (haversine-based for geo)
+          - Good for ranking by size of overlap
+
+        area2D:
+          - Absolute overlapping area (cartesian coordinates)
+          - Good for non-geographic projections
+
+    WKT ENVELOPE Syntax:
+        Format: ENVELOPE(minX, maxX, maxY, minY)
+        - minX: Western edge (longitude)
+        - maxX: Eastern edge (longitude)
+        - maxY: Northern edge (latitude)
+        - minY: Southern edge (latitude)
+
+        Example: ENVELOPE(-122.5, -122.3, 37.8, 37.7)
+        (San Francisco area: west, east, north, south)
+
+    Schema Requirements:
+        BBoxField type must be configured:
         <field name="bbox" type="bbox" />
         <fieldType name="bbox" class="solr.BBoxField"
                    geo="true" distanceUnits="kilometers" numberType="pdouble" />
+        <fieldType name="pdouble" class="solr.DoublePointField" docValues="true"/>
 
     Examples:
-        # Query for bounding boxes that contain a point/shape
-        &q={!field f=bbox}Contains(ENVELOPE(-10, 20, 15, 10))
+        >>> # Find delivery areas containing a location
+        >>> parser = BBoxQueryParser(
+        ...     bbox_field="delivery_area",
+        ...     predicate="Contains",
+        ...     envelope=[-122.4, -122.4, 37.8, 37.8],  # Point as tiny box
+        ... )
 
-        # Query with Intersects predicate and scoring
-        &q={!field f=bbox score=overlapRatio}Intersects(ENVELOPE(-10, 20, 15, 10))
+        >>> # Find parcels intersecting a search area
+        >>> parser = BBoxQueryParser(
+        ...     bbox_field="land_parcel",
+        ...     predicate="Intersects",
+        ...     envelope=[-10, 20, 15, 10],  # Search rectangle
+        ...     score="overlapRatio"  # Score by overlap percentage
+        ... )
 
-        # Filter query with IsWithin predicate
-        &fq={!field f=bbox}IsWithin(ENVELOPE(-180, 180, 90, -90))
+        >>> # Find small regions within a larger area
+        >>> parser = BBoxQueryParser(
+        ...     bbox_field="city_bounds",
+        ...     predicate="Within",
+        ...     envelope=[-180, 180, 90, -90],  # Whole world
+        ... )
 
-    Supported spatial predicates:
-        - Contains(shape): Indexed shape contains the query shape
-        - Intersects(shape): Indexed shape intersects the query shape
-        - Within(shape): Indexed shape is within the query shape
-        - IsWithin(shape): Alias for Within
-        - IsDisjointTo(shape): Indexed shape does not intersect query shape
+        >>> # Find zones that don't overlap with restricted area
+        >>> parser = BBoxQueryParser(
+        ...     bbox_field="service_zone",
+        ...     predicate="IsDisjointTo",
+        ...     envelope=[-122.5, -122.3, 37.8, 37.7],  # Restricted area
+        ... )
 
-    Supported scoring modes:
-        - overlapRatio: Relative overlap between indexed shape & query shape
-        - area: Haversine-based area of overlapping shapes
-        - area2D: Cartesian-based area of overlapping shapes
+        >>> # Score by absolute overlapping area
+        >>> parser = BBoxQueryParser(
+        ...     bbox_field="coverage_area",
+        ...     predicate="Intersects",
+        ...     envelope=[-100, -90, 40, 35],
+        ...     score="area"  # Score by km² of overlap
+        ... )
+
+    Indexing BBoxField Data:
+        Documents must use WKT ENVELOPE syntax:
+        {
+          "id": "store1",
+          "bbox": "ENVELOPE(-122.5, -122.3, 37.8, 37.7)"
+        }
+
+    Args:
+        bbox_field: Name of the BBoxField to query (required)
+        predicate: Spatial predicate to use (default: "Intersects")
+            Options: Contains, Intersects, Within, IsWithin, IsDisjointTo
+        envelope: Bounding box as [minX, maxX, maxY, minY] (required)
+        score: Scoring mode (default: None)
+            Options: overlapRatio, area, area2D
+
+    Returns:
+        Query matching documents based on spatial predicate and bbox relationship
+
+    Note:
+        BBoxField is optimized for indexing bounding boxes. For point-based
+        spatial search, use LatLonPointSpatialField with geofilt/bbox parsers.
+
+    See Also:
+        - GeoFilterQueryParser: For point-based distance filtering
+        - Solr Spatial Search: https://solr.apache.org/guide/solr/latest/query-guide/spatial-search.html
+        - JTS Spatial: For complex polygon support
     """
 
     bbox_field: str = Field(

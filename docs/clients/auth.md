@@ -8,7 +8,7 @@ Taiyo supports Apache Solr's authentication mechanisms. Use Basic Authentication
 
 Basic Authentication uses username and password credentials encoded in HTTP headers.
 
-**Official Solr Documentation**: [Basic Authentication Plugin](https://solr.apache.org/guide/solr/latest/deployment-guide/basic-authentication-plugin.html)
+**Solr Documentation**: [Basic Authentication Plugin](https://solr.apache.org/guide/solr/latest/deployment-guide/basic-authentication-plugin.html)
 
 #### Usage
 
@@ -52,7 +52,7 @@ auth = BasicAuth(
 
 Bearer Token authentication uses JWT (JSON Web Tokens) for authentication.
 
-**Official Solr Documentation**: [JWT Authentication Plugin](https://solr.apache.org/guide/solr/latest/deployment-guide/jwt-authentication-plugin.html)
+**Solr Documentation**: [JWT Authentication Plugin](https://solr.apache.org/guide/solr/latest/deployment-guide/jwt-authentication-plugin.html)
 
 #### Usage
 

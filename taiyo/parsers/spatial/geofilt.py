@@ -4,32 +4,110 @@ from .base import SpatialQueryParser
 
 
 class GeoFilterQueryParser(SpatialQueryParser):
-    """
-    Parser for Solr's geospatial filter query parsers (geofilt and bbox).
+    """Geospatial Filter Query Parsers (geofilt and bbox) for Apache Solr.
 
-    The geofilt filter retrieves documents based on their geospatial distance
-    from a specified point, effectively creating a circular search area.
+    The geofilt and bbox parsers enable location-based filtering in Solr, allowing you to
+    find documents within a certain distance from a point. Geofilt uses a circular radius
+    (precise), while bbox uses a rectangular bounding box (faster but less precise).
 
-    The bbox filter is similar but uses a bounding box instead of a circle.
-    It can be faster, though it may include points outside the specified radius.
+    Solr Reference:
+        https://solr.apache.org/guide/solr/latest/query-guide/spatial-search.html
+
+    Key Features:
+        - Circular radius search (geofilt) or bounding box search (bbox)
+        - Distance-based filtering and scoring
+        - Configurable distance units (kilometers, miles, degrees)
+        - Cache control for performance optimization
+        - Compatible with LatLonPointSpatialField and RPT fields
+
+    How Geospatial Filtering Works:
+        geofilt:
+          - Creates a circular search area around a center point
+          - Precise: Only includes documents within exact radius
+          - Slightly slower but more accurate
+
+        bbox:
+          - Creates a rectangular bounding box around a center point
+          - Faster: Uses simpler rectangular calculations
+          - May include points outside the circular radius
+
+    Distance Scoring:
+        Use the score parameter to return distance as the relevance score:
+        - none: Fixed score of 1.0 (default)
+        - kilometers: Distance in km
+        - miles: Distance in miles
+        - degrees: Distance in degrees
+
+    Schema Requirements:
+        Spatial field must be indexed with appropriate field type:
+        <field name="store" type="location" indexed="true" stored="true"/>
+        <fieldType name="location" class="solr.LatLonPointSpatialField"/>
 
     Examples:
-        # Using geofilt (circular, precise)
-        &q=*:*&fq={!geofilt sfield=store}&pt=45.15,-93.85&d=5
+        >>> # Circular geospatial filter (precise)
+        >>> parser = GeoFilterQueryParser(
+        ...     spatial_field="store_location",
+        ...     center_point=[45.15, -93.85],
+        ...     distance=5,  # 5 km radius
+        ...     filter_type="geofilt"
+        ... )
 
-        # Using bbox (rectangular, faster)
-        &q=*:*&fq={!bbox sfield=store}&pt=45.15,-93.85&d=5
+        >>> # Bounding box filter (faster)
+        >>> parser = GeoFilterQueryParser(
+        ...     spatial_field="restaurant_coords",
+        ...     center_point=[37.7749, -122.4194],  # San Francisco
+        ...     distance=10,  # 10 km
+        ...     filter_type="bbox"
+        ... )
 
-    Required parameters:
-        - sfield: Spatial indexed field
-        - pt: Center point (lat,lon or x,y)
-        - d: Radial distance
+        >>> # With distance scoring
+        >>> parser = GeoFilterQueryParser(
+        ...     spatial_field="hotel_location",
+        ...     center_point=[51.5074, -0.1278],  # London
+        ...     distance=2,
+        ...     filter_type="geofilt",
+        ...     score="kilometers"  # Return distance as score
+        ... )
 
-    Optional parameters:
-        - filter_type: 'geofilt' (default, circular) or 'bbox' (rectangular, faster)
-        - score: Scoring mode (none, kilometers, miles, degrees, etc.)
-        - filter: If false, only scores without filtering
-        - cache: Whether to cache the filter query
+        >>> # Disable caching for dynamic queries
+        >>> parser = GeoFilterQueryParser(
+        ...     spatial_field="user_location",
+        ...     center_point=[40.7128, -74.0060],  # NYC
+        ...     distance=1,
+        ...     filter_type="geofilt",
+        ...     cache=False  # Don't cache this filter
+        ... )
+
+        >>> # Filter with sorting by distance
+        >>> # Combine with geodist() function query for sorting
+        >>> parser = GeoFilterQueryParser(
+        ...     spatial_field="store",
+        ...     center_point=[45.15, -93.85],
+        ...     distance=50
+        ... )
+        >>> # Add: &sort=geodist() asc to request
+
+    Args:
+        filter_type: 'geofilt' for circular (precise) or 'bbox' for bounding box (faster)
+        spatial_field: Name of the spatial indexed field (inherited from base, required)
+        center_point: [lat, lon] or [x, y] coordinates of search center (inherited, required)
+        distance: Radial distance from center point (inherited, required)
+        score: Scoring mode (none, kilometers, miles, degrees) (inherited from base)
+        cache: Whether to cache the filter query (inherited from base)
+
+    Returns:
+        Filter query (fq) matching documents within the specified distance
+
+    Performance Tips:
+        - Use bbox for large radius searches where precision isn't critical
+        - Set cache=false for highly variable queries (e.g., user location)
+        - Use geofilt for small radius searches requiring precision
+        - Consider using docValues for better spatial query performance
+
+    See Also:
+        - BBoxQueryParser: For querying indexed bounding boxes with spatial predicates
+        - geodist() function: For distance calculations and sorting
+        - Solr Spatial Search Guide: https://solr.apache.org/guide/solr/latest/query-guide/spatial-search.html
     """
 
     filter_type: Literal["geofilt", "bbox"] = Field(
