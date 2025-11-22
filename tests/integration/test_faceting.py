@@ -80,7 +80,11 @@ def test_faceting_and_highlighting():
         client.commit()
         time.sleep(1)
 
-        parser = StandardParser(query='director:"Christopher Nolan"', rows=10)
+        parser = (
+            StandardParser(query='director:"Christopher Nolan"', rows=10)
+            .facet(fields=["genre", "director"])
+            .highlight(fields=["title", "director"])
+        )
         res = client.search(parser, document_model=Movie)
         assert res.status == 0
         assert res.num_found >= 1
@@ -88,7 +92,7 @@ def test_faceting_and_highlighting():
         extra = getattr(res, "extra", {})
         assert "facet_counts" in extra or "facets" in extra
         params = extra.get("responseHeader", {}).get("params", {})
-        assert params.get("highlight") == "true"
+        assert params["hl"]
         assert "title" in params.get("hl.fl", "") or "director" in params.get(
             "hl.fl", ""
         )
