@@ -90,7 +90,7 @@ def test_filter_basic():
 
 def test_filter_with_class():
     """Test filter with class name."""
-    filter_ = Filter(solr_filter_class="solr.LowerCaseFilterFactory")
+    filter_ = Filter(solr_class="solr.LowerCaseFilterFactory")
 
     assert filter_.solr_class == "solr.LowerCaseFilterFactory"
 
