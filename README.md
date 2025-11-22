@@ -102,16 +102,7 @@ async with AsyncSolrClient("http://localhost:8983/solr") as client:
     for doc in results.documents:
         p = Passenger.model_validate(doc)
         print(f"{p.name} survived, paid ${p.fare}")
-
-## Documentation
-
-Full documentation is available at [https://taiyo.github.io](https://taiyo.github.io)
-
-- [Getting Started](https://taiyo.github.io/getting-started/)
-- [Client Configuration](https://taiyo.github.io/clients/overview/)
-- [Indexing](https://taiyo.github.io/indexing/overview/)
-- [Query Parsers](https://taiyo.github.io/parsers/overview/)
-- [Schema Management](https://taiyo.github.io/indexing/schema/)
+```
 
 ## Requirements
 
