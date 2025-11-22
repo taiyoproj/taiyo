@@ -6,14 +6,12 @@ The library provides a type-safe interface for interacting with Apache Solr, sup
 
 ## Features
 
-- Synchronous and asynchronous client implementations
+- Synchronous and asynchronous client implementations with httpx
 - Type safety with Pydantic for runtime validation and IDE support
-- Full support for Solr query parsers (standard, dismax, edismax, and specialized parsers)
-- Native support for KNN, dense vector similarity, and spatial queries
-- Programmatic schema definition and management
-- Authentication via Basic Auth and Bearer Token
-- HTTP/2 support through httpx
-- Comprehensive type annotations
+- Support for Solr query parsers for sparse (standard, dismax, edismax), dense vector and spatial search
+- Pythonic method chains for grouping/faceting/highlighting search results
+- Programmatic schema definition for indexing
+- Authentication via Basic Auth, Bearer Token, and OAuth2
 
 ## Quick Start
 
@@ -90,7 +88,7 @@ async def main():
 
 ## Community & Support
 
-- **GitHub**: [taiyoproj/taiyo](https://github.com/taoyoproj/taiyo)
+- **GitHub**: [taiyoproj/taiyo](https://github.com/taiyoproj/taiyo)
 - **Issues**: Report bugs or request features on GitHub Issues
 
 ## License
