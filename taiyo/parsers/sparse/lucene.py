@@ -1,9 +1,9 @@
 from pydantic import Field
 from typing import Literal, Optional
-from taiyo.parsers.sparse.base import SparseQueryParser
+from taiyo.parsers import BaseQueryParser
 
 
-class StandardParser(SparseQueryParser):
+class StandardParser(BaseQueryParser):
     query: str = Field(
         ...,
         alias="q",

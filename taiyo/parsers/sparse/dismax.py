@@ -1,13 +1,13 @@
 from pydantic import Field, computed_field, field_serializer
 
-from taiyo.parsers.sparse.base import SparseQueryParser
+from taiyo.parsers import BaseQueryParser
 from typing import Literal
 
 
 from typing import Optional, Dict, List
 
 
-class DisMaxQueryParser(SparseQueryParser):
+class DisMaxQueryParser(BaseQueryParser):
     """
     DisMaxQueryParser processes user queries using the DisMax (Disjunction Max) algorithm.
     It supports simplified query syntax and distributes terms across multiple fields with boosts.
