@@ -1,10 +1,6 @@
 name: Documentation
 on:
   workflow_dispatch:
-  # Disabled - enable when repo is public
-  # push:
-  #   branches:
-  #     - main
 permissions:
   contents: read
   pages: write
