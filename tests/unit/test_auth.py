@@ -1,5 +1,6 @@
 """Tests for authentication methods."""
 
+import httpx
 from taiyo import BasicAuth, BearerAuth
 
 
@@ -8,18 +9,19 @@ def test_basic_auth():
 
     class MockClient:
         def __init__(self):
-            self.headers = {}
+            self._client = httpx.Client()
 
         def set_header(self, key, value):
-            self.headers[key] = value
+            self._client.headers[key] = value
 
     client = MockClient()
     auth = BasicAuth("user", "pass")
     auth.apply(client)
-    assert "Authorization" in client.headers
-    assert client.headers["Authorization"].startswith("Basic ")
+    assert "Authorization" in client._client.headers
+    assert client._client.headers["Authorization"].startswith("Basic ")
     # Check that it's base64 encoded "user:pass"
-    assert client.headers["Authorization"] == "Basic dXNlcjpwYXNz"
+    assert client._client.headers["Authorization"] == "Basic dXNlcjpwYXNz"
+    client._client.close()
 
 
 def test_bearer_auth():
@@ -27,13 +29,14 @@ def test_bearer_auth():
 
     class MockClient:
         def __init__(self):
-            self.headers = {}
+            self._client = httpx.Client()
 
         def set_header(self, key, value):
-            self.headers[key] = value
+            self._client.headers[key] = value
 
     client = MockClient()
     auth = BearerAuth("test-token")
     auth.apply(client)
 
-    assert client.headers["Authorization"] == "Bearer test-token"
+    assert client._client.headers["Authorization"] == "Bearer test-token"
+    client._client.close()
