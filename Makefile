@@ -13,15 +13,24 @@ lint:
 solr-up:
 	docker compose up -d
 	@echo "Waiting for Solr instances to be ready..."
-	@i=0; while [ $$i -lt 20 ]; do \
+	@i=0; while [ $$i -lt 60 ]; do \
 		if curl -sf http://localhost:8983/solr/admin/info/system > /dev/null 2>&1 && \
 		   curl -sf -u solr:SolrRocks http://localhost:8984/solr/admin/info/system > /dev/null 2>&1; then \
 			echo "Both Solr instances are ready!"; \
 			echo "Warming up auth-enabled instance..."; \
-			sleep 5; \
+			sleep 10; \
+			echo "Verifying auth server stability..."; \
+			j=0; while [ $$j -lt 5 ]; do \
+				if curl -sf -u solr:SolrRocks http://localhost:8984/solr/admin/info/system > /dev/null 2>&1; then \
+					echo "Auth server stable after $$j retries"; \
+					exit 0; \
+				fi; \
+				sleep 2; \
+				j=$$((j + 1)); \
+			done; \
 			exit 0; \
 		fi; \
-		echo "Waiting... ($$i/20)"; \
+		echo "Waiting... ($$i/60)"; \
 		sleep 2; \
 		i=$$((i + 1)); \
 	done; \
