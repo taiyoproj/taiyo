@@ -18,7 +18,7 @@ class GroupParamsConfig(ParamsConfig):
     Example - Group by Author:
         ```python
         config = GroupParamsConfig(
-            field='author',  # Group documents by author
+            by='author',  # Group documents by author
             limit=3,  # Show up to 3 docs per author
             sort='date desc',  # Newest first within each group
             ngroups=True  # Include count of total groups
@@ -42,12 +42,12 @@ class GroupParamsConfig(ParamsConfig):
 
     enable_key: str = "group"
 
-    field: Optional[Union[str, List[str]]] = Field(
+    by: Optional[Union[str, List[str]]] = Field(
         default=None,
         alias="group.field",
         description="""Field(s) to group results by. Shows one representative doc per unique field value.
         
-        Example: field='author' shows one document per author.
+        Example: by='author' shows one document per author.
         
         Requirements:
         - Must be single-valued (not multi-valued)
