@@ -51,14 +51,12 @@ def test_vector_similarity():
 def test_knn_with_facet_config():
     """Test that KNN parser properly includes facet configuration."""
     parser = KNNQueryParser(
-        field="product_vector",
-        vector=[0.1, 0.2, 0.3, 0.4],
-        top_k=10
+        field="product_vector", vector=[0.1, 0.2, 0.3, 0.4], top_k=10
     )
     parser.facet(fields=["category", "brand"], mincount=1)
-    
+
     result = parser.build()
-    
+
     # Check that both KNN params and facet params are present
     assert "q" in result
     assert "{!knn" in result["q"]
@@ -70,14 +68,12 @@ def test_knn_with_facet_config():
 def test_vector_similarity_with_group_config():
     """Test that VectorSimilarity parser properly includes group configuration."""
     parser = VectorSimilarityQueryParser(
-        field="doc_vector",
-        vector=[1.0, 2.0, 3.0],
-        min_return=0.7
+        field="doc_vector", vector=[1.0, 2.0, 3.0], min_return=0.7
     )
     parser.group(by="author", limit=5)
-    
+
     result = parser.build()
-    
+
     # Check that both vector similarity params and group params are present
     assert "q" in result
     assert "{!vectorSimilarity" in result["q"]
@@ -88,17 +84,13 @@ def test_vector_similarity_with_group_config():
 
 def test_knn_with_multiple_configs():
     """Test that KNN parser can handle multiple configs at once."""
-    parser = KNNQueryParser(
-        field="embedding",
-        vector=[0.5] * 384,
-        top_k=20
-    )
+    parser = KNNQueryParser(field="embedding", vector=[0.5] * 384, top_k=20)
     parser.facet(fields=["category"], mincount=1)
     parser.group(by="product_id", limit=3)
     parser.highlight(fields=["title"], snippets_per_field=1)
-    
+
     result = parser.build()
-    
+
     # Check that all configs are present
     assert "q" in result
     assert result["facet"] is True

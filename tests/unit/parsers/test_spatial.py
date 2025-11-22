@@ -111,12 +111,12 @@ def test_geofilt_with_facet_config():
         spatial_field="location",
         center_point=[37.7749, -122.4194],
         radial_distance=10,
-        filter_type="geofilt"
+        filter_type="geofilt",
     )
     parser.facet(fields=["city", "state"], limit=20)
-    
+
     result = parser.build()
-    
+
     # Check that both geofilt params and facet params are present
     assert "fq" in result
     assert "{!geofilt" in result["fq"]
@@ -130,12 +130,12 @@ def test_bbox_parser_with_highlight_config():
     parser = BBoxQueryParser(
         bbox_field="region",
         predicate="Intersects",
-        envelope=[-122.5, -122.3, 37.8, 37.7]
+        envelope=[-122.5, -122.3, 37.8, 37.7],
     )
     parser.highlight(fields=["name", "description"], snippets_per_field=3)
-    
+
     result = parser.build()
-    
+
     # Check that both bbox params and highlight params are present
     assert "q" in result
     assert result["hl"] is True
