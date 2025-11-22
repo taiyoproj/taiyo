@@ -7,11 +7,12 @@ class SpatialQueryParser(BaseQueryParser, SpatialSearchParamsMixin):
 
     def build(self, *args, **kwargs):
         """Build query parameters, excluding mixin keys."""
-        return self.model_dump(
+        params = self.model_dump(
             by_alias=True,
             exclude_none=True,
             exclude_unset=True,
-            exclude=SpatialSearchParamsMixin.get_mixin_keys(),
+            exclude=["configs", *SpatialSearchParamsMixin.get_mixin_keys()],
             *args,
             **kwargs,
         )
+        return self.serialize_configs(params)
