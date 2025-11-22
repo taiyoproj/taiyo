@@ -103,3 +103,41 @@ def test_bbox_field_with_predicate_and_score():
         params["q"]
         == "{!field f=location score=overlapRatio}Contains(ENVELOPE(-180.0, 180.0, 90.0, -90.0))"
     )
+
+
+def test_geofilt_with_facet_config():
+    """Test that GeoFilter parser properly includes facet configuration."""
+    parser = GeoFilterQueryParser(
+        spatial_field="location",
+        center_point=[37.7749, -122.4194],
+        radial_distance=10,
+        filter_type="geofilt"
+    )
+    parser.facet(fields=["city", "state"], limit=20)
+    
+    result = parser.build()
+    
+    # Check that both geofilt params and facet params are present
+    assert "fq" in result
+    assert "{!geofilt" in result["fq"]
+    assert result["facet"] is True
+    assert result["facet.field"] == ["city", "state"]
+    assert result["facet.limit"] == 20
+
+
+def test_bbox_parser_with_highlight_config():
+    """Test that BBox parser properly includes highlight configuration."""
+    parser = BBoxQueryParser(
+        bbox_field="region",
+        predicate="Intersects",
+        envelope=[-122.5, -122.3, 37.8, 37.7]
+    )
+    parser.highlight(fields=["name", "description"], snippets_per_field=3)
+    
+    result = parser.build()
+    
+    # Check that both bbox params and highlight params are present
+    assert "q" in result
+    assert result["hl"] is True
+    assert result["hl.fl"] == ["name", "description"]
+    assert result["hl.snippets"] == 3
