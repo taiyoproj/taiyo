@@ -1,6 +1,10 @@
 # Authentication
 
-Taiyo supports Apache Solr's authentication mechanisms. Use Basic Authentication or Bearer Token authentication to secure your Solr connection.
+Taiyo supports Apache Solr's authentication mechanisms. Use Basic Authentication, Bearer Token authentication, or OAuth2 to secure your Solr connection. 
+
+!!! note Handling credentials
+    Taiyo uses `pydantic.SecretStr` for secure handling of credentials and raw strings are converted to `SecretStr`. 
+    See: https://docs.pydantic.dev/2.2/usage/types/secrets/ for details.
 
 ## Authentication Methods
 
@@ -15,36 +19,11 @@ Basic Authentication uses username and password credentials encoded in HTTP head
 ```python
 from taiyo import SolrClient, BasicAuth
 
-auth = BasicAuth(username="admin", password="secret_password")
+auth = BasicAuth(username=SecretStr("admin"), password="secret_password")
 
 client = SolrClient(
     "http://localhost:8983/solr",
     auth=auth
-)
-```
-
-#### With Async Client
-
-```python
-from taiyo import AsyncSolrClient, BasicAuth
-
-auth = BasicAuth(username="admin", password="secret_password")
-
-async with AsyncSolrClient("http://localhost:8983/solr", auth=auth) as client:
-    results = await client.search("*:*")
-```
-
-#### Secure Credentials
-
-Use `pydantic.SecretStr` for secure handling:
-
-```python
-from pydantic import SecretStr
-from taiyo import BasicAuth
-
-auth = BasicAuth(
-    username=SecretStr("admin"),
-    password=SecretStr("secret_password")
 )
 ```
 
@@ -65,17 +44,6 @@ client = SolrClient(
     "http://localhost:8983/solr",
     auth=auth
 )
-```
-
-#### With Async Client
-
-```python
-from taiyo import AsyncSolrClient, BearerAuth
-
-auth = BearerAuth(token="your-jwt-token-here")
-
-async with AsyncSolrClient("http://localhost:8983/solr", auth=auth) as client:
-    results = await client.search("*:*")
 ```
 
 #### Secure Token Storage
@@ -130,7 +98,8 @@ async with AsyncSolrClient("http://localhost:8983/solr", auth=auth) as client:
 The OAuth2Auth class automatically fetches and manages access tokens:
 
 ```python
-from taiyo import OAuth2Auth
+from taiyo import SolrClient
+from taiyo.client.auth import OAuth2Auth
 from pydantic import SecretStr
 
 auth = OAuth2Auth(

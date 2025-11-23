@@ -392,14 +392,7 @@ await client.add_dynamic_field(dynamic_field)
 Set custom headers for all requests:
 
 ```python
-# Single header
 client.set_header("X-Custom-Header", "value")
-
-# Multiple headers
-client.set_headers({
-    "X-Request-ID": "12345",
-    "X-API-Key": "secret"
-})
 ```
 
 ## Error Handling

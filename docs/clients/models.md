@@ -91,32 +91,6 @@ class User(SolrDocument):
         return v
 ```
 
-### With Computed Fields
-
-```python
-from taiyo import SolrDocument
-from pydantic import computed_field
-
-class BlogPost(SolrDocument):
-    """Blog post with computed field."""
-    title: str
-    content: str
-    author: str
-    created_at: str
-    
-    @computed_field
-    @property
-    def summary(self) -> str:
-        """Generate a summary from content."""
-        return self.content[:200] + "..."
-    
-    @computed_field
-    @property
-    def word_count(self) -> int:
-        """Calculate word count."""
-        return len(self.content.split())
-```
-
 ## Working with Documents
 
 ### Creating Documents
@@ -133,7 +107,6 @@ doc = Article(
 
 # From dictionary
 data = {
-    "id": "1",
     "title": "Title",
     "author": "Author",
     "content": "Content",
@@ -144,8 +117,33 @@ doc = Article(**data)
 
 # From JSON
 import json
-json_str = '{"id": "1", "title": "Title", "author": "Author"}'
+json_str = '{"title": "Title", "author": "Author"}'
 doc = Article(**json.loads(json_str))
+```
+
+### Aliases for Solr Fields
+
+Map Solr field names to Python names:
+
+```python
+from pydantic import Field
+
+class Product(SolrDocument):
+    """Product with field aliases."""
+    name: str
+    price: float
+    product_id: str = Field(alias="sku")  # Maps to 'sku' in Solr
+    in_stock_flag: bool = Field(alias="inStock")  # Maps to 'inStock'
+
+# Use Python names in code
+product = Product(
+    name="Laptop",
+    price=999.99,
+    product_id="LAP-001",
+    in_stock_flag=True
+)
+
+# Solr gets: {"name": "Laptop", price: 999.99, "sku": "LAP-001", "inStock": true}
 ```
 
 ### Indexing Documents
@@ -190,7 +188,7 @@ for article in results.docs:
 
 ## SolrResponse
 
-Search results are returned as `SolrResponse` objects, which are generic over the document type.
+Search results are returned as `SolrResponse` objects with an optional generics type.
 
 ### Response Structure
 
@@ -227,134 +225,6 @@ if results.highlighting:
 # Extra fields (grouped results, stats, etc.)
 if results.extra:
     print("Extra data:", results.extra)
-```
-
-## Advanced Model Patterns
-
-### Nested Models
-
-```python
-from typing import List
-from pydantic import BaseModel
-
-class Author(BaseModel):
-    """Author information."""
-    name: str
-    email: str
-    bio: Optional[str] = None
-
-class Comment(BaseModel):
-    """Comment on an article."""
-    author: str
-    text: str
-    created_at: str
-
-class Article(SolrDocument):
-    """Article with nested structures."""
-    title: str
-    author: Author  # Nested model
-    content: str
-    comments: List[Comment] = []  # List of nested models
-    
-# Usage
-article = Article(
-    title="Complex Article",
-    author=Author(
-        name="John Doe",
-        email="john@example.com",
-        bio="Tech writer"
-    ),
-    content="Article content",
-    comments=[
-        Comment(
-            author="Alice",
-            text="Great article!",
-            created_at="2025-01-01T10:00:00Z"
-        )
-    ]
-)
-```
-
-### Model Inheritance
-
-```python
-class BaseDocument(SolrDocument):
-    """Base document with common fields."""
-    created_at: str
-    updated_at: str
-    created_by: str
-    status: str = "draft"
-
-class Article(BaseDocument):
-    """Article inherits common fields."""
-    title: str
-    content: str
-    author: str
-
-class Product(BaseDocument):
-    """Product inherits common fields."""
-    name: str
-    price: float
-    sku: str
-
-# Both have created_at, updated_at, created_by, status
-article = Article(
-    title="Article",
-    content="Content",
-    author="John",
-    created_at="2025-01-01",
-    updated_at="2025-01-02",
-    created_by="admin"
-)
-```
-
-### Aliases for Solr Fields
-
-Map Solr field names to Python names:
-
-```python
-from pydantic import Field
-
-class Product(SolrDocument):
-    """Product with field aliases."""
-    name: str
-    price: float
-    product_id: str = Field(alias="sku")  # Maps to 'sku' in Solr
-    in_stock_flag: bool = Field(alias="inStock")  # Maps to 'inStock'
-
-# Use Python names in code
-product = Product(
-    name="Laptop",
-    price=999.99,
-    product_id="LAP-001",
-    in_stock_flag=True
-)
-
-# Solr gets: {"id": "1", "name": "Laptop", "sku": "LAP-001", "inStock": true}
-```
-
-### Default Values and Factories
-
-```python
-from datetime import datetime
-from typing import List
-
-class Document(SolrDocument):
-    """Document with defaults and factories."""
-    title: str
-    content: str
-    created_at: str = Field(
-        default_factory=lambda: datetime.now().isoformat()
-    )
-    tags: List[str] = Field(default_factory=list)
-    metadata: dict = Field(default_factory=dict)
-    views: int = 0
-
-# created_at, tags, metadata auto-generated
-doc = Document(
-    title="My Document",
-    content="Content here"
-)
 ```
 
 ## Type Safety Benefits
