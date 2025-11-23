@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 from pydantic import ValidationError
 
 from taiyo.parsers.base import BaseQueryParser
-from ..types import SolrResponse, DocumentT
+from ..types import SolrResponse, DocumentT, SolrMoreLikeThisResult
 from httpx import Client, AsyncClient
 
 if TYPE_CHECKING:
@@ -123,6 +123,42 @@ class BaseSolrClient:
             # Unknown format; attempt to be graceful
             pass
 
+        more_like_this: Optional[Dict[str, SolrMoreLikeThisResult[DocumentT]]] = None
+        raw_interesting_terms = response.get("interestingTerms")
+        raw_more_like_this = response.get("moreLikeThis")
+        if isinstance(raw_more_like_this, dict):
+            more_like_this = {}
+            for doc_id, payload in raw_more_like_this.items():
+                if not isinstance(payload, dict):
+                    continue
+
+                payload_docs = payload.get("docs", []) or []
+                parsed_docs: list[DocumentT] = []
+                for doc in payload_docs:
+                    try:
+                        parsed_docs.append(
+                            document_model.model_validate(doc, by_name=True)
+                        )
+                    except ValidationError:
+                        parsed_docs.append(
+                            document_model.model_validate(doc, by_alias=True)
+                        )
+                    except Exception:
+                        raise
+
+                if isinstance(raw_interesting_terms, dict):
+                    doc_interesting_terms = raw_interesting_terms.get(doc_id)
+                else:
+                    doc_interesting_terms = raw_interesting_terms
+
+                more_like_this[doc_id] = SolrMoreLikeThisResult[document_model](
+                    num_found=payload.get("numFound", 0),
+                    start=payload.get("start", 0),
+                    num_found_exact=payload.get("numFoundExact"),
+                    docs=parsed_docs,
+                    interesting_terms=doc_interesting_terms,
+                )
+
         return SolrResponse[document_model](
             status=response.get("responseHeader", {}).get("status", 0),
             qtime=response.get("responseHeader", {}).get("QTime", 0),
@@ -131,6 +167,7 @@ class BaseSolrClient:
             docs=docs,
             facet_counts=response.get("facet_counts"),
             highlighting=response.get("highlighting"),
+            more_like_this=more_like_this or None,
             extra=response,
         )
 
