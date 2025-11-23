@@ -4,6 +4,7 @@ import pytest
 import httpx
 from httpx import Response
 from taiyo import SolrClient, AsyncSolrClient, SolrError
+from taiyo.parsers import StandardParser
 from tests.unit.conftest import MyDocument, collection
 from tests.unit.mocks import (
     mock_search_response,
@@ -215,12 +216,12 @@ async def test_async_search_with_facets(
     async_solr_client: AsyncSolrClient, monkeypatch, sample_docs
 ):
     """Test search with facets."""
-    facets = {"category": {"books": 5, "electronics": 3}}
+    facet_payload = {"category": {"books": 5, "electronics": 3}}
 
     async def mock_request(*args, **kwargs):
         docs_dicts = [doc.model_dump(exclude_unset=True) for doc in sample_docs]
         request = httpx.Request("GET", "http://localhost:8983", params=kwargs["params"])
-        response = Response(200, json=mock_facet_response(docs_dicts, facets))
+        response = Response(200, json=mock_facet_response(docs_dicts, facet_payload))
         response._request = request
         return response
 
@@ -229,8 +230,24 @@ async def test_async_search_with_facets(
     response = await async_solr_client.search(
         "*:*", facet="true", facet_field="category"
     )
-    assert response.facet_counts is not None
-    assert response.facet_counts["facet_fields"] == facets
+    assert response.facets is not None
+
+    facet_result = response.facets
+    assert facet_result is not None
+
+    category_facet = facet_result.fields.get("category")
+    assert category_facet is not None
+    expected_values = list(facet_payload["category"].keys())
+    expected_counts = list(facet_payload["category"].values())
+    assert [bucket.value for bucket in category_facet.buckets] == expected_values
+    assert [bucket.count for bucket in category_facet.buckets] == expected_counts
+
+    json_facets = facet_result.json_facets
+    assert json_facets is not None
+    assert "by_category" in json_facets.facets
+    by_category = json_facets.facets["by_category"]
+    assert [bucket.value for bucket in by_category.buckets] == expected_values
+    assert all("share" in bucket.metrics for bucket in by_category.buckets)
 
 
 @pytest.mark.asyncio
@@ -460,19 +477,36 @@ def test_sync_search_with_facets(
     sync_solr_client: SolrClient, monkeypatch, sample_docs
 ):
     """Test search with facets."""
-    facets = {"category": {"books": 5, "electronics": 3}}
+    facet_payload = {"category": {"books": 5, "electronics": 3}}
 
     def mock_request(*args, **kwargs):
         docs_dicts = [doc.model_dump(exclude_unset=True) for doc in sample_docs]
         request = httpx.Request("GET", "http://localhost:8983", params=kwargs["params"])
-        response = Response(200, json=mock_facet_response(docs_dicts, facets))
+        response = Response(200, json=mock_facet_response(docs_dicts, facet_payload))
         response._request = request
         return response
 
     monkeypatch.setattr(sync_solr_client._client, "request", mock_request)
-    response = sync_solr_client.search("*:*", facet="true", facet_field="category")
-    assert response.facet_counts is not None
-    assert response.facet_counts["facet_fields"] == facets
+    response = sync_solr_client.search(
+        StandardParser(query="*:*").facet(fields=["category"])
+    )
+
+    facet_result = response.facets
+    assert facet_result is not None
+
+    category_facet = facet_result.fields.get("category")
+    assert category_facet is not None
+    expected_values = list(facet_payload["category"].keys())
+    expected_counts = list(facet_payload["category"].values())
+    assert [bucket.value for bucket in category_facet.buckets] == expected_values
+    assert [bucket.count for bucket in category_facet.buckets] == expected_counts
+
+    json_facets = facet_result.json_facets
+    assert json_facets is not None
+    assert "by_category" in json_facets.facets
+    by_category = json_facets.facets["by_category"]
+    assert [bucket.value for bucket in by_category.buckets] == expected_values
+    assert all("share" in bucket.metrics for bucket in by_category.buckets)
 
 
 def test_sync_search_with_highlighting(
