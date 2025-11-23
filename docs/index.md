@@ -79,7 +79,7 @@ async def main():
 - [Clients](clients/overview.md) - Client configuration, authentication, and usage patterns
 - [Indexing](indexing/overview.md) - Document indexing and batch operations
 - [Query Parsers](parsers/overview.md) - Query parser reference and examples
-- [Controlling Results](controlling-results/faceting.md) - Faceting, grouping, and highlighting
+- [Controlling Results](controlling-results/faceting.md) - Faceting, grouping, highlighting, and MoreLikeThis
 
 ## Requirements
 
