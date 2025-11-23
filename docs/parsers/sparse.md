@@ -430,10 +430,12 @@ for doc in results.docs:
             print(f"  {field}: {', '.join(snippets)}")
 
 # Show facets
-if results.facet_counts:
+if results.facets:
     print("\nCategories:")
-    for category, count in results.facet_counts["facet_fields"]["category"]:
-        print(f"  {category}: {count}")
+    category_facet = results.facets.fields.get("category")
+    if category_facet:
+        for bucket in category_facet.buckets:
+            print(f"  {bucket.value}: {bucket.count}")
 ```
 
 ## Comparison

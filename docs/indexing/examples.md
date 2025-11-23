@@ -384,12 +384,13 @@ with SolrClient("http://localhost:8983/solr") as client:
     for doc in results.docs:
         print(f"{doc.name} - Class {doc.pclass}, Survived: {doc.survived}")
     
-    if results.facet_counts:
+    if results.facets:
         print("\nFacets:")
-        for field, counts in results.facet_counts['facet_fields'].items():
+        facets = results.facets
+        for field, facet in facets.fields.items():
             print(f"\n{field}:")
-            for value, count in counts:
-                print(f"  {value}: {count}")
+            for bucket in facet.buckets:
+                print(f"  {bucket.value}: {bucket.count}")
 ```
 
 ## Performance Tips

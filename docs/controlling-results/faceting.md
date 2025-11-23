@@ -51,6 +51,11 @@ parser = (
 
 Both approaches produce identical results. Use whichever style fits your codebase better.
 
+Faceting responses are exposed through `SolrResponse.facets`, which returns a
+`SolrFacetResult` object. Field facets map to `SolrFacetFieldResult` instances with typed
+`SolrFacetFieldValue` buckets, range facets return `SolrFacetRangeResult`, and JSON facets are
+available through the `json_facets` tree.
+
 ## Basic Faceting
 
 ```python
@@ -70,10 +75,11 @@ parser = (
 results = client.search(parser)
 
 # Access facet counts
-if results.facet_counts:
-    category_pairs = results.facet_counts["facet_fields"]["category"]
-    for category, count in zip(category_pairs[0::2], category_pairs[1::2]):
-        print(f"{category}: {count}")
+if results.facets:
+    category_facet = results.facets.fields.get("category")
+    if category_facet:
+        for bucket in category_facet.buckets:
+            print(f"{bucket.value}: {bucket.count}")
 ```
 
 ## Facet Parameters
@@ -124,11 +130,16 @@ parser = (
 results = client.search(parser)
 
 # Show facets
-for field in ["category", "author", "tags"]:
-    print(f"\n{field.title()}:")
-    pairs = results.facet_counts["facet_fields"][field]
-    for value, count in zip(pairs[0::2], pairs[1::2]):
-        print(f"  {value}: {count}")
+facet_counts = results.facets
+if facet_counts:
+    for field in ["category", "author", "tags"]:
+        facet = facet_counts.fields.get(field)
+        if not facet:
+            continue
+
+        print(f"\n{field.title()}:")
+        for bucket in facet.buckets:
+            print(f"  {bucket.value}: {bucket.count}")
 ```
 
 ### Facet Sorting
@@ -244,9 +255,10 @@ parser = ExtendedDisMaxQueryParser(
 results = client.search(parser)
 
 # Access range facets
-price_counts = results.facet_counts["facet_ranges"]["price"]["counts"]
-for bucket, count in zip(price_counts[0::2], price_counts[1::2]):
-    print(f"${bucket}: {count} products")
+price_facet = results.facets.ranges.get("price") if results.facets else None
+if price_facet:
+    for bucket in price_facet.buckets:
+        print(f"${bucket.value}: {bucket.count} products")
 ```
 
 ### Numeric Ranges
@@ -276,9 +288,10 @@ results = client.search(parser)
 
 # Show price ranges
 print("Price Distribution:")
-price_counts = results.facet_counts["facet_ranges"]["price"]["counts"]
-for bucket, count in zip(price_counts[0::2], price_counts[1::2]):
-    print(f"  {bucket}: {count}")
+price_facet = results.facets.ranges.get("price") if results.facets else None
+if price_facet:
+    for bucket in price_facet.buckets:
+        print(f"  {bucket.value}: {bucket.count}")
 ```
 
 ### Date Ranges
@@ -308,9 +321,12 @@ results = client.search(parser)
 
 # Show date ranges
 print("Published by Month:")
-date_counts = results.facet_counts["facet_ranges"]["published_date"]["counts"]
-for bucket, count in zip(date_counts[0::2], date_counts[1::2]):
-    print(f"  {bucket}: {count} documents")
+date_facet = (
+    results.facets.ranges.get("published_date") if results.facets else None
+)
+if date_facet:
+    for bucket in date_facet.buckets:
+        print(f"  {bucket.value}: {bucket.count} documents")
 ```
 
 ## Query Faceting
@@ -336,7 +352,7 @@ parser = (
 results = client.search(parser)
 
 # Access query facets
-for query, count in results.facet_counts["facet_queries"].items():
+for query, count in results.facets.queries.items():
     print(f"{query}: {count}")
 ```
 
@@ -366,7 +382,7 @@ results = client.search(parser)
 
 # Organize results
 print("Price Tiers:")
-for query, count in results.facet_counts["facet_queries"].items():
+for query, count in results.facets.queries.items():
     if "price" in query:
         print(f"  {query}: {count}")
 ```
@@ -392,7 +408,7 @@ parser = ExtendedDisMaxQueryParser(
 results = client.search(parser)
 
 # Navigate hierarchical facets
-for pivot in results.facet_counts["facet_pivot"]["category,author"]:
+for pivot in results.facets.pivots.get("category,author", []):
     category = pivot["value"]
     category_count = pivot["count"]
     print(f"{category} ({category_count})")
@@ -427,7 +443,7 @@ def print_pivot(pivots, indent=0):
             print_pivot(pivot["pivot"], indent + 1)
 
 print("Category Hierarchy:")
-print_pivot(results.facet_counts["facet_pivot"]["category,subcategory,brand"])
+print_pivot(results.facets.pivots.get("category,subcategory,brand", []))
 ```
 
 ## Complete Example
@@ -479,24 +495,32 @@ results = client.search(parser)
 # Process all facet types
 print("=== Field Facets ===")
 print("\nCategories:")
-category_pairs = results.facet_counts["facet_fields"]["category"]
-for value, count in zip(category_pairs[0::2], category_pairs[1::2]):
-    print(f"  {value}: {count}")
+facet_counts = results.facets
+if facet_counts:
+    category_facet = facet_counts.fields.get("category")
+    if category_facet:
+        for bucket in category_facet.buckets:
+            print(f"  {bucket.value}: {bucket.count}")
 
 print("\n=== Range Facets ===")
 print("\nBy Year:")
-year_counts = results.facet_counts["facet_ranges"]["published_year"]["counts"]
-for bucket, count in zip(year_counts[0::2], year_counts[1::2]):
-    print(f"  {bucket}: {count}")
+year_facet = facet_counts.ranges.get("published_year") if facet_counts else None
+if year_facet:
+    for bucket in year_facet.buckets:
+        print(f"  {bucket.value}: {bucket.count}")
 
 print("\n=== Query Facets ===")
 print("\nBy Rating:")
-for query, count in results.facet_counts["facet_queries"].items():
-    print(f"  {query}: {count}")
+if facet_counts:
+    for query, count in facet_counts.queries.items():
+        print(f"  {query}: {count}")
 
 print("\n=== Pivot Facets ===")
 print("\nCategory → Difficulty:")
-for category_pivot in results.facet_counts["facet_pivot"]["category,difficulty"]:
+category_pivots = (
+    facet_counts.pivots.get("category,difficulty", []) if facet_counts else []
+)
+for category_pivot in category_pivots:
     category = category_pivot["value"]
     cat_count = category_pivot["count"]
     print(f"\n{category} ({cat_count})")

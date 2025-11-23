@@ -89,6 +89,9 @@ def test_faceting_and_highlighting():
         assert res.status == 0
         assert res.num_found >= 1
         assert all(isinstance(doc, Movie) for doc in res.docs)
+        assert res.facets is not None
+        if res.facets:
+            assert res.facets.fields
         extra = getattr(res, "extra", {})
         assert "facet_counts" in extra or "facets" in extra
         params = extra.get("responseHeader", {}).get("params", {})

@@ -40,11 +40,53 @@ def mock_delete_response(status: int = 0) -> Dict[str, Any]:
 
 
 def mock_facet_response(
-    docs: list[Dict[str, Any]], facets: Dict[str, Dict[str, int]]
+    docs: list[Dict[str, Any]],
+    facets: Dict[str, Dict[str, int]],
+    json_facets: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
-    """Create a Solr response with facets."""
+    """Create a Solr response with realistic facet structures."""
+
     response = mock_search_response(docs)
-    response["facet_counts"] = {"facet_fields": facets}
+
+    field_payload: Dict[str, list[Any]] = {}
+    for field_name, bucket_map in facets.items():
+        entries: list[Any] = []
+        for value, count in bucket_map.items():
+            entries.extend([value, count])
+        field_payload[field_name] = entries
+
+    response["facet_counts"] = {
+        "facet_queries": {},
+        "facet_fields": field_payload,
+        "facet_ranges": {},
+        "facet_intervals": {},
+        "facet_pivot": {},
+        "facet_heatmaps": {},
+    }
+
+    if json_facets is None:
+        doc_count = len(docs) or 1
+        default_json = {}
+        if "category" in facets:
+            default_json = {
+                "count": len(docs),
+                "by_category": {
+                    "numBuckets": len(facets["category"]),
+                    "buckets": [
+                        {
+                            "val": value,
+                            "count": count,
+                            "share": count / doc_count,
+                        }
+                        for value, count in facets["category"].items()
+                    ],
+                },
+            }
+        json_facets = default_json
+
+    if json_facets:
+        response["facets"] = json_facets
+
     return response
 
 
