@@ -40,6 +40,9 @@ name = "pypi"
 url = "https://pypi.org/simple"
 publish-url = "https://upload.pypi.org/legacy/"
 
+[tool.uv.sources]
+taiyo = { workspace = true, editable = true }
+
 [tool.ruff]
 line-length = 88
 fix = true
@@ -55,5 +58,5 @@ dev = [
     "black>=23.0.0",
     "mypy>=1.0.0",
     "ruff>=0.0.270",
-    "zensical>=0.0.8"
+    "zensical>=0.0.9"
 ]
