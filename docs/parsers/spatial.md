@@ -108,10 +108,9 @@ Sort results by distance from the query point:
 parser = GeoFilterQueryParser(
     field="location",
     point="40.7589,-73.9851",
-    distance=5
-).with_params(
+    distance=5,
     sort="geodist() asc",  # Nearest first
-    fields=["id", "name", "location", "score"]
+    field_list=["id", "name", "location", "score"]
 )
 
 results = client.search(parser)
@@ -129,10 +128,9 @@ Include the distance in results:
 parser = GeoFilterQueryParser(
     field="location",
     point="40.7589,-73.9851",
-    distance=10
-).with_params(
-    fields=["id", "name", "location", "distance:geodist()"],
-    sort="geodist() asc"
+    distance=10,
+    sort="geodist() asc",
+    field_list=["id", "name", "location", "distance:geodist()"]
 )
 
 results = client.search(parser)
@@ -153,11 +151,10 @@ parser = (
     GeoFilterQueryParser(
         field="location",
         point=f"{user_lat},{user_lon}",
-        distance=5  # 5 km radius
-    )
-    .with_params(
+        distance=5,  # 5 km radius
         rows=20,
-        fields=[
+        sort="geodist() asc",  # Nearest first
+        field_list=[
             "id",
             "name",
             "category",
@@ -165,8 +162,7 @@ parser = (
             "location",
             "distance:geodist()"
         ],
-        sort="geodist() asc",  # Nearest first
-        filter_query=[
+        filters=[
             "category:restaurant",
             "rating:[4 TO *]",  # Highly rated
             "status:open"
@@ -195,23 +191,20 @@ Allow users to specify search radius:
 ```python
 def search_nearby(lat: float, lon: float, radius_km: float = 5, category: str = None):
     """Search for places near a location."""
-    parser = GeoFilterQueryParser(
-        field="location",
-        point=f"{lat},{lon}",
-        distance=radius_km
-    )
-    
     filters = ["status:active"]
     if category:
         filters.append(f"category:{category}")
-    
-    parser = parser.with_params(
+
+    parser = GeoFilterQueryParser(
+        field="location",
+        point=f"{lat},{lon}",
+        distance=radius_km,
         rows=20,
-        fields=["id", "name", "category", "distance:geodist()"],
+        field_list=["id", "name", "category", "distance:geodist()"],
         sort="geodist() asc",
-        filter_query=filters
+        filters=filters
     )
-    
+
     return client.search(parser)
 
 # Usage
@@ -272,18 +265,16 @@ def search_in_viewport(sw_lat: float, sw_lon: float,
         min_lat=sw_lat,
         min_lon=sw_lon,
         max_lat=ne_lat,
-        max_lon=ne_lon
-    )
-    
-    filters = ["status:active"]
-    if category:
-        filters.append(f"category:{category}")
-    
-    parser = parser.with_params(
+        max_lon=ne_lon,
         rows=100,  # Return many points for map
-        fields=["id", "name", "location", "category"],
-        filter_query=filters
+        field_list=["id", "name", "location", "category"],
+        filters=["status:active"]
     )
+    
+    if category:
+        parser = parser.model_copy(update={
+            "filters": [f"category:{category}", "status:active"]
+        })
     
     return client.search(parser)
 
@@ -309,11 +300,9 @@ parser = (
         min_lat=40.75,      # Southwest corner
         min_lon=-73.99,
         max_lat=40.77,      # Northeast corner
-        max_lon=-73.97
-    )
-    .with_params(
+        max_lon=-73.97,
         rows=50,
-        fields=[
+        field_list=[
             "id",
             "name",
             "address",
@@ -322,7 +311,7 @@ parser = (
             "location"
         ],
         sort="rating desc, name asc",
-        filter_query=[
+        filters=[
             "category:(restaurant OR cafe)",
             "rating:[4 TO *]",
             "price_range:[1 TO 3]"
@@ -357,16 +346,19 @@ parser = (
         point="40.7589,-73.9851",
         distance=5
     )
-    .with_params(
-        query="pizza",  # Keyword search
-        query_fields={"name": 2.0, "description": 1.0},
-        rows=20,
-        fields=["id", "name", "description", "distance:geodist()"],
-        sort="geodist() asc"
-    )
+)
+params = parser.build()
+params.update(
+    {
+        "q": "pizza",  # Keyword search
+        "qf": "name^2 description",  # Use eDisMax-style boosts
+        "rows": 20,
+        "fl": "id,name,description,distance:geodist()",
+        "sort": "geodist() asc"
+    }
 )
 
-results = client.search(parser)
+results = client.search(params)
 ```
 
 ### Spatial with Faceting
@@ -376,16 +368,14 @@ parser = (
     GeoFilterQueryParser(
         field="location",
         point="40.7589,-73.9851",
-        distance=10
+        distance=10,
+        rows=20,
+        field_list=["id", "name", "category", "distance:geodist()"],
+        sort="geodist() asc"
     )
     .facet(
         fields=["category", "price_range", "cuisine"],
         mincount=1
-    )
-    .with_params(
-        rows=20,
-        fields=["id", "name", "category", "distance:geodist()"],
-        sort="geodist() asc"
     )
 )
 
@@ -419,9 +409,8 @@ location_filters = " OR ".join([
 parser = GeoFilterQueryParser(
     field="location",
     point=locations[0][0],  # Primary location
-    distance=2
-).with_params(
-    filter_query=[location_filters],  # Near any location
+    distance=2,
+    filters=[location_filters],  # Near any location
     rows=50,
     sort="geodist() asc"
 )
@@ -432,24 +421,35 @@ parser = GeoFilterQueryParser(
 Use `geodist()` for distance calculations:
 
 ```python
+# Example parser with location filter
+parser = GeoFilterQueryParser(
+    field="location",
+    point="40.7589,-73.9851",
+    distance=5
+)
+
 # Sort by distance
-parser = parser.with_params(
+results = client.search(
+    parser,
     sort="geodist() asc"
 )
 
 # Return distance as field
-parser = parser.with_params(
-    fields=["id", "name", "distance:geodist()"]
+results = client.search(
+    parser,
+    fl="id,name,distance:geodist()"
 )
 
 # Boost by proximity (closer = higher score)
-parser = parser.with_params(
-    boost_functons=["recip(geodist(),2,200,20)"]
+results = client.search(
+    parser,
+    bf="recip(geodist(),2,200,20)"
 )
 
 # Filter by distance range
-parser = parser.with_params(
-    filter_query=["{!frange l=0 u=5}geodist()"]  # 0-5 km
+results = client.search(
+    parser,
+    fq="{!frange l=0 u=5}geodist()"  # 0-5 km
 )
 ```
 
@@ -467,16 +467,7 @@ FieldType(
 )
 ```
 
-For complex shapes (polygons):
 
-```python
-FieldType(
-    name="shape",
-    class_name="solr.SpatialRecursivePrefixTreeFieldType",
-    geo=True,
-    max_distErr=0.001
-)
-```
 
 ### Index Location Format
 
@@ -515,12 +506,8 @@ parser = GeoFilterQueryParser(
 parser = GeoFilterQueryParser(
     field="location",
     point="40.7589,-73.9851",
-    distance=10  # Not too large
-)
-
-# Add filters to reduce results
-parser = parser.with_params(
-    filter_query=[
+    distance=10,  # Not too large
+    filters=[
         "category:restaurant",  # Narrow scope
         "rating:[4 TO *]"       # Quality filter
     ],
@@ -537,10 +524,9 @@ parser = BBoxQueryParser(
     min_lat=viewport_sw_lat,
     min_lon=viewport_sw_lon,
     max_lat=viewport_ne_lat,
-    max_lon=viewport_ne_lon
-).with_params(
+    max_lon=viewport_ne_lon,
     rows=100,  # Many points for map
-    fields=["id", "name", "location", "category"]
+    field_list=["id", "name", "location", "category"]
 )
 ```
 
@@ -591,21 +577,20 @@ def find_restaurants(lat: float, lon: float,
     if cuisine:
         filters.append(f"cuisine:{cuisine}")
     
-    parser = (
-        parser
-        .with_params(
-            rows=20,
-            fields=[
-                "id", "name", "cuisine", "rating",
-                "price_range", "distance:geodist()"
-            ],
-            sort="geodist() asc",
-            filter_query=filters
-        )
-        .facet(
-            fields=["cuisine", "price_range"],
-            mincount=1
-        )
+    parser = GeoFilterQueryParser(
+        field="location",
+        point=f"{lat},{lon}",
+        distance=radius_km,
+        rows=20,
+        field_list=[
+            "id", "name", "cuisine", "rating",
+            "price_range", "distance:geodist()"
+        ],
+        sort="geodist() asc",
+        filters=filters
+    ).facet(
+        fields=["cuisine", "price_range"],
+        mincount=1
     )
     
     return client.search(parser)
@@ -625,21 +610,17 @@ results = find_restaurants(
 ```python
 def find_nearest_stores(lat: float, lon: float, max_results: int = 5):
     """Find nearest store locations."""
-    parser = (
-        GeoFilterQueryParser(
-            field="location",
-            point=f"{lat},{lon}",
-            distance=50  # Wide initial search
-        )
-        .with_params(
-            rows=max_results,
-            fields=[
-                "id", "name", "address", "phone",
-                "hours", "distance:geodist()"
-            ],
-            sort="geodist() asc",
-            filter_query=["type:store", "status:open"]
-        )
+    parser = GeoFilterQueryParser(
+        field="location",
+        point=f"{lat},{lon}",
+        distance=50,  # Wide initial search
+        rows=max_results,
+        field_list=[
+            "id", "name", "address", "phone",
+            "hours", "distance:geodist()"
+        ],
+        sort="geodist() asc",
+        filters=["type:store", "status:open"]
     )
     
     return client.search(parser)
@@ -660,10 +641,9 @@ def check_delivery_available(restaurant_id: str,
     parser = GeoFilterQueryParser(
         field="location",
         point=rest_location,
-        distance=5  # 5km delivery radius
-    ).with_params(
-        fields=["id", "distance:geodist()"],
-        filter_query=[f"location:{delivery_lat},{delivery_lon}"]
+        distance=5,  # 5km delivery radius
+        field_list=["id", "distance:geodist()"],
+        filters=[f"location:{delivery_lat},{delivery_lon}"]
     )
     
     results = client.search(parser)
@@ -688,18 +668,16 @@ def get_map_points(sw_lat: float, sw_lon: float,
             min_lat=sw_lat,
             min_lon=sw_lon,
             max_lat=ne_lat,
-            max_lon=ne_lon
-        )
-        .with_params(
+            max_lon=ne_lon,
             rows=500,  # Many points for clustering
-            fields=["id", "name", "location", "category"],
-            filter_query=["status:active"]
+            field_list=["id", "name", "location", "category"],
+            filters=["status:active"]
         )
     )
     
     if category:
-        parser = parser.with_params(
-            filter_query=[f"category:{category}", "status:active"]
+        parser = parser.model_copy(
+            update={"filters": [f"category:{category}", "status:active"]}
         )
     
     results = client.search(parser)

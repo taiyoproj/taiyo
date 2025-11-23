@@ -104,10 +104,9 @@ parser = StandardParser(
     query="search term",
     rows=10,
     start=0,
-    fields=["id", "title"],
+    field_list=["id", "title"],
     sort="score desc",
-    filter_query=["status:active", "category:tech"],
-    debug=False
+    filters=["status:active", "category:tech"]
 )
 ```
 
@@ -253,7 +252,7 @@ parser = ExtendedDisMaxQueryParser(
 # With filters
 parser = StandardParser(
     query="*:*",
-    filter_query=[
+    filters=[
         "status:published",
         "category:programming",
         "published_date:[NOW-1YEAR TO NOW]"
@@ -330,7 +329,7 @@ Filter queries are cached separately:
 ```python
 parser = StandardParser(
     query="python",
-    filter_query=["status:active", "category:programming"]
+    filters=["status:active", "category:programming"]
 )
 ```
 
@@ -339,7 +338,7 @@ parser = StandardParser(
 ```python
 parser = StandardParser(
     query="python",
-    fields=["id", "title", "score"]
+    field_list=["id", "title", "score"]
 )
 ```
 

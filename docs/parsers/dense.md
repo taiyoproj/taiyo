@@ -14,7 +14,7 @@ The `KNNQueryParser` performs k-nearest neighbor search using pre-computed vecto
 from taiyo.parsers import KNNQueryParser
 
 # Your query vector (from your embedding model)
-query_vector = [0.23, -0.45, 0.67, ...]  # 768 dimensions for BERT
+query_vector = [0.23, -0.45, 0.67, ...] 
 
 parser = KNNQueryParser(
     field="content_vector",
@@ -56,12 +56,10 @@ parser = (
     KNNQueryParser(
         field="content_vector",
         query_vector=query_vector,
-        top_k=20
-    )
-    .with_params(
+        top_k=20,
         rows=10,
-        fields=["id", "title", "author", "abstract"],
-        filter_query=[
+        field_list=["id", "title", "author", "abstract"],
+        filters=[
             "category:technology",
             "published_date:[NOW-1YEAR TO NOW]"
         ]
@@ -113,11 +111,10 @@ keyword_parser = ExtendedDisMaxQueryParser(
 )
 
 # Combine using Solr's query boosting
-parser = knn_parser.with_params(
-    boost_queries=[f"{{!edismax qf='title^3 content' v='machine learning'}}"]
+results = client.search(
+    knn_parser,
+    bq=f"{{!edismax qf='title^3 content' v='machine learning'}}"
 )
-
-results = client.search(parser)
 ```
 
 ## KNNTextToVectorQueryParser
@@ -182,13 +179,11 @@ parser = (
         field="content_vector",
         query_text="What are the latest advances in neural networks?",
         top_k=20,
-        encoder="bert-base"  # Use configured encoder
-    )
-    .with_params(
+        encoder="bert-base",  # Use configured encoder
         rows=10,
-        fields=["id", "title", "abstract", "published_date"],
+        field_list=["id", "title", "abstract", "published_date"],
         sort="published_date desc",
-        filter_query=[
+        filters=[
             "category:ai",
             "published_date:[NOW-2YEARS TO NOW]"
         ]
@@ -322,13 +317,11 @@ parser = (
         field="abstract_vector",
         query_vector=query_vector,
         similarity_function="cosine",
-        min_score=0.7  # High similarity threshold
-    )
-    .with_params(
+        min_score=0.7,  # High similarity threshold
         rows=20,
-        fields=["id", "title", "authors", "abstract", "citations"],
+        field_list=["id", "title", "authors", "abstract", "citations"],
         sort="score desc, citations desc",  # Sort by similarity, then citations
-        filter_query=[
+        filters=[
             "field:computer_science",
             "year:[2020 TO *]",
             "citations:[10 TO *]"
@@ -459,11 +452,15 @@ parser = KNNQueryParser(
 )
 
 # Then filter and re-rank
-parser = parser.with_params(
-    rows=10,  # Return only 10
-    filter_query=["category:relevant"],
-    sort="score desc"
+reranked_parser = parser.model_copy(
+    update={
+        "rows": 10,  # Return only 10
+        "filters": ["category:relevant"],
+        "sort": "score desc"
+    }
 )
+
+results = client.search(reranked_parser)
 ```
 
 ### Combine with Filters
@@ -500,13 +497,12 @@ def hybrid_search(query_text: str, top_k: int = 20):
     # Keyword search (lexical)
     keyword_boost = f"{{!edismax qf='title^3 content' v='{query_text}'}}"
     
-    # Combine
-    parser = vector_parser.with_params(
-        boost_queries=[keyword_boost],
+    # Combine by adding boost query at request time
+    return client.search(
+        vector_parser,
+        bq=[keyword_boost],
         rows=10
     )
-    
-    return client.search(parser)
 ```
 
 ### Monitor Performance
@@ -555,8 +551,9 @@ content_parser = KNNQueryParser(
 )
 
 # Boost title matches
-combined_parser = content_parser.with_params(
-    boost_queries=[f"{{!knn f=title_vector topK=10}}[{','.join(map(str, title_query))}]^2"]
+boosted_results = client.search(
+    content_parser,
+    bq=f"{{!knn f=title_vector topK=10}}[{','.join(map(str, title_query))}]^2"
 )
 ```
 
@@ -567,13 +564,13 @@ parser = (
     KNNQueryParser(
         field="content_vector",
         query_vector=query_vector,
-        top_k=100
+        top_k=100,
+        rows=20
     )
     .facet(
         fields=["category", "author", "year"],
         mincount=1
     )
-    .with_params(rows=20)
 )
 
 results = client.search(parser)
@@ -594,15 +591,19 @@ parser = KNNQueryParser(
 )
 
 # Re-rank using additional signals
-parser = parser.with_params(
-    rows=20,
-    boost_functons=[
-        "recip(ms(NOW,published_date),3.16e-11,1,1)",  # Recency
-        "log(views)",  # Popularity
-        "product(rating,10)"  # Quality
-    ],
-    sort="score desc"
+reranked = parser.model_copy(
+    update={
+        "rows": 20,
+        "boost_functons": [
+            "recip(ms(NOW,published_date),3.16e-11,1,1)",  # Recency
+            "log(views)",  # Popularity
+            "product(rating,10)"  # Quality
+        ],
+        "sort": "score desc"
+    }
 )
+
+results = client.search(reranked)
 ```
 
 ## Next Steps
