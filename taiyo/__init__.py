@@ -2,7 +2,19 @@
 Taiyo - A modern Python client for Apache Solr.
 """
 
-from .types import SolrDocument, SolrResponse, SolrError, SolrMoreLikeThisResult
+from .types import (
+    SolrDocument,
+    SolrError,
+    SolrFacetResult,
+    SolrFacetFieldResult,
+    SolrFacetFieldValue,
+    SolrFacetRangeBucket,
+    SolrFacetRangeResult,
+    SolrJsonFacetBucket,
+    SolrJsonFacetNode,
+    SolrMoreLikeThisResult,
+    SolrResponse,
+)
 from .client import (
     BasicAuth,
     BearerAuth,
@@ -45,6 +57,13 @@ __all__ = [
     "SolrResponse",
     "SolrError",
     "SolrMoreLikeThisResult",
+    "SolrFacetResult",
+    "SolrFacetFieldResult",
+    "SolrFacetFieldValue",
+    "SolrFacetRangeBucket",
+    "SolrFacetRangeResult",
+    "SolrJsonFacetBucket",
+    "SolrJsonFacetNode",
     # auth
     "SolrAuth",
     "BasicAuth",
