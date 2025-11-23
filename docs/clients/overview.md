@@ -2,157 +2,225 @@
 
 Taiyo provides two client implementations for interacting with Apache Solr: a synchronous client (`SolrClient`) and an asynchronous client (`AsyncSolrClient`). Both share the same API surface with the only difference being that async methods must be awaited.
 
-## Client Types
+## Client Setup
 
-### SolrClient (Synchronous)
+=== "Sync"
 
-Use the synchronous client for:
-- Scripts and command-line tools
-- Synchronous web frameworks (Flask, Django)
-- Applications without concurrency requirements
-- Testing and development
+    ```python
+    from taiyo import SolrClient
 
-```python
-from taiyo import SolrClient
+    with SolrClient("http://localhost:8983/solr") as client:
+        client.set_collection("my_collection")
+        results = client.search("*:*")
+    ```
 
-with SolrClient("http://localhost:8983/solr") as client:
-    client.set_collection("my_collection")
-    results = client.search("*:*")
-```
+=== "Async"
 
-### AsyncSolrClient (Asynchronous)
+    ```python
+    from taiyo import AsyncSolrClient
 
-Use the asynchronous client for:
-- Async web frameworks (FastAPI, Sanic, Starlette)
-- High-concurrency applications
-- Applications with concurrent Solr requests
-- Microservices and API gateways
+    async with AsyncSolrClient("http://localhost:8983/solr") as client:
+        client.set_collection("my_collection")
+        results = await client.search("*:*")
+    ```
 
-```python
-from taiyo import AsyncSolrClient
+### Additional Configurations
 
-async with AsyncSolrClient("http://localhost:8983/solr") as client:
-    client.set_collection("my_collection")
-    results = await client.search("*:*")
-```
+=== "Sync"
 
-## Client Initialization
+    ```python
+    from taiyo import SolrClient
 
-### Basic Initialization
+    client = SolrClient(
+        base_url="http://localhost:8983/solr",
+        timeout=30.0,              # Request timeout in seconds
+        verify=True,               # SSL certificate verification
+    )
+    ```
 
-```python
-from taiyo import SolrClient, AsyncSolrClient
+=== "Async"
 
-# Synchronous client
-sync_client = SolrClient("http://localhost:8983/solr")
+    ```python
+    from taiyo import AsyncSolrClient
 
-# Asynchronous client
-async_client = AsyncSolrClient("http://localhost:8983/solr")
-```
-
-### With Configuration
-
-```python
-from taiyo import SolrClient
-
-client = SolrClient(
-    base_url="http://localhost:8983/solr",
-    timeout=30.0,              # Request timeout in seconds
-    verify=True,               # SSL certificate verification
-)
-```
+    client = AsyncSolrClient(
+        base_url="http://localhost:8983/solr",
+        timeout=30.0,              # Request timeout in seconds
+        verify=True,               # SSL certificate verification
+    )
+    ```
 
 ### SSL Configuration
 
-```python
-client = SolrClient(
-    "https://solr.example.com/solr",
-    verify=False
-)
+=== "Sync"
 
-client = SolrClient(
-    "https://solr.example.com/solr",
-    verify="/path/to/ca-bundle.crt"
-)
-```
+    ```python
+    from taiyo import SolrClient
 
-### Additional Client Options
+    client = SolrClient(
+        "https://solr.example.com/solr",
+        verify=False
+    )
+
+    client = SolrClient(
+        "https://solr.example.com/solr",
+        verify="/path/to/ca-bundle.crt"
+    )
+    ```
+
+=== "Async"
+
+    ```python
+    from taiyo import AsyncSolrClient
+
+    client = AsyncSolrClient(
+        "https://solr.example.com/solr",
+        verify=False
+    )
+
+    client = AsyncSolrClient(
+        "https://solr.example.com/solr",
+        verify="/path/to/ca-bundle.crt"
+    )
+    ```
+
+### httpx Options
 
 Pass any httpx client options:
 
-```python
-client = SolrClient(
-    "http://localhost:8983/solr",
-    timeout=30.0,
-    limits=httpx.Limits(max_connections=100),
-    http2=True,
-    follow_redirects=True,
-)
-```
+=== "Sync"
+
+    ```python
+    import httpx
+    from taiyo import SolrClient
+
+    client = SolrClient(
+        "http://localhost:8983/solr",
+        timeout=30.0,
+        limits=httpx.Limits(max_connections=100),
+        http2=True,
+        follow_redirects=True,
+    )
+    ```
+
+=== "Async"
+
+    ```python
+    import httpx
+    from taiyo import AsyncSolrClient
+
+    client = AsyncSolrClient(
+        "http://localhost:8983/solr",
+        timeout=30.0,
+        limits=httpx.AsyncLimits(max_connections=100),
+        http2=True,
+        follow_redirects=True,
+    )
+    ```
 
 ## Context Managers
 
 Context managers ensure proper resource cleanup:
 
-### Synchronous
+=== "Sync"
 
-```python
-with SolrClient("http://localhost:8983/solr") as client:
-    client.set_collection("my_collection")
-    results = client.search("*:*")
-```
+    ```python
+    with SolrClient("http://localhost:8983/solr") as client:
+        client.set_collection("my_collection")
+        results = client.search("*:*")
+    ```
 
-### Asynchronous
+=== "Async"
 
-```python
-async with AsyncSolrClient("http://localhost:8983/solr") as client:
-    client.set_collection("my_collection")
-    results = await client.search("*:*")
-```
+    ```python
+    async with AsyncSolrClient("http://localhost:8983/solr") as client:
+        client.set_collection("my_collection")
+        results = await client.search("*:*")
+    ```
 
 ### Manual Management
 
 Manual cleanup without context managers:
 
-```python
-# Sync
-client = SolrClient("http://localhost:8983/solr")
-try:
-    results = client.search("*:*")
-finally:
-    client.close()
+=== "Sync"
 
-# Async
-client = AsyncSolrClient("http://localhost:8983/solr")
-try:
-    results = await client.search("*:*")
-finally:
-    await client.close()
-```
+    ```python
+    client = SolrClient("http://localhost:8983/solr")
+    try:
+        results = client.search("*:*")
+    finally:
+        client.close()
+    ```
+
+=== "Async"
+
+    ```python
+    from taiyo import AsyncSolrClient
+
+
+    async def main() -> None:
+        client = AsyncSolrClient("http://localhost:8983/solr")
+        try:
+            results = await client.search("*:*")
+        finally:
+            await client.close()
+    ```
 
 ## Setting the Collection
 
 Most operations require an active collection:
 
-```python
-client.set_collection("my_collection")
+=== "Sync"
 
-results = client.search("*:*")
-client.add(documents)
-client.add_field(field)
-```
+    ```python
+    from taiyo import SolrClient
+
+    client = SolrClient("http://localhost:8983/solr")
+    client.set_collection("my_collection")
+
+    results = client.search("*:*")
+    client.add(documents)
+    client.add_field(field)
+    ```
+
+=== "Async"
+
+    ```python
+    from taiyo import AsyncSolrClient
+
+
+    async def main() -> None:
+        client = AsyncSolrClient("http://localhost:8983/solr")
+        client.set_collection("my_collection")
+
+        results = await client.search("*:*")
+        await client.add(documents)
+        await client.add_field(field)
+    ```
 
 ### Switching Collections
 
 You can change the active collection at any time:
 
-```python
-client.set_collection("collection1")
-results1 = client.search("*:*")
+=== "Sync"
 
-client.set_collection("collection2")
-results2 = client.search("*:*")
-```
+    ```python
+    client.set_collection("collection1")
+    results1 = client.search("*:*")
+
+    client.set_collection("collection2")
+    results2 = client.search("*:*")
+    ```
+
+=== "Async"
+
+    ```python
+    client.set_collection("collection1")
+    results1 = await client.search("*:*")
+
+    client.set_collection("collection2")
+    results2 = await client.search("*:*")
+    ```
 
 ## Core Operations
 
@@ -160,49 +228,64 @@ results2 = client.search("*:*")
 
 Check if Solr is reachable:
 
-```python
-# Sync
-if client.ping():
-    print("Solr is available")
 
-# Async
-if await client.ping():
-    print("Solr is available")
-```
+=== "Sync"
+
+    ```python
+    if client.ping():
+        print("Solr is available")
+    ```
+
+=== "Async"
+
+    ```python
+    if await client.ping():
+        print("Solr is available")
+    ```
 
 ### Create Collection
 
 Create a new collection:
 
-```python
-# Sync
-client.create_collection(
-    name="my_collection",
-    num_shards=2,
-    replication_factor=1
-)
+=== "Sync"
 
-# Async
-await client.create_collection(
-    name="my_collection",
-    num_shards=2,
-    replication_factor=1,
-    maxShardsPerNode=2,
-    collection_configName="myconfig"
-)
-```
+    ```python
+    client.create_collection(
+        name="my_collection",
+        num_shards=2,
+        replication_factor=1,
+        maxShardsPerNode=2,
+        collection_configName="myconfig",
+    )
+    ```
+
+=== "Async"
+
+    ```python
+    await client.create_collection(
+        name="my_collection",
+        num_shards=2,
+        replication_factor=1,
+        maxShardsPerNode=2,
+        collection_configName="myconfig",
+    )
+    ```
 
 ### Delete Collection
 
 Delete a collection:
 
-```python
-# Sync
-client.delete_collection("my_collection")
+=== "Sync"
 
-# Async
-await client.delete_collection("my_collection")
-```
+    ```python
+    client.delete_collection("my_collection")
+    ```
+
+=== "Async"
+
+    ```python
+    await client.delete_collection("my_collection")
+    ```
 
 ## Document Operations
 
@@ -210,331 +293,501 @@ await client.delete_collection("my_collection")
 
 Add a single document:
 
-```python
-from taiyo import SolrDocument
+=== "Sync"
 
-doc = SolrDocument(
-    title="Hello World",
-    content="This is a test document"
-)
+    ```python
+    from taiyo import SolrDocument
 
-# Sync
-client.add(doc, commit=True)
+    doc = SolrDocument(
+        title="Hello World",
+        content="This is a test document"
+    )
 
-# Async
-await client.add(doc, commit=True)
-```
+    client.add(doc, commit=True)
+    ```
+
+=== "Async"
+
+    ```python
+    from taiyo import AsyncSolrClient, SolrDocument
+
+
+    async def main() -> None:
+        client = AsyncSolrClient("http://localhost:8983/solr")
+        doc = SolrDocument(
+            title="Hello World",
+            content="This is a test document"
+        )
+        await client.add(doc, commit=True)
+    ```
 
 Add multiple documents:
 
-```python
-docs = [
-    SolrDocument(title="First"),
-    SolrDocument(title="Second"),
-    SolrDocument(title="Third")
-]
+=== "Sync"
 
-# Sync
-client.add(docs, commit=True)
+    ```python
+    docs = [
+        SolrDocument(title="First"),
+        SolrDocument(title="Second"),
+        SolrDocument(title="Third")
+    ]
 
-# Async
-await client.add(docs, commit=True)
-```
+    client.add(docs, commit=True)
+    ```
+
+=== "Async"
+
+    ```python
+    from taiyo import AsyncSolrClient, SolrDocument
+
+
+    async def main() -> None:
+        client = AsyncSolrClient("http://localhost:8983/solr")
+        docs = [
+            SolrDocument(title="First"),
+            SolrDocument(title="Second"),
+            SolrDocument(title="Third")
+        ]
+        await client.add(docs, commit=True)
+    ```
 
 ### Committing Changes
 
 Commit pending changes explicitly:
 
-```python
-# Sync
-client.add(doc, commit=False)
-client.commit()
+=== "Sync"
 
-# Async
-await client.add(doc, commit=False)
-await client.commit()
-```
+    ```python
+    client.add(doc, commit=False)
+    client.commit()
+    ```
+
+=== "Async"
+
+    ```python
+    await client.add(doc, commit=False)
+    await client.commit()
+    ```
 
 ### Deleting Documents
 
 Delete by ID:
 
-```python
-# Sync
-client.delete(ids=["1", "2", "3"], commit=True)
+=== "Sync"
 
-# Async
-await client.delete(ids=["1", "2", "3"], commit=True)
-```
+    ```python
+    client.delete(ids=["1", "2", "3"], commit=True)
+    ```
+
+=== "Async"
+
+    ```python
+    await client.delete(ids=["1", "2", "3"], commit=True)
+    ```
 
 Delete by query:
 
-```python
-# Sync
-client.delete(query="status:archived", commit=True)
+=== "Sync"
 
-# Async
-await client.delete(query="status:archived", commit=True)
-```
+    ```python
+    client.delete(query="status:archived", commit=True)
+    ```
+
+=== "Async"
+
+    ```python
+    await client.delete(query="status:archived", commit=True)
+    ```
 
 Delete all documents:
 
-```python
-# Sync
-client.delete(query="*:*", commit=True)
+=== "Sync"
 
-# Async
-await client.delete(query="*:*", commit=True)
-```
+    ```python
+    client.delete(query="*:*", commit=True)
+    ```
+
+=== "Async"
+
+    ```python
+    await client.delete(query="*:*", commit=True)
+    ```
 
 ## Searching
 
 ### Basic Search
 
-```python
-# Simple query string
-results = client.search("title:test")
+=== "Sync"
 
-# With parameters
-results = client.search("*:*", rows=20, start=0)
-```
+    ```python
+    # Simple query string
+    results = client.search("title:test")
+
+    # With parameters
+    results = client.search("*:*", rows=20, start=0)
+    ```
+
+=== "Async"
+
+    ```python
+    # Simple query string
+    results = await client.search("title:test")
+
+    # With parameters
+    results = await client.search("*:*", rows=20, start=0)
+    ```
 
 ### Using Query Parsers
 
-```python
-from taiyo.parsers import StandardParser
+=== "Sync"
 
-parser = StandardParser(
-    query="laptop",
-    query_operator="AND",
-    default_field="content"
-)
+    ```python
+    from taiyo.parsers import StandardParser
 
-results = client.search(parser)
-```
+    parser = StandardParser(
+        query="laptop",
+        query_operator="AND",
+        default_field="content"
+    )
+
+    results = client.search(parser)
+    ```
+
+=== "Async"
+
+    ```python
+    from taiyo.parsers import StandardParser
+
+    parser = StandardParser(
+        query="laptop",
+        query_operator="AND",
+        default_field="content"
+    )
+
+    results = await client.search(parser)
+    ```
 
 ### With Custom Document Models
 
-```python
-from taiyo import SolrDocument
+=== "Sync"
 
-class Product(SolrDocument):
-    name: str
-    price: float
-    category: str
+    ```python
+    from taiyo import SolrDocument
 
-results = client.search("*:*", document_model=Product)
+    class Product(SolrDocument):
+        name: str
+        price: float
+        category: str
 
-for product in results.docs:
-    print(f"{product.name}: ${product.price}")
-```
+    results = client.search("*:*", document_model=Product)
+
+    for product in results.docs:
+        print(f"{product.name}: ${product.price}")
+    ```
+
+=== "Async"
+
+    ```python
+    from taiyo import SolrDocument
+
+    class Product(SolrDocument):
+        name: str
+        price: float
+        category: str
+
+    results = await client.search("*:*", document_model=Product)
+
+    for product in results.docs:
+        print(f"{product.name}: ${product.price}")
+    ```
 
 ## Schema Management
 
 ### Adding Field Types
 
-```python
-from taiyo.schema import SolrFieldType, SolrFieldClass
+=== "Sync"
 
-field_type = SolrFieldType(
-    name="text_custom",
-    solr_class=SolrFieldClass.TEXT,
-    position_increment_gap=100
-)
+    ```python
+    from taiyo.schema import SolrFieldType, SolrFieldClass
 
-# Sync
-client.add_field_type(field_type)
+    field_type = SolrFieldType(
+        name="text_custom",
+        solr_class=SolrFieldClass.TEXT,
+        position_increment_gap=100
+    )
 
-# Async
-await client.add_field_type(field_type)
-```
+    client.add_field_type(field_type)
+    ```
+
+=== "Async"
+
+    ```python
+    from taiyo.schema import SolrFieldType, SolrFieldClass
+
+    field_type = SolrFieldType(
+        name="text_custom",
+        solr_class=SolrFieldClass.TEXT,
+        position_increment_gap=100
+    )
+
+    await client.add_field_type(field_type)
+    ```
 
 ### Adding Fields
 
-```python
-from taiyo.schema import SolrField
+=== "Sync"
 
-field = SolrField(
-    name="custom_field",
-    type="text_general",
-    indexed=True,
-    stored=True
-)
+    ```python
+    from taiyo.schema import SolrField
 
-# Sync
-client.add_field(field)
+    field = SolrField(
+        name="custom_field",
+        type="text_general",
+        indexed=True,
+        stored=True
+    )
 
-# Async
-await client.add_field(field)
-```
+    client.add_field(field)
+    ```
+
+=== "Async"
+
+    ```python
+    from taiyo.schema import SolrField
+
+    field = SolrField(
+        name="custom_field",
+        type="text_general",
+        indexed=True,
+        stored=True
+    )
+
+    await client.add_field(field)
+    ```
 
 ### Adding Dynamic Fields
 
-```python
-from taiyo.schema import SolrDynamicField
+=== "Sync"
 
-dynamic_field = SolrDynamicField(
-    name="*_txt",
-    type="text_general",
-    indexed=True,
-    stored=True
-)
+    ```python
+    from taiyo.schema import SolrDynamicField
 
-# Sync
-client.add_dynamic_field(dynamic_field)
+    dynamic_field = SolrDynamicField(
+        name="*_txt",
+        type="text_general",
+        indexed=True,
+        stored=True
+    )
 
-# Async
-await client.add_dynamic_field(dynamic_field)
-```
+    client.add_dynamic_field(dynamic_field)
+    ```
 
-## Custom Headers
+=== "Async"
 
-Set custom headers for all requests:
+    ```python
+    from taiyo.schema import SolrDynamicField
 
-```python
-client.set_header("X-Custom-Header", "value")
-```
+    dynamic_field = SolrDynamicField(
+        name="*_txt",
+        type="text_general",
+        indexed=True,
+        stored=True
+    )
+
+    await client.add_dynamic_field(dynamic_field)
+    ```
 
 ## Error Handling
 
 Handle Solr errors gracefully:
 
-```python
-from taiyo import SolrError
+=== "Sync"
 
-try:
-    results = client.search("invalid:query:[")
-except SolrError as e:
-    print(f"Error: {e}")
-    print(f"Status: {e.status_code}")
-    print(f"Response: {e.response}")
-```
+    ```python
+    from taiyo import SolrError
+
+    try:
+        results = client.search("invalid:query:[")
+    except SolrError as e:
+        print(f"Error: {e}")
+        print(f"Status: {e.status_code}")
+        print(f"Response: {e.response}")
+    ```
+
+=== "Async"
+
+    ```python
+    from taiyo import SolrError
+
+    try:
+        results = await client.search("invalid:query:[")
+    except SolrError as e:
+        print(f"Error: {e}")
+        print(f"Status: {e.status_code}")
+        print(f"Response: {e.response}")
+    ```
 
 Common error scenarios:
 
-```python
-try:
-    client.add(doc)
-except SolrError as e:
-    if e.status_code == 400:
-        print("Bad request - check document format")
-    elif e.status_code == 404:
-        print("Collection not found")
-    elif e.status_code == 500:
-        print("Solr server error")
-```
+=== "Sync"
+
+    ```python
+    try:
+        client.add(doc)
+    except SolrError as e:
+        if e.status_code == 400:
+            print("Bad request - check document format")
+        elif e.status_code == 404:
+            print("Collection not found")
+        elif e.status_code == 500:
+            print("Solr server error")
+    ```
+
+=== "Async"
+
+    ```python
+    try:
+        await client.add(doc)
+    except SolrError as e:
+        if e.status_code == 400:
+            print("Bad request - check document format")
+        elif e.status_code == 404:
+            print("Collection not found")
+        elif e.status_code == 500:
+            print("Solr server error")
+    ```
 
 ## Best Practices
 
 ### Use Context Managers
 
-```python
-with SolrClient("http://localhost:8983/solr") as client:
-    results = client.search("*:*")
-```
+=== "Sync"
+
+    ```python
+    with SolrClient("http://localhost:8983/solr") as client:
+        results = client.search("*:*")
+    ```
+
+=== "Async"
+
+    ```python
+    async with AsyncSolrClient("http://localhost:8983/solr") as client:
+        results = await client.search("*:*")
+    ```
 
 ### Set Collection Once
 
-```python
-client = SolrClient("http://localhost:8983/solr")
-client.set_collection("my_collection")
-```
+=== "Sync"
+
+    ```python
+    client = SolrClient("http://localhost:8983/solr")
+    client.set_collection("my_collection")
+    ```
+
+=== "Async"
+
+    ```python
+    client = AsyncSolrClient("http://localhost:8983/solr")
+    client.set_collection("my_collection")
+    ```
 
 ### Batch Operations
 
-```python
-docs = [SolrDocument(title=f"Document {i}") for i in range(1000)]
-client.add(docs, commit=True)
-```
+=== "Sync"
+
+    ```python
+    docs = [SolrDocument(title=f"Document {i}") for i in range(1000)]
+    client.add(docs, commit=True)
+    ```
+
+=== "Async"
+
+    ```python
+    docs = [SolrDocument(title=f"Document {i}") for i in range(1000)]
+    await client.add(docs, commit=True)
+    ```
 
 Avoid individual operations in loops:
 
-```python
-for i in range(1000):
-    doc = SolrDocument(title=f"Document {i}")
-    client.add(doc, commit=True)
-```
+=== "Sync"
+
+    ```python
+    for i in range(1000):
+        doc = SolrDocument(title=f"Document {i}")
+        client.add(doc, commit=True)
+    ```
+
+=== "Async"
+
+    ```python
+    for i in range(1000):
+        doc = SolrDocument(title=f"Document {i}")
+        await client.add(doc, commit=True)
+    ```
 
 ### Commit Strategy
 
 For bulk indexing:
 
-```python
-for batch in batches:
-    client.add(batch, commit=False)
-client.commit()
-```
+=== "Sync"
+
+    ```python
+    for batch in batches:
+        client.add(batch, commit=False)
+    client.commit()
+    ```
+
+=== "Async"
+
+    ```python
+    for batch in batches:
+        await client.add(batch, commit=False)
+    await client.commit()
+    ```
 
 For real-time updates:
 
-```python
-client.add(doc, commit=True)
-```
+=== "Sync"
+
+    ```python
+    client.add(doc, commit=True)
+    ```
+
+=== "Async"
+
+    ```python
+    await client.add(doc, commit=True)
+    ```
 
 ### Error Handling
 
-```python
-try:
-    client.create_collection("my_collection")
-except SolrError as e:
-    if "already exists" in str(e).lower():
-        # Collection exists, that's okay
-        pass
-    else:
-        # Unexpected error
-        raise
-```
+=== "Sync"
 
-## Configuration Examples
+    ```python
+    try:
+        client.create_collection("my_collection")
+    except SolrError as e:
+        if "already exists" in str(e).lower():
+            # Collection exists, that's okay
+            pass
+        else:
+            # Unexpected error
+            raise
+    ```
 
-### Production Configuration
+=== "Async"
 
-```python
-from taiyo import SolrClient, BasicAuth
-import httpx
-
-client = SolrClient(
-    base_url="https://solr.production.com/solr",
-    auth=BasicAuth("username", "password"),
-    timeout=60.0,
-    verify=True,
-    limits=httpx.Limits(
-        max_keepalive_connections=20,
-        max_connections=100
-    ),
-    http2=True
-)
-```
-
-### Development Configuration
-
-```python
-client = SolrClient(
-    base_url="http://localhost:8983/solr",
-    timeout=10.0,
-    verify=False
-)
-```
-
-### Load Balancing
-
-```python
-nodes = [
-    "http://solr1.example.com/solr",
-    "http://solr2.example.com/solr",
-    "http://solr3.example.com/solr"
-]
-
-import itertools
-node_cycle = itertools.cycle(nodes)
-
-def get_client():
-    return SolrClient(next(node_cycle))
-
-with get_client() as client:
-    client.set_collection("my_collection")
-    results = client.search("*:*")
-```
+    ```python
+    try:
+        await client.create_collection("my_collection")
+    except SolrError as e:
+        if "already exists" in str(e).lower():
+            # Collection exists, that's okay
+            pass
+        else:
+            # Unexpected error
+            raise
+    ```
 
 ## Performance Tips
 
@@ -542,44 +795,87 @@ with get_client() as client:
 
 httpx automatically handles connection pooling. Configure limits:
 
-```python
-client = SolrClient(
-    "http://localhost:8983/solr",
-    limits=httpx.Limits(
-        max_keepalive_connections=10,
-        max_connections=50,
-        keepalive_expiry=30.0
+=== "Sync"
+
+    ```python
+    client = SolrClient(
+        "http://localhost:8983/solr",
+        limits=httpx.Limits(
+            max_keepalive_connections=10,
+            max_connections=50,
+            keepalive_expiry=30.0
+        )
     )
-)
-```
+    ```
+
+=== "Async"
+
+    ```python
+    client = AsyncSolrClient(
+        "http://localhost:8983/solr",
+        limits=httpx.Limits(
+            max_keepalive_connections=10,
+            max_connections=50,
+            keepalive_expiry=30.0
+        )
+    )
+    ```
 
 ### Timeout Configuration
 
 Configure timeouts based on operation type:
 
-```python
-client = SolrClient("http://localhost:8983/solr", timeout=5.0)
+=== "Sync"
 
-client = SolrClient("http://localhost:8983/solr", timeout=300.0)
+    ```python
+    client = SolrClient("http://localhost:8983/solr", timeout=5.0)
 
-client = SolrClient("http://localhost:8983/solr", timeout=httpx.Timeout(
-    connect=5.0,
-    read=60.0,
-    write=30.0,
-    pool=10.0
-))
-```
+    client = SolrClient("http://localhost:8983/solr", timeout=300.0)
+
+    client = SolrClient("http://localhost:8983/solr", timeout=httpx.Timeout(
+        connect=5.0,
+        read=60.0,
+        write=30.0,
+        pool=10.0
+    ))
+    ```
+
+=== "Async"
+
+    ```python
+    client = AsyncSolrClient("http://localhost:8983/solr", timeout=5.0)
+
+    client = AsyncSolrClient("http://localhost:8983/solr", timeout=300.0)
+
+    client = AsyncSolrClient("http://localhost:8983/solr", timeout=httpx.Timeout(
+        connect=5.0,
+        read=60.0,
+        write=30.0,
+        pool=10.0
+    ))
+    ```
 
 ### HTTP/2 Support
 
 Enable HTTP/2 for better performance:
 
-```python
-client = SolrClient(
-    "http://localhost:8983/solr",
-    http2=True
-)
-```
+=== "Sync"
+
+    ```python
+    client = SolrClient(
+        "http://localhost:8983/solr",
+        http2=True
+    )
+    ```
+
+=== "Async"
+
+    ```python
+    client = AsyncSolrClient(
+        "http://localhost:8983/solr",
+        http2=True
+    )
+    ```
 
 ## Next Steps
 
