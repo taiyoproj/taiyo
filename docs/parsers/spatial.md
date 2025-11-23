@@ -383,8 +383,10 @@ results = client.search(parser)
 
 # Show facets
 print("\nCategories:")
-for category, count in results.facet_counts["facet_fields"]["category"]:
-    print(f"  {category}: {count}")
+category_facet = results.facets.fields.get("category") if results.facets else None
+if category_facet:
+    for bucket in category_facet.buckets:
+        print(f"  {bucket.value}: {bucket.count}")
 ```
 
 ### Multi-Location Search

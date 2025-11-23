@@ -293,8 +293,9 @@ for doc in results.docs:
 ```python
 results = client.search(parser.facet(fields=["category"]))
 
-if results.facet_counts:
-    categories = results.facet_counts["facet_fields"]["category"]
+if results.facets:
+    category_facet = results.facets.fields.get("category")
+    categories = [bucket.value for bucket in category_facet.buckets] if category_facet else []
     print("Categories:", categories)
 ```
 

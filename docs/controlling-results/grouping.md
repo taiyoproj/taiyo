@@ -336,8 +336,10 @@ for group in results.grouped["author"]["groups"]:
 
 # Show facets (based on group heads)
 print("\n\nCategories:")
-for category, count in results.facet_counts["facet_fields"]["category"]:
-    print(f"  {category}: {count}")
+category_facet = results.facets.fields.get("category") if results.facets else None
+if category_facet:
+    for bucket in category_facet.buckets:
+        print(f"  {bucket.value}: {bucket.count}")
 ```
 
 ## Complete Example
@@ -381,8 +383,10 @@ for group in results.grouped["author"]["groups"]:
 
 # Show category distribution
 print("\n\nCategories:")
-for category, count in results.facet_counts["facet_fields"]["category"]:
-    print(f"  {category}: {count}")
+category_facet = results.facets.fields.get("category") if results.facets else None
+if category_facet:
+    for bucket in category_facet.buckets:
+        print(f"  {bucket.value}: {bucket.count}")
 ```
 
 ## Use Cases

@@ -188,7 +188,8 @@ for article in results.docs:
 
 ## SolrResponse
 
-Search results are returned as `SolrResponse` objects with an optional generics type.
+Search results are returned as `SolrResponse` objects with an optional generics type. Facet
+metadata is exposed via the structured `SolrFacetResult` model.
 
 ### Response Structure
 
@@ -212,10 +213,24 @@ for doc in results.docs:
 
 ### Optional Response Fields
 
+`SolrResponse.facets` is `Optional[SolrFacetResult]`. Each field facet is represented by a
+`SolrFacetFieldResult` with typed buckets, and range facets return `SolrFacetRangeResult` data.
+
 ```python
 # Facet counts (if faceting enabled)
-if results.facet_counts:
-    print("Facets:", results.facet_counts)
+if results.facets:
+    facets = results.facets
+
+    category_facet = facets.fields.get("category")
+    if category_facet:
+        print("Category facets:")
+        for bucket in category_facet.buckets:
+            print(f"  {bucket.value}: {bucket.count}")
+
+    # Query facets and JSON facets remain available via typed accessors
+    print("Facet queries:", facets.queries)
+    if facets.json_facets:
+        print("JSON facet bucket count:", len(facets.json_facets.buckets))
 
 # Highlighting (if highlighting enabled)
 if results.highlighting:
