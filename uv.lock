@@ -633,11 +633,6 @@ dev = [
     { name = "zensical" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "taiyo" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "black", marker = "extra == 'dev'", specifier = ">=23.0.0" },
@@ -652,9 +647,6 @@ requires-dist = [
     { name = "zensical", marker = "extra == 'dev'", specifier = ">=0.0.9" },
 ]
 provides-extras = ["dev"]
-
-[package.metadata.requires-dev]
-dev = [{ name = "taiyo", editable = "." }]
 
 [[package]]
 name = "tomli"
