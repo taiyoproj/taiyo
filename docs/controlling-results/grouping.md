@@ -361,10 +361,6 @@ parser = (
         fields=["category", "year"],
         mincount=1
     )
-    .with_params(
-        fields=["id", "title", "author", "published_date", "category"],
-        filter_query=["status:published", "language:en"]
-    )
 )
 
 results = client.search(parser)
@@ -540,10 +536,10 @@ Avoid: timestamp, id (too many unique values)
 parser = (
     ExtendedDisMaxQueryParser(
         query="search",
-        query_fields={"title": 2.0}
+        query_fields={"title": 2.0},
+        rows=20
     )
     .group(by="category", limit=5)
-    .with_params(rows=20)
 )
 ```
 
@@ -555,10 +551,8 @@ Filter before grouping to reduce processing:
 parser = (
     ExtendedDisMaxQueryParser(
         query="products",
-        query_fields={"name": 2.0}
-    )
-    .with_params(
-        filter_query=[
+        query_fields={"name": 2.0},
+        filters=[
             "status:active",
             "in_stock:true"
         ]
@@ -595,7 +589,8 @@ def diverse_search(query: str):
     parser = (
         ExtendedDisMaxQueryParser(
             query=query,
-            query_fields={"title": 3.0, "content": 1.0}
+            query_fields={"title": 3.0, "content": 1.0},
+            rows=10
         )
         .group(
             by="category",
@@ -603,7 +598,6 @@ def diverse_search(query: str):
             sort="score desc",
             ngroups=True
         )
-        .with_params(rows=10)
     )
     
     results = client.search(parser)

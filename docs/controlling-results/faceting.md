@@ -71,7 +71,8 @@ results = client.search(parser)
 
 # Access facet counts
 if results.facet_counts:
-    for category, count in results.facet_counts["facet_fields"]["category"]:
+    category_pairs = results.facet_counts["facet_fields"]["category"]
+    for category, count in zip(category_pairs[0::2], category_pairs[1::2]):
         print(f"{category}: {count}")
 ```
 
@@ -96,15 +97,11 @@ facet_config = FacetParamsConfig(
     # Advanced
     missing=False,                  # Include missing/null values
     method="enum",                  # Faceting method: enum, fc, fcs
-    offset=0,                       # Pagination offset
-    
-    # Per-field overrides
-    per_field={
-        "category": {"limit": 50, "sort": "index"},
-        "author": {"limit": 10, "sort": "count"}
-    }
+    offset=0                        # Pagination offset
 )
 ```
+
+To customize individual fields, create additional `FacetParamsConfig` objects—each call to `.facet(...)` appends another configuration.
 
 ### Field Facets
 
@@ -129,7 +126,8 @@ results = client.search(parser)
 # Show facets
 for field in ["category", "author", "tags"]:
     print(f"\n{field.title()}:")
-    for value, count in results.facet_counts["facet_fields"][field]:
+    pairs = results.facet_counts["facet_fields"][field]
+    for value, count in zip(pairs[0::2], pairs[1::2]):
         print(f"  {value}: {count}")
 ```
 
@@ -152,14 +150,9 @@ parser = parser.facet(
     limit=20
 )
 
-# Per-field sorting
-parser = parser.facet(
-    fields=["category", "author"],
-    per_field={
-        "category": {"sort": "count"},
-        "author": {"sort": "index"}
-    }
-)
+# Per-field sorting (apply separate configurations)
+parser = parser.facet(fields=["category"], sort="count", limit=20)
+parser = parser.facet(fields=["author"], sort="index", limit=20)
 ```
 
 ### Filtering Facets
@@ -211,29 +204,12 @@ parser = parser.facet(
 
 ### Per-Field Configuration
 
-Apply different settings to different fields:
+Apply different settings by adding multiple facet configurations—each call targets a specific field:
 
 ```python
-parser = parser.facet(
-    fields=["category", "author", "tags"],
-    mincount=1,  # Default for all fields
-    per_field={
-        "category": {
-            "limit": 50,
-            "sort": "count",
-            "mincount": 5
-        },
-        "author": {
-            "limit": 20,
-            "sort": "index",
-            "prefix": "A"
-        },
-        "tags": {
-            "limit": 100,
-            "sort": "count"
-        }
-    }
-)
+parser = parser.facet(fields=["category"], limit=50, sort="count", mincount=5)
+parser = parser.facet(fields=["author"], limit=20, sort="index", prefix="A")
+parser = parser.facet(fields=["tags"], limit=100, sort="count")
 ```
 
 ## Range Faceting
@@ -268,8 +244,9 @@ parser = ExtendedDisMaxQueryParser(
 results = client.search(parser)
 
 # Access range facets
-for range_val, count in results.facet_counts["facet_ranges"]["price"]:
-    print(f"${range_val}: {count} products")
+price_counts = results.facet_counts["facet_ranges"]["price"]["counts"]
+for bucket, count in zip(price_counts[0::2], price_counts[1::2]):
+    print(f"${bucket}: {count} products")
 ```
 
 ### Numeric Ranges
@@ -299,8 +276,9 @@ results = client.search(parser)
 
 # Show price ranges
 print("Price Distribution:")
-for range_val, count in results.facet_counts["facet_ranges"]["price"]:
-    print(f"  ${range_val}-${range_val + 100}: {count}")
+price_counts = results.facet_counts["facet_ranges"]["price"]["counts"]
+for bucket, count in zip(price_counts[0::2], price_counts[1::2]):
+    print(f"  {bucket}: {count}")
 ```
 
 ### Date Ranges
@@ -330,8 +308,9 @@ results = client.search(parser)
 
 # Show date ranges
 print("Published by Month:")
-for date, count in results.facet_counts["facet_ranges"]["published_date"]:
-    print(f"  {date}: {count} documents")
+date_counts = results.facet_counts["facet_ranges"]["published_date"]["counts"]
+for bucket, count in zip(date_counts[0::2], date_counts[1::2]):
+    print(f"  {bucket}: {count} documents")
 ```
 
 ## Query Faceting
@@ -490,13 +469,7 @@ parser = ExtendedDisMaxQueryParser(
             ],
             
             # Pivot facets
-            pivot=["category,difficulty"],
-            
-            # Per-field overrides
-            per_field={
-                "category": {"limit": 50},
-                "author": {"limit": 10, "sort": "index"}
-            }
+            pivot=["category,difficulty"]
         )
     ]
 )
@@ -506,13 +479,15 @@ results = client.search(parser)
 # Process all facet types
 print("=== Field Facets ===")
 print("\nCategories:")
-for value, count in results.facet_counts["facet_fields"]["category"]:
+category_pairs = results.facet_counts["facet_fields"]["category"]
+for value, count in zip(category_pairs[0::2], category_pairs[1::2]):
     print(f"  {value}: {count}")
 
 print("\n=== Range Facets ===")
 print("\nBy Year:")
-for year, count in results.facet_counts["facet_ranges"]["published_year"]:
-    print(f"  {year}: {count}")
+year_counts = results.facet_counts["facet_ranges"]["published_year"]["counts"]
+for bucket, count in zip(year_counts[0::2], year_counts[1::2]):
+    print(f"  {bucket}: {count}")
 
 print("\n=== Query Facets ===")
 print("\nBy Rating:")
@@ -546,18 +521,13 @@ parser = parser.facet(
 )
 ```
 
-### Use Per-Field Configuration
+### Layer Configurations
 
 ```python
-# Different fields need different settings
-parser = parser.facet(
-    fields=["category", "author", "tags"],
-    per_field={
-        "category": {"limit": 20, "sort": "count"},
-        "author": {"limit": 10, "sort": "index"},
-        "tags": {"limit": 100, "mincount": 5}
-    }
-)
+# Different fields need different settings—stack facet configs
+parser = parser.facet(fields=["category"], limit=20, sort="count")
+parser = parser.facet(fields=["author"], limit=10, sort="index")
+parser = parser.facet(fields=["tags"], limit=100, mincount=5)
 ```
 
 ### Filter Before Faceting
@@ -567,10 +537,8 @@ parser = parser.facet(
 parser = (
     ExtendedDisMaxQueryParser(
         query="programming",
-        query_fields={"title": 2.0}
-    )
-    .with_params(
-        filter_query=[
+        query_fields={"title": 2.0},
+        filters=[
             "status:published",
             "language:en"
         ]
@@ -626,19 +594,19 @@ Avoid faceting directly on high-cardinality numeric fields without ranges.
 ```python
 def search_products(query: str, category: str = None):
     """Product search with faceted filters."""
-    parser = ExtendedDisMaxQueryParser(
-        query=query,
-        query_fields={"name": 3.0, "description": 1.0}
-    )
-    
     # Apply category filter if specified
     filters = ["status:available"]
     if category:
         filters.append(f"category:{category}")
-    
+
+    base_parser = ExtendedDisMaxQueryParser(
+        query=query,
+        query_fields={"name": 3.0, "description": 1.0},
+        filters=filters
+    )
+
     parser = (
-        parser
-        .with_params(filter_query=filters)
+        base_parser
         .facet(
             fields=["category", "brand", "color", "size"],
             range_facets={
@@ -681,12 +649,10 @@ def search_documents(query: str):
                 }
             },
             pivot=["category,document_type"],
-            mincount=1,
-            per_field={
-                "category": {"limit": 20, "sort": "count"},
-                "author": {"limit": 50, "sort": "index"}
-            }
+            mincount=1
         )
+        .facet(fields=["category"], limit=20, sort="count")
+        .facet(fields=["author"], limit=50, sort="index")
     )
     
     return client.search(parser)

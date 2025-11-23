@@ -110,21 +110,11 @@ highlight_config = HighlightParamsConfig(
     require_field_match=True,        # Only highlight matched fields
     max_analyzed_chars=51200,        # Limit analyzed characters
     fragsize=0,                      # 0 = whole field value
-    multi_term=True,                 # Highlight wildcard/fuzzy
-    
-    # Per-field overrides
-    per_field={
-        "title": {
-            "fragment_size": 0,      # Whole title
-            "snippets_per_field": 1
-        },
-        "content": {
-            "fragment_size": 200,
-            "snippets_per_field": 5
-        }
-    }
+    multi_term=True                 # Highlight wildcard/fuzzy
 )
 ```
+
+To vary parameters per field, add additional `HighlightParamsConfig` instances or chain `.highlight(...)` calls for each field you need to tune.
 
 ## Highlight Methods
 
@@ -294,31 +284,25 @@ parser = parser.highlight(
 
 ### Per-Field Configuration
 
-Different settings for different fields:
+Different settings for different fields by chaining highlight calls:
 
 ```python
-parser = parser.highlight(
-    fields=["title", "abstract", "content"],
-    per_field={
-        "title": {
-            "fragment_size": 0,       # Whole title
-            "snippets_per_field": 1,
-            "simple_pre": "<strong>",
-            "simple_post": "</strong>"
-        },
-        "abstract": {
-            "fragment_size": 300,     # Longer snippets
-            "snippets_per_field": 2,
-            "simple_pre": "<mark>",
-            "simple_post": "</mark>"
-        },
-        "content": {
-            "fragment_size": 150,     # Shorter snippets
-            "snippets_per_field": 5,
-            "simple_pre": "<em>",
-            "simple_post": "</em>"
-        }
-    }
+parser = (
+    parser
+    .highlight(
+        fields=["title"],
+        fragment_size=0,
+        snippets_per_field=1,
+        simple_pre="<strong>",
+        simple_post="</strong>"
+    )
+    .highlight(
+        fields=["abstract"],
+        fragment_size=300,
+        snippets_per_field=2,
+        simple_pre="<mark>",
+        simple_post="</mark>"
+    )
 )
 ```
 
@@ -401,39 +385,42 @@ from taiyo.parsers import ExtendedDisMaxQueryParser
 from taiyo.params import HighlightParamsConfig
 from taiyo.schema.enums import HighlightMethod
 
-parser = ExtendedDisMaxQueryParser(
-    query="machine learning neural networks",
-    query_fields={"title": 3.0, "abstract": 2.0, "content": 1.0},
-    configs=[
-        HighlightParamsConfig(
-            fields=["title", "abstract", "content"],
-            method=HighlightMethod.UNIFIED,
-            fragment_size=200,
-            snippets_per_field=3,
-            simple_pre="<mark>",
-            simple_post="</mark>",
-            require_field_match=True,
-            boundary_scanner="breakIterator",
-            bs_language="en",
-            multi_term=True,
-            per_field={
-                "title": {
-                    "fragment_size": 0,       # Whole title
-                    "snippets_per_field": 1,
-                    "simple_pre": "<strong>",
-                    "simple_post": "</strong>"
-                },
-                "abstract": {
-                    "fragment_size": 300,     # Longer snippets
-                    "snippets_per_field": 2
-                },
-                "content": {
-                    "fragment_size": 150,     # Shorter snippets
-                    "snippets_per_field": 5
-                }
-            }
-        )
-    ]
+parser = (
+    ExtendedDisMaxQueryParser(
+        query="machine learning neural networks",
+        query_fields={"title": 3.0, "abstract": 2.0, "content": 1.0},
+        configs=[
+            HighlightParamsConfig(
+                fields=["title", "abstract", "content"],
+                method=HighlightMethod.UNIFIED,
+                fragment_size=200,
+                snippets_per_field=3,
+                simple_pre="<mark>",
+                simple_post="</mark>",
+                require_field_match=True,
+                boundary_scanner="breakIterator",
+                bs_language="en",
+                multi_term=True
+            )
+        ]
+    )
+    .highlight(
+        fields=["title"],
+        fragment_size=0,
+        snippets_per_field=1,
+        simple_pre="<strong>",
+        simple_post="</strong>"
+    )
+    .highlight(
+        fields=["abstract"],
+        fragment_size=300,
+        snippets_per_field=2
+    )
+    .highlight(
+        fields=["content"],
+        fragment_size=150,
+        snippets_per_field=5
+    )
 )
 
 results = client.search(parser)
@@ -523,13 +510,9 @@ def get_document_preview(doc_id: str, query: str):
             fragment_size=0,  # Whole content
             snippets_per_field=1,
             simple_pre="<mark>",
-            simple_post="</mark>"
+            simple_post="</mark>",
+            query=query  # Highlight matches for the original search terms
         )
-    )
-    
-    # Add query terms to highlight
-    parser = parser.with_params(
-        params={"hl.q": query}  # What to highlight
     )
     
     results = client.search(parser)
@@ -675,7 +658,8 @@ def get_contextual_snippets(query: str, num_results: int = 10):
     parser = (
         ExtendedDisMaxQueryParser(
             query=query,
-            query_fields={"title": 3.0, "content": 1.0}
+            query_fields={"title": 3.0, "content": 1.0},
+            rows=num_results
         )
         .highlight(
             fields=["content"],
@@ -685,7 +669,6 @@ def get_contextual_snippets(query: str, num_results: int = 10):
             simple_pre="<strong>",
             simple_post="</strong>"
         )
-        .with_params(rows=num_results)
     )
     
     results = client.search(parser)
