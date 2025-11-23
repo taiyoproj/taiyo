@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 from pydantic import ValidationError
 
 from taiyo.parsers.base import BaseQueryParser
-from ..types import SolrResponse, DocumentT, SolrMoreLikeThisResult
+from ..types import SolrResponse, DocumentT, SolrMoreLikeThisResult, SolrFacetResult
 from httpx import Client, AsyncClient
 
 if TYPE_CHECKING:
@@ -159,13 +159,15 @@ class BaseSolrClient:
                     interesting_terms=doc_interesting_terms,
                 )
 
+        facets = SolrFacetResult.from_response(response)
+
         return SolrResponse[document_model](
             status=response.get("responseHeader", {}).get("status", 0),
             qtime=response.get("responseHeader", {}).get("QTime", 0),
             num_found=num_found,
             start=start,
             docs=docs,
-            facet_counts=response.get("facet_counts"),
+            facets=facets,
             highlighting=response.get("highlighting"),
             more_like_this=more_like_this or None,
             extra=response,
