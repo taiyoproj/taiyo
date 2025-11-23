@@ -188,8 +188,7 @@ for article in results.docs:
 
 ## SolrResponse
 
-Search results are returned as `SolrResponse` objects with an optional generics type. Facet
-metadata is exposed via the structured `SolrFacetResult` model.
+Search results are returned as `SolrResponse` objects with an optional generics type. Facet metadata is exposed via the structured `SolrFacetResult` model if configured, and MoreLikeThis payloads are parsed into `SolrMoreLikeThisResult` instances keyed by the source document ID.
 
 ### Response Structure
 
@@ -215,6 +214,8 @@ for doc in results.docs:
 
 `SolrResponse.facets` is `Optional[SolrFacetResult]`. Each field facet is represented by a
 `SolrFacetFieldResult` with typed buckets, and range facets return `SolrFacetRangeResult` data.
+`SolrResponse.more_like_this` is an optional mapping of document IDs to `SolrMoreLikeThisResult`
+models that expose typed similar-document matches.
 
 ```python
 # Facet counts (if faceting enabled)
@@ -236,6 +237,13 @@ if results.facets:
 if results.highlighting:
     for doc_id, highlights in results.highlighting.items():
         print(f"Doc {doc_id} highlights:", highlights)
+
+# MoreLikeThis matches (if MLT was requested)
+if results.more_like_this:
+    for doc_id, mlt_result in results.more_like_this.items():
+        print(f"Doc {doc_id} has {mlt_result.num_found} similar docs")
+        for similar in mlt_result.docs:
+            print("  →", similar.title)
 
 # Extra fields (grouped results, stats, etc.)
 if results.extra:
@@ -333,27 +341,6 @@ doc = SolrDocument(
 client.add(doc)
 ```
 
-### Custom Model with Dynamic Fields
-
-```python
-class FlexibleProduct(SolrDocument):
-    """Product with known and dynamic fields."""
-    id: str
-    name: str
-    price: float
-    
-    # Dynamic fields handled by SolrDocument's extra="allow"
-    # Can add: name_en, name_es, price_usd, price_eur, etc.
-
-product = FlexibleProduct(
-    name="Product",
-    price=99.99,
-    name_en="English Name",
-    name_es="Nombre Español",
-    description_txt="Description"
-)
-```
-
 ## Best Practices
 
 ### Define Models for Known Schemas
@@ -394,22 +381,6 @@ class Product(SolrDocument):
         if not v.strip():
             raise ValueError('name cannot be empty')
         return v.strip()
-```
-
-### Use Inheritance for Common Fields
-
-```python
-class TimestampedDocument(SolrDocument):
-    created_at: str
-    updated_at: str
-
-class Article(TimestampedDocument):
-    title: str
-    content: str
-
-class Product(TimestampedDocument):
-    name: str
-    price: float
 ```
 
 ### Document Your Models
@@ -479,44 +450,6 @@ class Product(SolrDocument):
         if v > 100000:
             raise ValueError('price seems unreasonably high')
         return v
-```
-
-### Blog Article
-
-```python
-from taiyo import SolrDocument
-from datetime import datetime
-from typing import List, Optional
-
-class Article(SolrDocument):
-    """Blog article document."""
-    
-    title: str
-    slug: str
-    author: str
-    author_email: str
-    content: str
-    excerpt: str
-    
-    # Dates
-    published_at: str
-    updated_at: Optional[str] = None
-    
-    # Categorization
-    category: str
-    tags: List[str] = Field(default_factory=list)
-    
-    # Status
-    status: str = "draft"  # draft, published, archived
-    featured: bool = False
-    
-    # Metrics
-    view_count: int = 0
-    comment_count: int = 0
-    
-    # SEO
-    meta_description: Optional[str] = None
-    meta_keywords: List[str] = Field(default_factory=list)
 ```
 
 ## Next Steps
