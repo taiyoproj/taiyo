@@ -16,4 +16,7 @@
 - Schema utilities for defining fields, types, and copy-field rules for indexing
 - Authentication support for Basic, Bearer, and OAuth2
 
-Read the full documentation at [taiyoproj.github.io](https://taiyoproj.github.io).
+---
+<div align="center">
+    Read the documentation at <a href=https://taiyoproj.github.io>taiyoproj.github.io</a>
+</div>
