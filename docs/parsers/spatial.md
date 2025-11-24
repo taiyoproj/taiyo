@@ -94,9 +94,9 @@ parser = GeoFilterQueryParser(
     # Common parameters
     rows=10,
     start=0,
-    fields=["id", "name", "location"],
+    field_list=["id", "name", "location"],
     sort="geodist() asc",         # Sort by distance
-    filter_query=["category:restaurant"]
+    filters=["category:restaurant"]
 )
 ```
 
@@ -139,7 +139,7 @@ for doc in results.docs:
     print(f"{doc.name}: {doc.distance:.2f} km away")
 ```
 
-### Complete Example
+### Example
 
 ```python
 from taiyo.parsers import GeoFilterQueryParser
@@ -169,7 +169,7 @@ parser = (
         ]
     )
     .facet(
-        fields=["category", "price_range"],
+        field_list=["category", "price_range"],
         mincount=1
     )
 )
@@ -244,8 +244,8 @@ parser = BBoxQueryParser(
     # Common parameters
     rows=10,
     start=0,
-    fields=["id", "name", "location"],
-    filter_query=["category:restaurant"]
+    field_list=["id", "name", "location"],
+    filters=["category:restaurant"]
 )
 ```
 
@@ -288,7 +288,7 @@ results = search_in_viewport(
 )
 ```
 
-### Complete Example
+### Example
 
 ```python
 from taiyo.parsers import BBoxQueryParser
@@ -318,7 +318,7 @@ parser = (
         ]
     )
     .facet(
-        fields=["category", "price_range", "cuisine"],
+        field_list=["category", "price_range", "cuisine"],
         mincount=1
     )
 )
@@ -374,7 +374,7 @@ parser = (
         sort="geodist() asc"
     )
     .facet(
-        fields=["category", "price_range", "cuisine"],
+        field_list=["category", "price_range", "cuisine"],
         mincount=1
     )
 )
@@ -591,7 +591,7 @@ def find_restaurants(lat: float, lon: float,
         sort="geodist() asc",
         filters=filters
     ).facet(
-        fields=["cuisine", "price_range"],
+        field_list=["cuisine", "price_range"],
         mincount=1
     )
     

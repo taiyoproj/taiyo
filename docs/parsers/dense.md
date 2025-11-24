@@ -18,7 +18,7 @@ query_vector = [0.23, -0.45, 0.67, ...]
 
 parser = KNNQueryParser(
     field="content_vector",
-    query_vector=query_vector,
+    vector=query_vector,
     top_k=10
 )
 
@@ -29,19 +29,19 @@ results = client.search(parser)
 
 ```python
 parser = KNNQueryParser(
-    field="embedding",           # Dense vector field name
-    query_vector=[...],         # Query embedding vector
-    top_k=10,                   # Number of nearest neighbors
+    field="embedding",    # Dense vector field name
+    vector=[...],                # Query embedding vector
+    top_k=10,                    # Number of nearest neighbors
     
     # Common parameters
     rows=10,
     start=0,
-    fields=["id", "title", "content"],
-    filter_query=["status:active"]
+    field_list=["id", "title", "content"],
+    filters=["status:active"]
 )
 ```
 
-### Complete Example
+### Example
 
 ```python
 from taiyo.parsers import KNNQueryParser
@@ -52,18 +52,16 @@ query_text = "machine learning algorithms"
 query_vector = embed_text(query_text)
 
 # Search for similar documents
-parser = (
-    KNNQueryParser(
-        field="content_vector",
-        query_vector=query_vector,
-        top_k=20,
-        rows=10,
-        field_list=["id", "title", "author", "abstract"],
-        filters=[
-            "category:technology",
-            "published_date:[NOW-1YEAR TO NOW]"
-        ]
-    )
+parser = KNNQueryParser(
+    field="content_vector",
+    vector=query_vector,
+    top_k=20,
+    rows=10,
+    field_list=["id", "title", "author", "abstract"],
+    filters=[
+        "category:technology",
+        "published_date:[NOW-1YEAR TO NOW]"
+    ]
 )
 
 results = client.search(parser)
@@ -73,47 +71,120 @@ for doc in results.docs:
     print(f"Score: {doc.score}")
 ```
 
-### Filtering Before Search
+### Pre-Filtering
 
-Apply filters to limit the candidate set:
+Pre-filtering narrows the candidate set before KNN search for better performance and relevance.
+
+#### Implicit Pre-Filtering
+
+By default, all filter queries are automatically applied as pre-filters:
 
 ```python
 parser = KNNQueryParser(
     field="embedding",
-    query_vector=query_vector,
+    vector=query_vector,
     top_k=10,
-    filter_query=[
+    filters=[
         "category:science",           # Only science articles
-        "language:en",                # English only
+        "language:en",                # English only  
         "quality_score:[7 TO *]"      # High quality only
     ]
 )
+# All filters automatically pre-filter the KNN search
 ```
 
-### Hybrid Search: Vector + Keyword
+#### Explicit Pre-Filtering
 
-Combine vector search with keyword search:
+Use `pre_filter` to explicitly specify pre-filter conditions:
 
 ```python
-from taiyo.parsers import KNNQueryParser, ExtendedDisMaxQueryParser
+parser = KNNQueryParser(
+    field="embedding",
+    vector=query_vector,
+    top_k=10,
+    pre_filter=[
+        "category:science",
+        "status:published"
+    ],
+    filters=["language:en"]  # This becomes a post-filter
+)
+```
 
-# Vector search component
-knn_parser = KNNQueryParser(
-    field="content_vector",
-    query_vector=query_vector,
+#### Tagged Filtering
+
+Control which filters are used for pre-filtering with tags:
+
+```python
+parser = KNNQueryParser(
+    field="embedding",
+    vector=query_vector,
+    top_k=10,
+    filters=[
+        "{!tag=prefilter}category:science",
+        "{!tag=prefilter}status:published",
+        "language:en"  # Not tagged
+    ],
+    include_tags=["prefilter"]  # Only use filters with this tag for pre-filtering
+)
+
+# Or exclude specific tags
+parser = KNNQueryParser(
+    field="embedding",
+    vector=query_vector,
+    top_k=10,
+    filters=[
+        "{!tag=postfilter}facet_field:value",
+        "category:science"
+    ],
+    exclude_tags=["postfilter"]  # Exclude this from pre-filtering
+)
+```
+
+### Query Serialization with .build()
+
+KNN parsers serialize into Solr's local params format compatible with Apache Solr's official documentation:
+
+```python
+from taiyo.parsers import KNNQueryParser
+
+parser = KNNQueryParser(
+    field="embedding",
+    vector=[0.1, 0.2, 0.3, 0.4, 0.5],
+    top_k=10,
+    pre_filter=["category:electronics"],
+    filters=["status:active"]
+)
+
+# Build query parameters as dictionary
+params = parser.build()
+# {
+#   'q': '{!knn f=embedding topK=10 preFilter=category:electronics}[0.1,0.2,0.3,0.4,0.5]',
+#   'fq': ['status:active'],
+#   'rows': 10
+# }
+```
+
+The generated query `q` parameter matches Solr's local params syntax: [Apache Solr's Dense Vector Search Guide](https://solr.apache.org/guide/solr/latest/query-guide/dense-vector-search.html).
+
+#### Compatibility with Other Clients
+
+The dictionary output can be used with any HTTP client:
+
+```python
+import httpx
+
+parser = KNNQueryParser(
+    field="product_vector",
+    vector=[0.5, 0.3, 0.8, 0.2],
     top_k=20
 )
 
-# Keyword search component
-keyword_parser = ExtendedDisMaxQueryParser(
-    query="machine learning",
-    query_fields={"title": 3.0, "content": 1.0}
-)
+params = parser.build()
 
-# Combine using Solr's query boosting
-results = client.search(
-    knn_parser,
-    bq=f"{{!edismax qf='title^3 content' v='machine learning'}}"
+# Use with httpx or any HTTP library
+response = httpx.get(
+    "http://localhost:8983/solr/products/select",
+    params=params
 )
 ```
 
@@ -130,7 +201,8 @@ from taiyo.parsers import KNNTextToVectorQueryParser
 
 parser = KNNTextToVectorQueryParser(
     field="content_vector",
-    query_text="machine learning algorithms",
+    text="machine learning algorithms",
+    model="my-encoder-model",
     top_k=10
 )
 
@@ -141,16 +213,16 @@ results = client.search(parser)
 
 ```python
 parser = KNNTextToVectorQueryParser(
-    field="embedding",                    # Dense vector field name
-    query_text="search query",           # Text query (will be encoded)
+    field="embedding",            # Dense vector field name
+    text="search query",                 # Text query (will be encoded)
+    model="my-bert-encoder",             # Model name in text-to-vector store (required)
     top_k=10,                            # Number of nearest neighbors
-    encoder="my-bert-encoder",           # Optional: specific encoder name
     
     # Common parameters
     rows=10,
     start=0,
-    fields=["id", "title"],
-    filter_query=["status:active"]
+    field_list=["id", "title"],
+    filters=["status:active"]
 )
 ```
 
@@ -168,26 +240,23 @@ Your Solr schema needs an encoder configured:
 <field name="content_vector" type="knn_vector" indexed="true" stored="true"/>
 ```
 
-### Complete Example
+### Example
 
 ```python
 from taiyo.parsers import KNNTextToVectorQueryParser
 
 # No need to generate embeddings yourself!
-parser = (
-    KNNTextToVectorQueryParser(
-        field="content_vector",
-        query_text="What are the latest advances in neural networks?",
-        top_k=20,
-        encoder="bert-base",  # Use configured encoder
-        rows=10,
-        field_list=["id", "title", "abstract", "published_date"],
-        sort="published_date desc",
-        filters=[
-            "category:ai",
-            "published_date:[NOW-2YEARS TO NOW]"
-        ]
-    )
+parser = KNNTextToVectorQueryParser(
+    field="content_vector",
+    text="What are the latest advances in neural networks?",
+    model="bert-base",  # Use configured model
+    rows=10,
+    field_list=["id", "title", "abstract", "published_date"],
+    sort="published_date desc",
+    filters=[
+        "category:ai",
+        "published_date:[NOW-2YEARS TO NOW]"
+    ]
 )
 
 results = client.search(parser)
@@ -199,27 +268,6 @@ for doc in results.docs:
     print(f"Similarity: {doc.score:.4f}")
 ```
 
-### Advantages Over KNNQueryParser
-
-```python
-# KNNQueryParser: You handle encoding
-from your_model import encode
-query_vector = encode("machine learning")
-parser = KNNQueryParser(field="embedding", query_vector=query_vector, top_k=10)
-
-# KNNTextToVectorQueryParser: Solr handles encoding
-parser = KNNTextToVectorQueryParser(
-    field="embedding",
-    query_text="machine learning",  # Plain text!
-    top_k=10
-)
-```
-
-**Benefits:**
-- No need to deploy your own encoding service
-- Consistent encoding between indexing and querying
-- Reduced latency (encoding happens server-side)
-- Simpler client code
 
 ## VectorSimilarityQueryParser
 
@@ -234,8 +282,8 @@ from taiyo.parsers import VectorSimilarityQueryParser
 
 parser = VectorSimilarityQueryParser(
     field="content_vector",
-    query_vector=query_vector,
-    similarity_function="cosine"
+    vector=query_vector,
+    min_return=0.7
 )
 
 results = client.search(parser)
@@ -246,64 +294,32 @@ results = client.search(parser)
 ```python
 parser = VectorSimilarityQueryParser(
     field="embedding",                # Dense vector field name
-    query_vector=[...],              # Query embedding vector
-    similarity_function="cosine",    # cosine, euclidean, dot_product, manhattan
-    min_score=0.7,                   # Optional: minimum similarity threshold
+    vector=[...],                    # Query embedding vector
+    min_return=0.7,                  # Minimum similarity threshold for returned docs
+    min_traverse=0.5,                # Optional: minimum similarity to continue traversal
     
     # Common parameters
     rows=10,
     start=0,
-    fields=["id", "title"],
-    filter_query=["status:active"]
+    field_list=["id", "title"],
+    filters=["status:active"]
 )
 ```
 
-### Similarity Functions
+### Minimum Similarity Threshold
 
-```python
-# Cosine similarity (most common, range -1 to 1)
-parser = VectorSimilarityQueryParser(
-    field="embedding",
-    query_vector=query_vector,
-    similarity_function="cosine"
-)
-
-# Euclidean distance (L2 norm, lower = more similar)
-parser = VectorSimilarityQueryParser(
-    field="embedding",
-    query_vector=query_vector,
-    similarity_function="euclidean"
-)
-
-# Dot product (for normalized vectors)
-parser = VectorSimilarityQueryParser(
-    field="embedding",
-    query_vector=query_vector,
-    similarity_function="dot_product"
-)
-
-# Manhattan distance (L1 norm)
-parser = VectorSimilarityQueryParser(
-    field="embedding",
-    query_vector=query_vector,
-    similarity_function="manhattan"
-)
-```
-
-### Minimum Score Threshold
-
-Filter out low-similarity results:
+Filter out low-similarity results using `min_return`:
 
 ```python
 parser = VectorSimilarityQueryParser(
     field="content_vector",
-    query_vector=query_vector,
-    similarity_function="cosine",
-    min_score=0.75  # Only return docs with similarity >= 0.75
+    vector=query_vector,
+    min_return=0.75,  # Only return docs with similarity >= 0.75
+    min_traverse=0.6  # Continue graph traversal for similarity >= 0.6
 )
 ```
 
-### Complete Example
+### Example
 
 ```python
 from taiyo.parsers import VectorSimilarityQueryParser
@@ -315,9 +331,9 @@ query_vector = embed_text(query_text)
 parser = (
     VectorSimilarityQueryParser(
         field="abstract_vector",
-        query_vector=query_vector,
-        similarity_function="cosine",
-        min_score=0.7,  # High similarity threshold
+        vector=query_vector,
+        min_return=0.7,  # High similarity threshold
+        min_traverse=0.5,  # Traverse threshold
         rows=20,
         field_list=["id", "title", "authors", "abstract", "citations"],
         sort="score desc, citations desc",  # Sort by similarity, then citations
@@ -362,7 +378,7 @@ vector_type = FieldType(
     name="knn_vector_768",
     class_name="solr.DenseVectorField",
     vector_dimension=768,
-    similarity_function="cosine"
+    similarity_function="cosine"  # cosine, dot_product, or euclidean
 )
 
 # Add vector field
@@ -436,7 +452,7 @@ def normalize_vector(vector):
 query_vector = normalize_vector(raw_embedding)
 parser = KNNQueryParser(
     field="content_vector",
-    query_vector=query_vector,
+    vector=query_vector,
     top_k=10
 )
 ```
@@ -447,7 +463,7 @@ parser = KNNQueryParser(
 # Start with reasonable top_k
 parser = KNNQueryParser(
     field="embedding",
-    query_vector=query_vector,
+    vector=query_vector,
     top_k=100  # Get more candidates
 )
 
@@ -461,151 +477,6 @@ reranked_parser = parser.model_copy(
 )
 
 results = client.search(reranked_parser)
-```
-
-### Combine with Filters
-
-```python
-# Apply filters to reduce search space
-parser = KNNQueryParser(
-    field="content_vector",
-    query_vector=query_vector,
-    top_k=20,
-    filter_query=[
-        "status:published",      # Pre-filter
-        "language:en",           # Reduce candidates
-        "quality_score:[7 TO *]" # Only high quality
-    ]
-)
-```
-
-### Hybrid Search Pattern
-
-```python
-def hybrid_search(query_text: str, top_k: int = 20):
-    """Combine vector and keyword search."""
-    # Generate embedding
-    query_vector = embed_text(query_text)
-    
-    # Vector search (semantic)
-    vector_parser = KNNQueryParser(
-        field="content_vector",
-        query_vector=query_vector,
-        top_k=top_k
-    )
-    
-    # Keyword search (lexical)
-    keyword_boost = f"{{!edismax qf='title^3 content' v='{query_text}'}}"
-    
-    # Combine by adding boost query at request time
-    return client.search(
-        vector_parser,
-        bq=[keyword_boost],
-        rows=10
-    )
-```
-
-### Monitor Performance
-
-```python
-# Track query times
-results = client.search(parser)
-print(f"Query time: {results.query_time}ms")
-
-# Measure recall
-# (requires ground truth data)
-
-# Tune based on metrics
-if results.query_time > 100:
-    # Reduce top_k or add more filters
-    parser = KNNQueryParser(
-        field="embedding",
-        query_vector=query_vector,
-        top_k=50,  # Reduced from 100
-        filter_query=["category:relevant"]  # Added filter
-    )
-```
-
-## Common Patterns
-
-### Multi-Field Vector Search
-
-```python
-# Search across different embedding fields
-from taiyo.parsers import KNNQueryParser
-
-# Title embeddings (smaller, focused)
-title_query = embed_text(query_text, model="title-encoder")
-title_parser = KNNQueryParser(
-    field="title_vector",
-    query_vector=title_query,
-    top_k=10
-)
-
-# Content embeddings (larger, comprehensive)
-content_query = embed_text(query_text, model="content-encoder")
-content_parser = KNNQueryParser(
-    field="content_vector",
-    query_vector=content_query,
-    top_k=10
-)
-
-# Boost title matches
-boosted_results = client.search(
-    content_parser,
-    bq=f"{{!knn f=title_vector topK=10}}[{','.join(map(str, title_query))}]^2"
-)
-```
-
-### Faceted Vector Search
-
-```python
-parser = (
-    KNNQueryParser(
-        field="content_vector",
-        query_vector=query_vector,
-        top_k=100,
-        rows=20
-    )
-    .facet(
-        fields=["category", "author", "year"],
-        mincount=1
-    )
-)
-
-results = client.search(parser)
-
-# Show facets
-category_facet = results.facets.fields.get("category") if results.facets else None
-if category_facet:
-    for bucket in category_facet.buckets:
-        print(f"{bucket.value}: {bucket.count}")
-```
-
-### Re-ranking Results
-
-```python
-# Initial vector search
-parser = KNNQueryParser(
-    field="content_vector",
-    query_vector=query_vector,
-    top_k=100  # Get many candidates
-)
-
-# Re-rank using additional signals
-reranked = parser.model_copy(
-    update={
-        "rows": 20,
-        "boost_functons": [
-            "recip(ms(NOW,published_date),3.16e-11,1,1)",  # Recency
-            "log(views)",  # Popularity
-            "product(rating,10)"  # Quality
-        ],
-        "sort": "score desc"
-    }
-)
-
-results = client.search(reranked)
 ```
 
 ## Next Steps

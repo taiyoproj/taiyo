@@ -34,9 +34,9 @@ parser = StandardParser(
     # Common parameters
     rows=10,
     start=0,
-    fields=["id", "title"],
+    field_list=["id", "title"],
     sort="score desc",
-    filter_query=["status:active"]
+    filters=["status:active"]
 )
 ```
 
@@ -84,7 +84,7 @@ parser = StandardParser(query="description:*")
 parser = StandardParser(query="-description:*")
 ```
 
-### Complex Example
+### Example
 
 ```python
 from taiyo.parsers import StandardParser
@@ -95,19 +95,19 @@ parser = (
         query_operator="AND",
         default_field="content",
         rows=20,
-        fields=["id", "title", "author", "published_date"],
+        field_list=["id", "title", "author", "published_date"],
         sort="published_date desc",
-        filter_query=[
+        filters=[
             "status:published",
             "published_date:[NOW-1YEAR TO NOW]"
         ]
     )
     .facet(
-        fields=["category", "author"],
+        field_list=["category", "author"],
         mincount=1
     )
     .highlight(
-        fields=["title", "content"],
+        field_list=["title", "content"],
         fragment_size=150
     )
 )
@@ -223,7 +223,7 @@ parser = DisMaxQueryParser(
 )
 ```
 
-### Complete Example
+### Example
 
 ```python
 from taiyo.parsers import DisMaxQueryParser
@@ -248,9 +248,9 @@ parser = DisMaxQueryParser(
         "recent:true^5"        # Recent items boosted
     ],
     rows=20,
-    filter_query=["status:published"]
+    filters=["status:published"]
 ).facet(
-    fields=["category", "author"],
+    field_list=["category", "author"],
     mincount=1
 )
 
@@ -360,7 +360,7 @@ parser = ExtendedDisMaxQueryParser(
 )
 ```
 
-### Complex Example
+### Example
 
 ```python
 from taiyo.parsers import ExtendedDisMaxQueryParser
@@ -390,15 +390,15 @@ parser = (
         stop_words=True,
         lowercase_operators=True,
         rows=20,
-        fields=["id", "title", "author", "published_date", "score"],
+        field_list=["id", "title", "author", "published_date", "score"],
         sort="score desc, published_date desc",
-        filter_query=[
+        filters=[
             "status:published",
             "language:en"
         ]
     )
     .facet(
-        fields=["category", "author", "year"],
+        field_list=["category", "author", "year"],
         mincount=1,
         limit=20
     )
@@ -408,7 +408,7 @@ parser = (
         ngroups=True
     )
     .highlight(
-        fields=["title", "description", "content"],
+        field_list=["title", "description", "content"],
         fragment_size=150,
         snippets_per_field=3,
         simple_pre="<mark>",
@@ -540,7 +540,7 @@ parser = ExtendedDisMaxQueryParser(
 parser = DisMaxQueryParser(
     query="python",
     query_fields={"title": 2.0, "content": 1.0},
-    filter_query=[
+    filters=[
         "status:active",           # Cached
         "published_date:[NOW-1YEAR TO NOW]",  # Cached
         "language:en"              # Cached

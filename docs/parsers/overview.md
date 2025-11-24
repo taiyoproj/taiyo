@@ -2,6 +2,8 @@
 
 Taiyo supports Apache Solr's query parsers with a type-safe Python API.
 
+Query parsers serialize into Solr HTTP query parameters when called with the `.build()` method, returning Python dictionaries that are compatible with any Solr client or HTTP library.
+
 ## Available Parsers
 
 ### Sparse/Text Query Parsers
@@ -55,6 +57,32 @@ parser = StandardParser(
 )
 
 results = client.search(parser)
+```
+
+### Using .build() for Compatibility
+
+Get query parameters as a dictionary for use with other Solr clients:
+
+```python
+from taiyo.parsers import StandardParser
+
+parser = StandardParser(
+    query="python programming",
+    query_operator="AND",
+    filter_queries=["year:[2020 TO *]"],
+    rows=10
+)
+
+# Build query parameters as dictionary
+params = parser.build()
+# {'q': 'python programming', 'q.op': 'AND', 'fq': ['year:[2020 TO *]'], 'rows': 10, 'defType': 'lucene'}
+
+# Use with httpx or any HTTP library
+import httpx
+response = httpx.get(
+    "http://localhost:8983/solr/my_collection/select",
+    params=params
+)
 ```
 
 ## Common Patterns
@@ -116,7 +144,7 @@ Add faceting, grouping, highlighting, and more-like-this:
 
 ```python
 parser.facet(
-    fields=["category", "author"],
+    field_list=["category", "author"],
     mincount=1,
     limit=10
 )
@@ -128,92 +156,15 @@ parser.group(
 )
 
 parser.highlight(
-    fields=["title", "content"],
+    field_list=["title", "content"],
     fragment_size=150,
     snippets_per_field=3
 )
 
 parser.more_like_this(
-    fields=["content"],
+    field_list=["content"],
     min_term_freq=2,
     max_query_terms=25
-)
-```
-
-## Choosing the Right Parser
-
-### Use StandardParser When...
-
-- You need precise boolean logic (AND, OR, NOT)
-- You want fielded queries (field:value)
-- You need advanced features like proximity queries
-- You're familiar with Lucene query syntax
-
-```python
-parser = StandardParser(
-    query='title:"machine learning" AND category:tech',
-    query_operator="AND"
-)
-```
-
-### Use DisMaxQueryParser When...
-
-- You want simple, user-friendly queries
-- You need to search across multiple fields with different weights
-- You want fuzzy matching for misspellings
-- End users are entering search terms
-
-```python
-parser = DisMaxQueryParser(
-    query="python programming",
-    query_fields={"title": 3.0, "content": 1.0},  # title 3x more important
-    min_match="75%"
-)
-```
-
-### Use ExtendedDisMaxQueryParser When...
-
-- You need DisMax features plus advanced capabilities
-- You want phrase boosting
-- You need field-specific boosts
-- You want the best of both worlds (user-friendly + powerful)
-
-```python
-parser = ExtendedDisMaxQueryParser(
-    query="python programming",
-    query_fields={"title": 3.0, "content": 1.0},
-    phrase_fields={"title": 6.0},  # Boost exact phrase matches
-    min_match="75%"
-)
-```
-
-### Use KNN Parsers When...
-
-- You have vector embeddings for semantic search
-- You want to find similar items
-- You're building recommendation systems
-- You need contextual understanding over keyword matching
-
-```python
-parser = KNNQueryParser(
-    field="embedding",
-    vector=[0.1, 0.2, 0.3, ...],  # Your embedding vector
-    top_k=10
-)
-```
-
-### Use Spatial Parsers When...
-
-- You're searching by geographic location
-- You need radius-based filtering
-- You want to find nearby items
-- You're building location-aware applications
-
-```python
-parser = GeoFilterQueryParser(
-    spatial_field="location",
-    center_point=[37.7749, -122.4194],  # San Francisco
-    radial_distance=10  # 10 kilometers
 )
 ```
 
@@ -263,7 +214,7 @@ parser = StandardParser(
 parser = (
     DisMaxQueryParser(query="laptop")
     .facet(
-        fields=["brand", "price_range"],
+        field_list=["brand", "price_range"],
         mincount=1
     )
     .group(
@@ -357,7 +308,7 @@ parser = StandardParser(
 
 ```python
 parser.facet(
-    fields=["category"],
+    field_list=["category"],
     limit=10,
     mincount=5
 )
