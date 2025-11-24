@@ -16,7 +16,6 @@ from taiyo.schema import (
     SolrDynamicField,
     SolrFieldType,
     SolrFieldClass,
-    CopyField,
 )
 from taiyo.schema.field_type import Analyzer, Tokenizer, Filter
 
@@ -25,72 +24,66 @@ SOLR_URL = "http://localhost:8983/solr"
 
 def get_schema_field_types(client) -> List[Dict[str, Any]]:
     """Retrieve all field types from the schema.
-    
+
     Reference: https://solr.apache.org/guide/solr/latest/indexing-guide/schema-api.html#list-field-types
     """
     response = client._request(
-        method="GET",
-        endpoint=f"{client.collection}/schema/fieldtypes"
+        method="GET", endpoint=f"{client.collection}/schema/fieldtypes"
     )
     return response.get("fieldTypes", [])
 
 
 def get_schema_field_type(client, name: str) -> Dict[str, Any]:
     """Retrieve a specific field type from the schema.
-    
+
     Reference: https://solr.apache.org/guide/solr/latest/indexing-guide/schema-api.html#retrieve-field-type-information
     """
     response = client._request(
-        method="GET",
-        endpoint=f"{client.collection}/schema/fieldtypes/{name}"
+        method="GET", endpoint=f"{client.collection}/schema/fieldtypes/{name}"
     )
     return response.get("fieldType", {})
 
 
 def get_schema_fields(client) -> List[Dict[str, Any]]:
     """Retrieve all fields from the schema.
-    
+
     Reference: https://solr.apache.org/guide/solr/latest/indexing-guide/schema-api.html#list-fields
     """
     response = client._request(
-        method="GET",
-        endpoint=f"{client.collection}/schema/fields"
+        method="GET", endpoint=f"{client.collection}/schema/fields"
     )
     return response.get("fields", [])
 
 
 def get_schema_field(client, name: str) -> Dict[str, Any]:
     """Retrieve a specific field from the schema.
-    
+
     Reference: https://solr.apache.org/guide/solr/latest/indexing-guide/schema-api.html#retrieve-field-information
     """
     response = client._request(
-        method="GET",
-        endpoint=f"{client.collection}/schema/fields/{name}"
+        method="GET", endpoint=f"{client.collection}/schema/fields/{name}"
     )
     return response.get("field", {})
 
 
 def get_schema_dynamic_fields(client) -> List[Dict[str, Any]]:
     """Retrieve all dynamic fields from the schema.
-    
+
     Reference: https://solr.apache.org/guide/solr/latest/indexing-guide/schema-api.html#list-dynamic-fields
     """
     response = client._request(
-        method="GET",
-        endpoint=f"{client.collection}/schema/dynamicfields"
+        method="GET", endpoint=f"{client.collection}/schema/dynamicfields"
     )
     return response.get("dynamicFields", [])
 
 
 def get_schema_copy_fields(client) -> List[Dict[str, Any]]:
     """Retrieve all copy fields from the schema.
-    
+
     Reference: https://solr.apache.org/guide/solr/latest/indexing-guide/schema-api.html#list-copy-fields
     """
     response = client._request(
-        method="GET",
-        endpoint=f"{client.collection}/schema/copyfields"
+        method="GET", endpoint=f"{client.collection}/schema/copyfields"
     )
     return response.get("copyFields", [])
 
@@ -171,30 +164,38 @@ def test_add_field_type_with_analyzer():
             # Verify field type with analyzer
             retrieved_ft = get_schema_field_type(client, f"text_analyzed_{_rand}")
             assert retrieved_ft["name"] == f"text_analyzed_{_rand}"
-            
+
             # Verify analyzer configuration
             assert "analyzer" in retrieved_ft
             analyzer_config = retrieved_ft["analyzer"]
-            
+
             # Check tokenizer - Solr may return it in different formats
             assert "tokenizer" in analyzer_config
             tokenizer = analyzer_config["tokenizer"]
             if isinstance(tokenizer, dict):
                 # Check if it has class key or className key
-                tokenizer_class = tokenizer.get("class") or tokenizer.get("className", "")
-                assert "Standard" in tokenizer_class or tokenizer.get("name") == "standard"
-            
+                tokenizer_class = tokenizer.get("class") or tokenizer.get(
+                    "className", ""
+                )
+                assert (
+                    "Standard" in tokenizer_class or tokenizer.get("name") == "standard"
+                )
+
             # Check filters exist
             assert "filters" in analyzer_config
             filters = analyzer_config["filters"]
             assert len(filters) == 3
-            
+
             # Verify filter names/classes
             filter_info = []
             for f in filters:
                 if isinstance(f, dict):
-                    filter_info.append(f.get("class", "") or f.get("className", "") or f.get("name", ""))
-            
+                    filter_info.append(
+                        f.get("class", "")
+                        or f.get("className", "")
+                        or f.get("name", "")
+                    )
+
             filter_str = " ".join(filter_info).lower()
             assert "lowercase" in filter_str or "lower" in filter_str
             assert "stop" in filter_str
@@ -278,8 +279,8 @@ def test_add_field():
             retrieved_field = get_schema_field(client, f"title_{_rand}")
             assert retrieved_field["name"] == f"title_{_rand}"
             assert retrieved_field["type"] == "text_general"
-            assert retrieved_field["indexed"] is True
-            assert retrieved_field["stored"] is True
+            assert retrieved_field["indexed"]
+            assert retrieved_field["stored"]
 
         finally:
             client.delete_collection(collection)
@@ -298,11 +299,24 @@ def test_add_multiple_fields():
         try:
             # Add multiple fields
             fields = [
-                SolrField(name=f"title_{_rand}", type="text_general", stored=True, indexed=True),
-                SolrField(name=f"price_{_rand}", type="pfloat", stored=True, indexed=True),
-                SolrField(name=f"category_{_rand}", type="string", stored=True, indexed=True),
-                SolrField(name=f"published_{_rand}", type="pdate", stored=True, indexed=True),
-                SolrField(name=f"tags_{_rand}", type="strings", stored=True, multiValued=True),
+                SolrField(
+                    name=f"title_{_rand}",
+                    type="text_general",
+                    stored=True,
+                    indexed=True,
+                ),
+                SolrField(
+                    name=f"price_{_rand}", type="pfloat", stored=True, indexed=True
+                ),
+                SolrField(
+                    name=f"category_{_rand}", type="string", stored=True, indexed=True
+                ),
+                SolrField(
+                    name=f"published_{_rand}", type="pdate", stored=True, indexed=True
+                ),
+                SolrField(
+                    name=f"tags_{_rand}", type="strings", stored=True, multiValued=True
+                ),
             ]
 
             for field in fields:
@@ -314,7 +328,7 @@ def test_add_multiple_fields():
             # Verify all fields exist
             schema_fields = get_schema_fields(client)
             field_names = [f["name"] for f in schema_fields]
-            
+
             assert f"title_{_rand}" in field_names
             assert f"price_{_rand}" in field_names
             assert f"category_{_rand}" in field_names
@@ -324,13 +338,13 @@ def test_add_multiple_fields():
             # Verify specific field properties
             title_field = get_schema_field(client, f"title_{_rand}")
             assert title_field["type"] == "text_general"
-            assert title_field["indexed"] is True
+            assert title_field["indexed"]
 
             price_field = get_schema_field(client, f"price_{_rand}")
             assert price_field["type"] == "pfloat"
 
             tags_field = get_schema_field(client, f"tags_{_rand}")
-            assert tags_field["multiValued"] is True
+            assert tags_field["multiValued"]
 
         finally:
             client.delete_collection(collection)
@@ -368,14 +382,13 @@ def test_add_dynamic_field():
 
             # Find and verify the specific dynamic field
             matching_df = next(
-                (df for df in dynamic_fields if df["name"] == f"*_txt_{_rand}"),
-                None
+                (df for df in dynamic_fields if df["name"] == f"*_txt_{_rand}"), None
             )
             assert matching_df is not None
             assert matching_df["type"] == "text_general"
-            assert matching_df["indexed"] is True
-            assert matching_df["stored"] is True
-            assert matching_df["multiValued"] is True
+            assert matching_df["indexed"]
+            assert matching_df["stored"]
+            assert matching_df["multiValued"]
 
         finally:
             client.delete_collection(collection)
@@ -395,10 +408,18 @@ def test_add_multiple_dynamic_fields():
             # Add multiple dynamic fields
             dynamic_fields = [
                 SolrDynamicField(name=f"*_s_{_rand}", type="string", stored=True),
-                SolrDynamicField(name=f"*_i_{_rand}", type="pint", indexed=True, stored=True),
-                SolrDynamicField(name=f"*_f_{_rand}", type="pfloat", indexed=True, stored=True),
-                SolrDynamicField(name=f"*_dt_{_rand}", type="pdate", indexed=True, stored=True),
-                SolrDynamicField(name=f"*_ss_{_rand}", type="strings", multiValued=True, stored=True),
+                SolrDynamicField(
+                    name=f"*_i_{_rand}", type="pint", indexed=True, stored=True
+                ),
+                SolrDynamicField(
+                    name=f"*_f_{_rand}", type="pfloat", indexed=True, stored=True
+                ),
+                SolrDynamicField(
+                    name=f"*_dt_{_rand}", type="pdate", indexed=True, stored=True
+                ),
+                SolrDynamicField(
+                    name=f"*_ss_{_rand}", type="strings", multiValued=True, stored=True
+                ),
             ]
 
             for df in dynamic_fields:
@@ -410,7 +431,7 @@ def test_add_multiple_dynamic_fields():
             # Verify all dynamic fields exist
             schema_dynamic_fields = get_schema_dynamic_fields(client)
             dynamic_names = [df["name"] for df in schema_dynamic_fields]
-            
+
             assert f"*_s_{_rand}" in dynamic_names
             assert f"*_i_{_rand}" in dynamic_names
             assert f"*_f_{_rand}" in dynamic_names
@@ -418,11 +439,17 @@ def test_add_multiple_dynamic_fields():
             assert f"*_ss_{_rand}" in dynamic_names
 
             # Verify specific properties
-            string_df = next((df for df in schema_dynamic_fields if df["name"] == f"*_s_{_rand}"), None)
+            string_df = next(
+                (df for df in schema_dynamic_fields if df["name"] == f"*_s_{_rand}"),
+                None,
+            )
             assert string_df["type"] == "string"
 
-            multi_df = next((df for df in schema_dynamic_fields if df["name"] == f"*_ss_{_rand}"), None)
-            assert multi_df["multiValued"] is True
+            multi_df = next(
+                (df for df in schema_dynamic_fields if df["name"] == f"*_ss_{_rand}"),
+                None,
+            )
+            assert multi_df["multiValued"]
 
         finally:
             client.delete_collection(collection)
@@ -502,7 +529,7 @@ def test_error_duplicate_field():
             # Try to add the same field again - should fail
             with pytest.raises(SolrError) as exc_info:
                 client.add_field(field)
-            
+
             # Verify error indicates duplicate field
             assert exc_info.value.status_code == 400
 
@@ -530,7 +557,7 @@ def test_error_invalid_field_type_reference():
 
             with pytest.raises(SolrError) as exc_info:
                 client.add_field(field)
-            
+
             # Should get an error about the field type not existing
             assert exc_info.value.status_code == 400
 
@@ -565,9 +592,18 @@ def test_complete_schema_workflow():
 
             # 2. Add regular fields
             fields = [
-                SolrField(name=f"id_{_rand}", type="string", stored=True, required=True),
-                SolrField(name=f"title_{_rand}", type=f"text_custom_{_rand}", indexed=True, stored=True),
-                SolrField(name=f"price_{_rand}", type="pfloat", indexed=True, stored=True),
+                SolrField(
+                    name=f"id_{_rand}", type="string", stored=True, required=True
+                ),
+                SolrField(
+                    name=f"title_{_rand}",
+                    type=f"text_custom_{_rand}",
+                    indexed=True,
+                    stored=True,
+                ),
+                SolrField(
+                    name=f"price_{_rand}", type="pfloat", indexed=True, stored=True
+                ),
             ]
 
             for field in fields:
@@ -579,7 +615,12 @@ def test_complete_schema_workflow():
             # 3. Add dynamic fields
             dynamic_fields = [
                 SolrDynamicField(name=f"*_s_{_rand}", type="string", stored=True),
-                SolrDynamicField(name=f"*_txt_{_rand}", type=f"text_custom_{_rand}", indexed=True, stored=True),
+                SolrDynamicField(
+                    name=f"*_txt_{_rand}",
+                    type=f"text_custom_{_rand}",
+                    indexed=True,
+                    stored=True,
+                ),
             ]
 
             for df in dynamic_fields:
