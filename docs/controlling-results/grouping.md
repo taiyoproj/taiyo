@@ -342,7 +342,7 @@ if category_facet:
         print(f"  {bucket.value}: {bucket.count}")
 ```
 
-## Complete Example
+## Example
 
 ```python
 from taiyo.parsers import ExtendedDisMaxQueryParser

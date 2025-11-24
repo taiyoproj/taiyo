@@ -446,7 +446,7 @@ print("Category Hierarchy:")
 print_pivot(results.facets.pivots.get("category,subcategory,brand", []))
 ```
 
-## Complete Example
+## Example
 
 ```python
 from taiyo.parsers import ExtendedDisMaxQueryParser

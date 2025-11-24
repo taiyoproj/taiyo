@@ -378,7 +378,7 @@ parser = parser.highlight(
 )
 ```
 
-## Complete Example
+## Example
 
 ```python
 from taiyo.parsers import ExtendedDisMaxQueryParser
