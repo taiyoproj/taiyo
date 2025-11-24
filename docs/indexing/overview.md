@@ -1,6 +1,6 @@
 # Overview
 
-Indexing is the process of adding documents to Solr for search and retrieval. Taiyo provides both synchronous and asynchronous clients for efficient document indexing.
+Indexing is the process of adding documents to Solr for retrieval. Taiyo provides both synchronous and asynchronous clients for efficient document indexing.
 
 ## Core Concepts
 
@@ -38,43 +38,40 @@ with SolrClient("http://localhost:8983/solr") as client:
 ```
 
 ### Batch Indexing
+=== "Sync"
 
-```python
-docs = [
-    SolrDocument(title=f"Document {i}", content=f"Content {i}")
-    for i in range(1000)
-]
+    ```python
+    from taiyo import SolrClient
 
-client.add(docs, commit=False)
-client.commit()
-```
+    with SolrClient("http://localhost:8983/solr") as client:
+        client.set_collection("my_collection")
+        docs = [
+            SolrDocument(title=f"Document {i}", content=f"Content {i}")
+            for i in range(1000)
+        ]
 
-### Async Indexing
+        client.add(docs, commit=False)
+        client.commit()
+    ```
 
-```python
-from taiyo import AsyncSolrClient
+=== "Async"
 
-async with AsyncSolrClient("http://localhost:8983/solr") as client:
-    client.set_collection("my_collection")
-    
-    docs = [SolrDocument(title=f"Doc {i}") for i in range(1000)]
-    await client.add(docs, commit=True)
-```
+    ```python
+    import asyncio
+    from taiyo import AsyncSolrClient
 
-## Performance Considerations
-
-### Batch Size
-
-Index documents in batches of 100-1000 for optimal performance:
-
-```python
-batch_size = 500
-for i in range(0, len(all_docs), batch_size):
-    batch = all_docs[i:i + batch_size]
-    client.add(batch, commit=False)
-
-client.commit()
-```
+    async with AsyncSolrClient("http://localhost:8983/solr") as client:
+        client.set_collection("my_collection")
+        
+        # Split into batches and process concurrently
+        batch_size = 100
+        all_docs = [SolrDocument(title=f"Doc {i}") for i in range(1000)]
+        batches = [all_docs[i:i + batch_size] for i in range(0, len(all_docs), batch_size)]
+        
+        # Index all batches concurrently
+        await asyncio.gather(*[client.add(batch, commit=False) for batch in batches])
+        await client.commit()
+    ```
 
 ### Commit Strategy
 

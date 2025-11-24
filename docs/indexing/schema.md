@@ -262,10 +262,6 @@ SolrDynamicField(name="*_fs", type="pfloat", indexed=True, stored=True, multi_va
 SolrDynamicField(name="*_d", type="pdouble", indexed=True, stored=True)
 SolrDynamicField(name="*_ds", type="pdouble", indexed=True, stored=True, multi_valued=True)
 
-# Date fields
-SolrDynamicField(name="*_dt", type="pdate", indexed=True, stored=True)
-SolrDynamicField(name="*_dts", type="pdate", indexed=True, stored=True, multi_valued=True)
-
 # Boolean fields
 SolrDynamicField(name="*_b", type="boolean", indexed=True, stored=True)
 ```
@@ -324,144 +320,41 @@ copy_field = CopyField(
 )
 ```
 
-## Complete Schema Example
+## Schema Example
 
-Here's a complete example setting up a schema for a blog:
+Setting up a schema for a book catalog:
 
 ```python
 from taiyo import SolrClient
-from taiyo.schema import (
-    SolrFieldType, SolrField, SolrDynamicField, CopyField,
-    SolrFieldClass
-)
+from taiyo.schema import SolrField, CopyField
 
 with SolrClient("http://localhost:8983/solr") as client:
     # Create collection
-    client.create_collection("blog", num_shards=1, replication_factor=1)
-    client.set_collection("blog")
-    
-    # Define field types (if not already present)
-    # Most Solr installations come with common types pre-defined
+    client.create_collection("books", num_shards=1, replication_factor=1)
+    client.set_collection("books")
     
     # Define fields
     fields = [
-        # ID field (required)
-        SolrField(
-            name="id",
-            type="string",
-            indexed=True,
-            stored=True,
-            required=True
-        ),
-        
-        # Title
-        SolrField(
-            name="title",
-            type="text_general",
-            indexed=True,
-            stored=True,
-            required=True
-        ),
-        
-        # Author
-        SolrField(
-            name="author",
-            type="string",
-            indexed=True,
-            stored=True,
-            doc_values=True
-        ),
-        
-        # Content
-        SolrField(
-            name="content",
-            type="text_general",
-            indexed=True,
-            stored=True
-        ),
-        
-        # Published date
-        SolrField(
-            name="published_date",
-            type="pdate",
-            indexed=True,
-            stored=True,
-            doc_values=True
-        ),
-        
-        # Category
-        SolrField(
-            name="category",
-            type="string",
-            indexed=True,
-            stored=True,
-            doc_values=True
-        ),
-        
-        # Tags (multi-valued)
-        SolrField(
-            name="tags",
-            type="string",
-            indexed=True,
-            stored=True,
-            multi_valued=True,
-            doc_values=True
-        ),
-        
-        # View count
-        SolrField(
-            name="views",
-            type="pint",
-            indexed=True,
-            stored=True,
-            doc_values=True,
-            default="0"
-        ),
-        
-        # Catch-all search field
-        SolrField(
-            name="text",
-            type="text_general",
-            indexed=True,
-            stored=False,
-            multi_valued=True
-        )
+        SolrField(name="title", type="text_general", stored=True, indexed=True),
+        SolrField(name="author", type="string", stored=True, indexed=True, doc_values=True),
+        SolrField(name="year", type="pint", stored=True, indexed=True, doc_values=True),
+        SolrField(name="genre", type="string", stored=True, indexed=True, doc_values=True),
+        SolrField(name="description", type="text_general", stored=True, indexed=True),
+        SolrField(name="text", type="text_general", stored=False, indexed=True, multi_valued=True),
     ]
     
-    # Add fields
     for field in fields:
-        try:
-            client.add_field(field)
-        except Exception as e:
-            print(f"Field {field.name} may already exist: {e}")
+        client.add_field(field)
     
-    # Add dynamic fields for flexibility
-    dynamic_fields = [
-        SolrDynamicField(name="*_txt", type="text_general", indexed=True, stored=True),
-        SolrDynamicField(name="*_s", type="string", indexed=True, stored=True),
-        SolrDynamicField(name="*_i", type="pint", indexed=True, stored=True),
-    ]
-    
-    for df in dynamic_fields:
-        try:
-            client.add_dynamic_field(df)
-        except Exception as e:
-            print(f"Dynamic field {df.name} may already exist: {e}")
-    
-    # Add copy fields for unified search
+    # Copy fields for unified search
     copy_fields = [
         CopyField(source="title", dest="text"),
-        CopyField(source="content", dest="text"),
-        CopyField(source="author", dest="text")
+        CopyField(source="author", dest="text"),
+        CopyField(source="description", dest="text"),
     ]
     
     for cf in copy_fields:
-        try:
-            client.add_copy_field(cf)
-        except Exception as e:
-            print(f"Copy field may already exist: {e}")
-    
-    print("Schema setup complete!")
+        client.add_copy_field(cf)
 ```
 
 ## Schema for Vector Search

@@ -393,45 +393,6 @@ with SolrClient("http://localhost:8983/solr") as client:
                 print(f"  {bucket.value}: {bucket.count}")
 ```
 
-## Performance Tips
-
-### Batch Size Optimization
-
-```python
-batch_size = 500
-
-for i in range(0, len(passengers), batch_size):
-    batch = passengers[i:i + batch_size]
-    client.add(batch, commit=False)
-
-client.commit()
-```
-
-### Progress Tracking
-
-```python
-from tqdm import tqdm
-
-with SolrClient("http://localhost:8983/solr") as client:
-    client.set_collection("titanic")
-    
-    batch = []
-    batch_size = 100
-    
-    for passenger in tqdm(passengers, desc="Indexing"):
-        doc = SolrDocument(**passenger)
-        batch.append(doc)
-        
-        if len(batch) >= batch_size:
-            client.add(batch, commit=False)
-            batch = []
-    
-    if batch:
-        client.add(batch, commit=False)
-    
-    client.commit()
-```
-
 ## Error Handling
 
 ```python
