@@ -55,23 +55,6 @@ article = Article(
 )
 ```
 
-### With Optional Fields
-
-```python
-from taiyo import SolrDocument
-from typing import Optional
-
-class Product(SolrDocument):
-    name: str
-    price: float
-    description: Optional[str] = None
-    category: str
-    in_stock: bool = True
-    tags: list[str] = []
-    rating: Optional[float] = None
-    reviews_count: int = 0
-```
-
 ### With Validation
 
 ```python
@@ -123,7 +106,7 @@ doc = Article(**json.loads(json_str))
 
 ### Aliases for Solr Fields
 
-Map Solr field names to Python names:
+Map Solr field names to Python field names:
 
 ```python
 from pydantic import Field
@@ -289,42 +272,6 @@ except ValidationError as e:
     print(f"Validation error: {e}")
 ```
 
-## Serialization
-
-### To Dictionary
-
-```python
-article = Article(...)
-
-# Full dictionary
-data = article.model_dump()
-
-# Exclude unset fields
-data = article.model_dump(exclude_unset=True)
-
-# Exclude None values
-data = article.model_dump(exclude_none=True)
-
-# Specific fields only
-data = article.model_dump(include={"id", "title", "author"})
-
-# Exclude specific fields
-data = article.model_dump(exclude={"internal_field"})
-```
-
-### To JSON
-
-```python
-# To JSON string
-json_str = article.model_dump_json()
-
-# With formatting
-json_str = article.model_dump_json(indent=2)
-
-# From JSON string
-article = Article.model_validate_json(json_str)
-```
-
 ## Working with Dynamic Fields
 
 Solr's dynamic fields are fully supported:
@@ -332,7 +279,7 @@ Solr's dynamic fields are fully supported:
 ```python
 # SolrDocument allows extra fields
 doc = SolrDocument(
-    title_en="English Title",      # Dynamic field *_en
+    title_en="English Title",       # Dynamic field *_en
     title_es="Título Español",      # Dynamic field *_es
     price_usd=99.99,                # Dynamic field *_usd
     tags_ss=["tag1", "tag2"]        # Dynamic field *_ss
@@ -365,24 +312,6 @@ class Document(SolrDocument):
     tags: list[str] = []   # Default empty list
 ```
 
-### Add Validation When Needed
-
-```python
-from pydantic import Field, field_validator
-
-class Product(SolrDocument):
-    name: str = Field(min_length=1, max_length=200)
-    price: float = Field(gt=0)
-    sku: str = Field(pattern=r'^[A-Z]{3}-\d{4}$')
-    
-    @field_validator('name')
-    @classmethod
-    def name_not_empty(cls, v):
-        if not v.strip():
-            raise ValueError('name cannot be empty')
-        return v.strip()
-```
-
 ### Document Your Models
 
 ```python
@@ -403,53 +332,6 @@ class Article(SolrDocument):
     category: str = Field(description="Article category")
     tags: list[str] = Field(default_factory=list, description="Tags")
     published: bool = Field(default=False, description="Publication status")
-```
-
-## Examples
-
-### E-commerce Product
-
-```python
-from taiyo import SolrDocument
-from typing import Optional, List
-from pydantic import Field, field_validator
-from decimal import Decimal
-
-class Product(SolrDocument):
-    """E-commerce product document."""
-    
-    # Required fields
-    sku: str = Field(pattern=r'^[A-Z]{3}-\d{4}$')
-    name: str = Field(min_length=1, max_length=200)
-    price: Decimal = Field(gt=0, decimal_places=2)
-    category: str
-    
-    # Optional fields
-    description: Optional[str] = None
-    brand: Optional[str] = None
-    image_url: Optional[str] = None
-    
-    # Lists
-    tags: List[str] = Field(default_factory=list)
-    colors: List[str] = Field(default_factory=list)
-    sizes: List[str] = Field(default_factory=list)
-    
-    # Status
-    in_stock: bool = True
-    on_sale: bool = False
-    featured: bool = False
-    
-    # Metrics
-    views: int = 0
-    purchases: int = 0
-    rating: Optional[float] = Field(None, ge=0, le=5)
-    
-    @field_validator('price')
-    @classmethod
-    def price_reasonable(cls, v):
-        if v > 100000:
-            raise ValueError('price seems unreasonably high')
-        return v
 ```
 
 ## Next Steps
