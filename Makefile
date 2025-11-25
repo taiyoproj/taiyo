@@ -2,10 +2,10 @@
 .PHONY: format lint lint-fix
 
 format:
-	uv run ruff format taiyo tests
+	uv run ruff format taiyo tests scripts
 
 lint:
-	uv run ruff check taiyo tests
+	uv run ruff check taiyo tests scripts
 
 # Testing
 .PHONY: test test-unit solr-up solr-down solr-logs test-integration

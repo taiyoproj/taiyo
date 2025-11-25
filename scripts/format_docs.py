@@ -60,24 +60,33 @@ async def format_python_code(code: str) -> str:
     Returns:
         Formatted code string
     """
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".py", delete=False
-    ) as tmp_file:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as tmp_file:
         tmp_path = Path(tmp_file.name)
         tmp_file.write(code)
 
     try:
         # Format with ruff
         format_proc = await asyncio.create_subprocess_exec(
-            "uv", "run", "ruff", "format", "--quiet", str(tmp_path),
+            "uv",
+            "run",
+            "ruff",
+            "format",
+            "--quiet",
+            str(tmp_path),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
         await format_proc.wait()
-        
+
         # Fix linting issues
         check_proc = await asyncio.create_subprocess_exec(
-            "uv", "run", "ruff", "check", "--fix", "--quiet", str(tmp_path),
+            "uv",
+            "run",
+            "ruff",
+            "check",
+            "--fix",
+            "--quiet",
+            str(tmp_path),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -85,14 +94,14 @@ async def format_python_code(code: str) -> str:
 
         # Read the formatted and fixed code
         formatted_code = tmp_path.read_text()
-        
+
         return formatted_code
 
     except Exception as e:
         # If formatting fails, return original code
         logger.warning("Failed to format code: %s", e)
         return code
-        
+
     finally:
         # Clean up temp file
         tmp_path.unlink(missing_ok=True)
@@ -133,13 +142,15 @@ async def update_markdown_with_formatted_code(
 
         # Only update if there's a difference
         if new_block != original_block:
-            result = result[:start + offset] + new_block + result[end + offset :]
+            result = result[: start + offset] + new_block + result[end + offset :]
             offset += len(new_block) - len(original_block)
 
     return result
 
 
-async def process_markdown_file(file_path: Path, dry_run: bool = False) -> Tuple[Path, bool]:
+async def process_markdown_file(
+    file_path: Path, dry_run: bool = False
+) -> Tuple[Path, bool]:
     """
     Process a single markdown file (async).
 
@@ -205,15 +216,21 @@ async def main():
     # Collect changed files and log results
     changed_files = []
     for file_path, changed in results:
-        status = "✓ Updated" if changed and not dry_run else "→ Would update" if changed else "  No changes"
+        status = (
+            "✓ Updated"
+            if changed and not dry_run
+            else "→ Would update"
+            if changed
+            else "  No changes"
+        )
         blocks = extract_python_blocks(file_path.read_text())
         rel_path = file_path.relative_to(project_root)
-        
+
         if blocks:
             logger.info("%s %s (%d blocks)", f"{status:12}", rel_path, len(blocks))
         else:
             logger.info("  No blocks  %s", rel_path)
-        
+
         if changed:
             changed_files.append(file_path)
 
