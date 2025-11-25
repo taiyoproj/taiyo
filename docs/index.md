@@ -25,7 +25,7 @@
 - Full-text search applications with faceting and highlighting
 - Recommendation systems using vector similarity for semantic search
 - Analytics using Solr's grouping and faceting capabilities
-- Content management with tyoe-safe document indexing
+- Content management with type-safe document indexing
 - Geospatial applications with location-based search and filtering
 
 ## Next Steps
