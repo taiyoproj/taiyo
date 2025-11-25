@@ -35,7 +35,7 @@ class BaseQueryParser(CommonParamsMixin):
         params = self.model_dump(
             by_alias=True,
             exclude_none=True,
-            exclude=["configs"],
+            exclude=["configs"],  # type: ignore[arg-type]
             exclude_unset=True,
             *args,
             **kwargs,
@@ -135,7 +135,7 @@ class BaseQueryParser(CommonParamsMixin):
             >>> parser.facet(fields=["color"], prefix="bl", mincount=5)
         """
         self.configs.append(
-            FacetParamsConfig(
+            FacetParamsConfig(  # type: ignore[arg-type]  # Pydantic converts Literal strings to Enums
                 queries=queries,
                 fields=fields,
                 prefix=prefix,
@@ -395,7 +395,7 @@ class BaseQueryParser(CommonParamsMixin):
             ...     fragment_size=200
             ... )
         """
-        config = HighlightParamsConfig(
+        config = HighlightParamsConfig(  # type: ignore[arg-type]  # Pydantic converts Literal strings to Enums
             method=method,
             fields=fields,
             query=query,

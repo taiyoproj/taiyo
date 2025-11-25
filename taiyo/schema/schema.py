@@ -229,28 +229,36 @@ class Schema(BaseModel):
         if self.fieldTypes:
             lines.append("  <!-- Field Types -->")
             for ft in self.fieldTypes:
-                lines.append(ft.build(format="xml", indent="  "))
+                result = ft.build(format="xml", indent="  ")
+                assert isinstance(result, str)
+                lines.append(result)
             lines.append("")
 
         # Fields
         if self.fields:
             lines.append("  <!-- Fields -->")
             for f in self.fields:
-                lines.append(f.build(format="xml", indent="  "))
+                result = f.build(format="xml", indent="  ")
+                assert isinstance(result, str)
+                lines.append(result)
             lines.append("")
 
         # Dynamic fields
         if self.dynamicFields:
             lines.append("  <!-- Dynamic Fields -->")
             for df in self.dynamicFields:
-                lines.append(df.build(format="xml", indent="  "))
+                result = df.build(format="xml", indent="  ")
+                assert isinstance(result, str)
+                lines.append(result)
             lines.append("")
 
         # Copy fields
         if self.copyFields:
             lines.append("  <!-- Copy Fields -->")
             for cf in self.copyFields:
-                lines.append(cf.build(format="xml", indent="  "))
+                result = cf.build(format="xml", indent="  ")
+                assert isinstance(result, str)
+                lines.append(result)
             lines.append("")
 
         lines.append("</schema>")

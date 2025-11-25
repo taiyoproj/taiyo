@@ -12,7 +12,7 @@ class SpatialQueryParser(BaseQueryParser, SpatialSearchParamsMixin):
             by_alias=True,
             exclude_none=True,
             exclude_unset=True,
-            exclude=["configs", *SpatialSearchParamsMixin.get_mixin_keys()],
+            exclude=["configs", *SpatialSearchParamsMixin.get_mixin_keys()],  # type: ignore[arg-type]
             *args,
             **kwargs,
         )

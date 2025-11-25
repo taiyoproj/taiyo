@@ -9,7 +9,7 @@ class DenseVectorSearchQueryParser(BaseQueryParser, DenseVectorSearchParamsMixin
             by_alias=True,
             exclude_none=True,
             exclude_unset=True,
-            exclude=["configs", *DenseVectorSearchParamsMixin.get_mixin_keys()],
+            exclude=["configs", *DenseVectorSearchParamsMixin.get_mixin_keys()],  # type: ignore[arg-type]
             *args,
             **kwargs,
         )
