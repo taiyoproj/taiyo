@@ -5,7 +5,7 @@
 <h1 align="center">Taiyo</h1>
 
 <p align="center">
-  A type-safe Python client for Apache Solr with sync and async support, built with httpx and Pydantic.
+  Modern Python client for Apache Solr with sync and async support, built with httpx and Pydantic.
 </p>
 
 ---
@@ -24,8 +24,8 @@
 
 - Full-text search applications with faceting and highlighting
 - Recommendation systems using vector similarity for semantic search
-- Analytics using Solr's aggregation and faceting capabilities
-- Content management with document indexing and rich metadata
+- Analytics using Solr's grouping and faceting capabilities
+- Content management with type-safe document indexing
 - Geospatial applications with location-based search and filtering
 
 ## Next Steps
