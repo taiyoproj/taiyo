@@ -19,20 +19,35 @@ uv add taiyo
 Start a Solr instance using Docker:
 
 ```bash
-docker run -p 8983:8983 solr:9 solr-precreate books
+docker run -p 8983:8983 solr:9 solr-foreground -c
 ```
 
-This command starts Solr on `http://localhost:8983` with a collection named `books`.
+This command starts Solr in cloud mode on `http://localhost:8983`.
 
 ## Basic Usage
 
-### Connect to Solr
+### Create Collection and Schema
+
+Create a collection and define fields for your documents:
 
 ```python
 from taiyo import SolrClient
+from taiyo.schema import SolrField
 
+# Connect and create collection
 client = SolrClient("http://localhost:8983/solr")
+client.create_collection("books", num_shards=1, replication_factor=1)
 client.set_collection("books")
+
+# Define schema fields
+fields = [
+    SolrField(name="title", type="text_general", stored=True, indexed=True),
+    SolrField(name="author", type="string", stored=True, indexed=True),
+    SolrField(name="year", type="pint", stored=True, indexed=True),
+]
+
+for field in fields:
+    client.add_field(field)
 ```
 
 ### Add Documents
@@ -41,14 +56,8 @@ client.set_collection("books")
 from taiyo import SolrDocument
 
 books = [
-    SolrDocument(
-        title="The Great Gatsby",
-        author="F. Scott Fitzgerald"
-    ),
-    SolrDocument(
-        title="1984",
-        author="George Orwell"
-    ),
+    SolrDocument(title="The Great Gatsby", author="F. Scott Fitzgerald", year=1925),
+    SolrDocument(title="1984", author="George Orwell", year=1949),
 ]
 
 client.add(books, commit=True)
@@ -67,6 +76,10 @@ for doc in results.docs:
 
 ## Query Syntax
 
+### String Queries
+
+Simple string-based queries for quick searches:
+
 ```python
 # Search by field
 results = client.search("author:Orwell")
@@ -81,6 +94,57 @@ results = client.search('title:"Great Gatsby"')
 results = client.search("year:[1940 TO 1950]")
 ```
 
+### Query Parsers
+
+Use query parser objects for structured queries with filters and sorting:
+
+```python
+from taiyo.parsers import StandardParser
+
+# Search with filters and sorting
+parser = StandardParser(
+    query="author:Orwell",
+    filter_queries=["year:[1940 TO 1950]"],
+    sort="year desc",
+    rows=10,
+)
+
+results = client.search(parser)
+```
+
+Search across multiple fields with different weights:
+
+```python
+from taiyo.parsers import ExtendedDisMaxQueryParser
+
+parser = ExtendedDisMaxQueryParser(
+    query="science fiction",
+    query_fields={"title": 3.0, "description": 1.0},  # Title is 3x more important
+)
+
+results = client.search(parser)
+```
+
+Group results by author using method chaining:
+
+```python
+from taiyo.parsers import StandardParser
+
+# Group books by author
+parser = StandardParser(query="*:*").group(
+    field="author",
+    limit=5,  # Show up to 5 books per author
+)
+
+results = client.search(parser)
+
+# Access grouped results
+for group in results.groups:
+    print(f"Author: {group.group_value}")
+    for doc in group.docs:
+        print(f"  - {doc.title}")
+```
+
 ## Document Models
 
 Define custom document types using Pydantic:
@@ -88,17 +152,15 @@ Define custom document types using Pydantic:
 ```python
 from taiyo import SolrDocument
 
+
 class Book(SolrDocument):
     title: str
     author: str
     year: int | None = None
 
+
 # Create books with validation
-book = Book(
-    title="1984",
-    author="George Orwell",
-    year=1949
-)
+book = Book(title="1984", author="George Orwell", year=1949)
 
 client.add(book, commit=True)
 
@@ -116,11 +178,13 @@ Use `AsyncSolrClient` for async/await:
 import asyncio
 from taiyo import AsyncSolrClient
 
+
 async def search_books():
     async with AsyncSolrClient("http://localhost:8983/solr") as client:
         client.set_collection("books")
         results = await client.search("author:Orwell")
         return results
+
 
 asyncio.run(search_books())
 ```
@@ -155,22 +219,6 @@ results = client.search("*:*", rows=10, start=10)
 results = client.search("*:*", rows=10, start=20)
 ```
 
-## Query Parsers
-
-Use query parser objects for advanced queries:
-
-```python
-from taiyo.parsers import ExtendedDisMaxQueryParser
-
-# Search across multiple fields
-parser = ExtendedDisMaxQueryParser(
-    query="science fiction",
-    query_fields={"title": 3.0, "description": 1.0}  # Title is 3x more important
-)
-
-results = client.search(parser)
-```
-
 ## Authentication
 
 If your Solr requires authentication:
@@ -179,8 +227,7 @@ If your Solr requires authentication:
 from taiyo import SolrClient, BasicAuth
 
 client = SolrClient(
-    base_url="http://localhost:8983/solr",
-    auth=BasicAuth("username", "password")
+    base_url="http://localhost:8983/solr", auth=BasicAuth("username", "password")
 )
 ```
 
@@ -191,31 +238,3 @@ client = SolrClient(
 - [Highlighting](controlling-results/highlighting.md) - Text snippet highlighting  
 - [Schema Management](schema.md) - Field and type definitions
 - [Clients Guide](clients/overview.md) - Client configuration and authentication
-
-## Best Practices
-
-Use context managers to ensure proper connection cleanup:
-
-```python
-with SolrClient("http://localhost:8983/solr") as client:
-    client.set_collection("books")
-    results = client.search("*:*")
-```
-
-Commit changes to make them visible in search results:
-
-```python
-client.add(documents, commit=True)
-# or
-client.add(documents)
-client.commit()
-```
-
-Handle exceptions appropriately:
-
-```python
-try:
-    results = client.search("field:value")
-except Exception as e:
-    print(f"Search failed: {e}")
-```

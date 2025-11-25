@@ -10,9 +10,9 @@
 
 ---
 
-- Shared sync and async client APIs for consistent ergonomics
-- Query parsers for standard, dismax, edismax, spatial, and dense vector search with full IDE support
-- Supports grouping, faceting, highlighting, and more-like-this features defined with a Pythonic syntax either as config objects or in method chains
+- Shared sync and async client APIs for consistent developer experience
+- Query parsers for standard, dismax, edismax, spatial, and dense vector search with full IDE support. Serializes into standard HTTP query parameters for compatibility with other clients.
+- Supports grouping, faceting, highlighting, and more-like-this features defined with a Pythonic syntax either as config objects or in pandas-like method chains
 - Schema utilities for defining fields, types, and copy-field rules for indexing
 - Authentication support for Basic, Bearer, and OAuth2
 

@@ -14,9 +14,7 @@ The `StandardParser` uses Solr's default Lucene query syntax, providing powerful
 from taiyo.parsers import StandardParser
 
 parser = StandardParser(
-    query="python programming",
-    query_operator="AND",
-    default_field="content"
+    query="python programming", query_operator="AND", default_field="content"
 )
 
 results = client.search(parser)
@@ -26,17 +24,16 @@ results = client.search(parser)
 
 ```python
 parser = StandardParser(
-    query="search term",           # Query string
-    query_operator="OR",           # Default operator: OR or AND
-    default_field="content",       # Default field when not specified
-    split_on_whitespace=True,      # Split query on whitespace
-    
+    query="search term",  # Query string
+    query_operator="OR",  # Default operator: OR or AND
+    default_field="content",  # Default field when not specified
+    split_on_whitespace=True,  # Split query on whitespace
     # Common parameters
     rows=10,
     start=0,
-    fields=["id", "title"],
+    field_list=["id", "title"],
     sort="score desc",
-    filter_query=["status:active"]
+    filters=["status:active"],
 )
 ```
 
@@ -84,7 +81,7 @@ parser = StandardParser(query="description:*")
 parser = StandardParser(query="-description:*")
 ```
 
-### Complex Example
+### Example
 
 ```python
 from taiyo.parsers import StandardParser
@@ -95,21 +92,12 @@ parser = (
         query_operator="AND",
         default_field="content",
         rows=20,
-        fields=["id", "title", "author", "published_date"],
+        field_list=["id", "title", "author", "published_date"],
         sort="published_date desc",
-        filter_query=[
-            "status:published",
-            "published_date:[NOW-1YEAR TO NOW]"
-        ]
+        filters=["status:published", "published_date:[NOW-1YEAR TO NOW]"],
     )
-    .facet(
-        fields=["category", "author"],
-        mincount=1
-    )
-    .highlight(
-        fields=["title", "content"],
-        fragment_size=150
-    )
+    .facet(field_list=["category", "author"], mincount=1)
+    .highlight(field_list=["title", "content"], fragment_size=150)
 )
 
 results = client.search(parser)
@@ -129,7 +117,7 @@ from taiyo.parsers import DisMaxQueryParser
 parser = DisMaxQueryParser(
     query="python programming",
     query_fields={"title": 3.0, "content": 1.0},
-    min_match="75%"
+    min_match="75%",
 )
 
 results = client.search(parser)
@@ -139,15 +127,15 @@ results = client.search(parser)
 
 ```python
 parser = DisMaxQueryParser(
-    query="search term",                # User query
+    query="search term",  # User query
     query_fields={"title": 2.0, "content": 1.0},  # Fields to search with boosts
-    query_slop=0,                       # Phrase slop
-    phrase_fields={"title": 3.0},       # Phrase boosting
-    phrase_slop=0,                      # Phrase proximity slop
-    tie_breaker=0.1,                    # How to combine field scores
-    min_match="75%",                    # Minimum should match
-    boost_queries=["featured:true^5"], # Additional query boosts
-    boost_functons=["recip(ms(NOW,date),3.16e-11,1,1)"]  # Function boosts
+    query_slop=0,  # Phrase slop
+    phrase_fields={"title": 3.0},  # Phrase boosting
+    phrase_slop=0,  # Phrase proximity slop
+    tie_breaker=0.1,  # How to combine field scores
+    min_match="75%",  # Minimum should match
+    boost_queries=["featured:true^5"],  # Additional query boosts
+    boost_functons=["recip(ms(NOW,date),3.16e-11,1,1)"],  # Function boosts
 )
 ```
 
@@ -159,11 +147,11 @@ Weight different fields differently:
 parser = DisMaxQueryParser(
     query="python programming",
     query_fields={
-        "title": 5.0,      # Title matches are most important
-        "abstract": 3.0,   # Abstract matches are important
-        "content": 1.0,    # Body matches are standard
-        "tags": 2.0        # Tag matches are moderately important
-    }
+        "title": 5.0,  # Title matches are most important
+        "abstract": 3.0,  # Abstract matches are important
+        "content": 1.0,  # Body matches are standard
+        "tags": 2.0,  # Tag matches are moderately important
+    },
 )
 ```
 
@@ -176,21 +164,21 @@ Control how many terms must match:
 parser = DisMaxQueryParser(
     query="python programming language",
     query_fields={"title": 2.0, "content": 1.0},
-    min_match="75%"  # 3 terms → 2 must match
+    min_match="75%",  # 3 terms → 2 must match
 )
 
 # Absolute number
 parser = DisMaxQueryParser(
     query="python programming language",
     query_fields={"title": 2.0, "content": 1.0},
-    min_match="2"  # At least 2 terms must match
+    min_match="2",  # At least 2 terms must match
 )
 
 # Complex conditional
 parser = DisMaxQueryParser(
     query="search terms here",
     query_fields={"title": 2.0, "content": 1.0},
-    min_match="2<-25% 9<-3"  # Complex rules
+    min_match="2<-25% 9<-3",  # Complex rules
 )
 ```
 
@@ -203,7 +191,7 @@ parser = DisMaxQueryParser(
     query="machine learning",
     query_fields={"title": 2.0, "content": 1.0},
     phrase_fields={"title": 10.0},  # Boost exact phrase in title
-    phrase_slop=2  # Allow 2 words between terms
+    phrase_slop=2,  # Allow 2 words between terms
 )
 ```
 
@@ -219,40 +207,32 @@ Control how scores from different fields combine:
 parser = DisMaxQueryParser(
     query="python",
     query_fields={"title": 2.0, "content": 1.0},
-    tie_breaker=0.1  # Slight influence from lower-scoring fields
+    tie_breaker=0.1,  # Slight influence from lower-scoring fields
 )
 ```
 
-### Complete Example
+### Example
 
 ```python
 from taiyo.parsers import DisMaxQueryParser
 
 parser = DisMaxQueryParser(
     query="python web framework",
-    query_fields={
-        "title": 5.0,
-        "description": 3.0,
-        "content": 1.0,
-        "tags": 2.0
-    },
+    query_fields={"title": 5.0, "description": 3.0, "content": 1.0, "tags": 2.0},
     phrase_fields={
-        "title": 10.0,     # Phrase in title = big boost
-        "description": 5.0
+        "title": 10.0,  # Phrase in title = big boost
+        "description": 5.0,
     },
     phrase_slop=2,
     min_match="75%",
     tie_breaker=0.1,
     boost_queries=[
-        "featured:true^10",    # Featured items boosted
-        "recent:true^5"        # Recent items boosted
+        "featured:true^10",  # Featured items boosted
+        "recent:true^5",  # Recent items boosted
     ],
     rows=20,
-    filter_query=["status:published"]
-).facet(
-    fields=["category", "author"],
-    mincount=1
-)
+    filters=["status:published"],
+).facet(field_list=["category", "author"], mincount=1)
 
 results = client.search(parser)
 ```
@@ -271,7 +251,7 @@ from taiyo.parsers import ExtendedDisMaxQueryParser
 parser = ExtendedDisMaxQueryParser(
     query="python programming",
     query_fields={"title": 3.0, "content": 1.0},
-    min_match="75%"
+    min_match="75%",
 )
 
 results = client.search(parser)
@@ -288,10 +268,9 @@ parser = ExtendedDisMaxQueryParser(
     query_fields={"title": 3.0, "content": 1.0},
     min_match="75%",
     tie_breaker=0.1,
-    
     # Extended features
-    stop_words=True,               # Remove stop words
-    lowercase_operators=True,      # Allow 'and', 'or', 'not' (lowercase)
+    stop_words=True,  # Remove stop words
+    lowercase_operators=True,  # Allow 'and', 'or', 'not' (lowercase)
     user_fields={"author": 2.0},  # Additional searchable fields
     boost_params=["featured^10"],  # Additional boost parameters
 )
@@ -305,7 +284,7 @@ Allow users to search additional fields:
 parser = ExtendedDisMaxQueryParser(
     query="python programming author:guido",
     query_fields={"title": 3.0, "content": 1.0},
-    user_fields={"author": 2.0}  # Allow searching author field
+    user_fields={"author": 2.0},  # Allow searching author field
 )
 ```
 
@@ -317,15 +296,12 @@ Different phrase proximity levels:
 parser = ExtendedDisMaxQueryParser(
     query="machine learning",
     query_fields={"title": 2.0, "content": 1.0},
-    
     # Exact phrase boost
     phrase_fields={"title": 10.0},
-    
     # Near-phrase boost (2-word slop)
     phrase_slop_2_fields={"title": 5.0, "content": 2.0},
-    
     # Looser phrase boost (5-word slop)
-    phrase_slop_3_fields={"title": 3.0, "content": 1.5}
+    phrase_slop_3_fields={"title": 3.0, "content": 1.5},
 )
 ```
 
@@ -340,8 +316,8 @@ parser = ExtendedDisMaxQueryParser(
     boost_functons=[
         "recip(ms(NOW,published_date),3.16e-11,1,1)",  # Boost recent docs
         "log(views)",  # Boost by popularity
-        "product(rating,10)"  # Boost by rating
-    ]
+        "product(rating,10)",  # Boost by rating
+    ],
 )
 ```
 
@@ -352,15 +328,11 @@ Allow users to use aliases for fields:
 ```python
 parser = ExtendedDisMaxQueryParser(
     query="t:python c:web",  # t = title, c = content
-    field_aliases={
-        "t": "title",
-        "c": "content",
-        "a": "author"
-    }
+    field_aliases={"t": "title", "c": "content", "a": "author"},
 )
 ```
 
-### Complex Example
+### Example
 
 ```python
 from taiyo.parsers import ExtendedDisMaxQueryParser
@@ -368,51 +340,32 @@ from taiyo.parsers import ExtendedDisMaxQueryParser
 parser = (
     ExtendedDisMaxQueryParser(
         query="python web framework -php",
-        query_fields={
-            "title": 5.0,
-            "description": 3.0,
-            "content": 1.0,
-            "tags": 2.0
-        },
+        query_fields={"title": 5.0, "description": 3.0, "content": 1.0, "tags": 2.0},
         phrase_fields={"title": 10.0, "description": 5.0},
         phrase_slop=2,
         user_fields={"author": 2.0, "category": 1.5},
         min_match="75%",
         tie_breaker=0.1,
-        boost_queries=[
-            "featured:true^20",
-            "quality_score:[8 TO *]^10"
-        ],
+        boost_queries=["featured:true^20", "quality_score:[8 TO *]^10"],
         boost_functons=[
             "recip(ms(NOW,published_date),3.16e-11,1,1)",  # Recency
-            "log(popularity)"  # Popularity
+            "log(popularity)",  # Popularity
         ],
         stop_words=True,
         lowercase_operators=True,
         rows=20,
-        fields=["id", "title", "author", "published_date", "score"],
+        field_list=["id", "title", "author", "published_date", "score"],
         sort="score desc, published_date desc",
-        filter_query=[
-            "status:published",
-            "language:en"
-        ]
+        filters=["status:published", "language:en"],
     )
-    .facet(
-        fields=["category", "author", "year"],
-        mincount=1,
-        limit=20
-    )
-    .group(
-        by="author",
-        limit=3,
-        ngroups=True
-    )
+    .facet(field_list=["category", "author", "year"], mincount=1, limit=20)
+    .group(by="author", limit=3, ngroups=True)
     .highlight(
-        fields=["title", "description", "content"],
+        field_list=["title", "description", "content"],
         fragment_size=150,
         snippets_per_field=3,
         simple_pre="<mark>",
-        simple_post="</mark>"
+        simple_post="</mark>",
     )
 )
 
@@ -423,7 +376,7 @@ print(f"Found {results.num_found} documents in {results.query_time}ms")
 
 for doc in results.docs:
     print(f"\n{doc.title} by {doc.author}")
-    
+
     # Show highlights if available
     if results.highlighting and doc.id in results.highlighting:
         for field, snippets in results.highlighting[doc.id].items():
@@ -469,8 +422,7 @@ For simple search interfaces:
 
 ```python
 parser = DisMaxQueryParser(
-    query="machine learning",
-    query_fields={"title": 3.0, "content": 1.0}
+    query="machine learning", query_fields={"title": 3.0, "content": 1.0}
 )
 ```
 
@@ -478,8 +430,7 @@ For flexible user queries:
 
 ```python
 parser = ExtendedDisMaxQueryParser(
-    query="machine learning -deprecated",
-    query_fields={"title": 3.0, "content": 1.0}
+    query="machine learning -deprecated", query_fields={"title": 3.0, "content": 1.0}
 )
 ```
 
@@ -490,12 +441,12 @@ parser = ExtendedDisMaxQueryParser(
 parser = DisMaxQueryParser(
     query="search term",
     query_fields={
-        "title": 10.0,        # Most important
-        "headline": 5.0,      # Very important
-        "abstract": 3.0,      # Important
-        "content": 1.0,       # Normal importance
-        "metadata": 0.5       # Less important
-    }
+        "title": 10.0,  # Most important
+        "headline": 5.0,  # Very important
+        "abstract": 3.0,  # Important
+        "content": 1.0,  # Normal importance
+        "metadata": 0.5,  # Less important
+    },
 )
 ```
 
@@ -503,22 +454,13 @@ parser = DisMaxQueryParser(
 
 ```python
 # Strict matching (all terms)
-parser = DisMaxQueryParser(
-    query="python web framework",
-    min_match="100%"
-)
+parser = DisMaxQueryParser(query="python web framework", min_match="100%")
 
 # Balanced (most terms)
-parser = DisMaxQueryParser(
-    query="python web framework",
-    min_match="75%"
-)
+parser = DisMaxQueryParser(query="python web framework", min_match="75%")
 
 # Loose (any terms)
-parser = DisMaxQueryParser(
-    query="python web framework",
-    min_match="1"
-)
+parser = DisMaxQueryParser(query="python web framework", min_match="1")
 ```
 
 ### Use Phrase Boosting Strategically
@@ -529,7 +471,7 @@ parser = ExtendedDisMaxQueryParser(
     query="machine learning",
     query_fields={"title": 2.0, "content": 1.0},
     phrase_fields={"title": 10.0, "content": 5.0},  # 5x-10x boost
-    phrase_slop=0  # Exact phrase only
+    phrase_slop=0,  # Exact phrase only
 )
 ```
 
@@ -540,11 +482,11 @@ parser = ExtendedDisMaxQueryParser(
 parser = DisMaxQueryParser(
     query="python",
     query_fields={"title": 2.0, "content": 1.0},
-    filter_query=[
-        "status:active",           # Cached
+    filters=[
+        "status:active",  # Cached
         "published_date:[NOW-1YEAR TO NOW]",  # Cached
-        "language:en"              # Cached
-    ]
+        "language:en",  # Cached
+    ],
 )
 ```
 

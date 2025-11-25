@@ -2,10 +2,10 @@
 .PHONY: format lint lint-fix
 
 format:
-	uv run ruff format taiyo tests
+	uv run ruff format taiyo tests scripts
 
 lint:
-	uv run ruff check taiyo tests
+	uv run ruff check taiyo tests scripts
 
 # Testing
 .PHONY: test test-unit solr-up solr-down solr-logs test-integration
@@ -67,7 +67,7 @@ publish:
 	uv publish
 
 # Documentation
-.PHONY: docs docs-serve docs-clean
+.PHONY: docs docs-serve docs-clean docs-format
 docs:
 	uv run zensical build
 
@@ -76,3 +76,6 @@ docs-serve:
 
 docs-clean:
 	uv run zensical clean
+
+docs-format:
+	python scripts/format_docs.py

@@ -20,18 +20,11 @@ from taiyo.schema import FieldType, Field
 
 # LatLonPointSpatialField (recommended for most cases)
 location_type = FieldType(
-    name="location",
-    class_name="solr.LatLonPointSpatialField",
-    doc_values=True
+    name="location", class_name="solr.LatLonPointSpatialField", doc_values=True
 )
 
 # Add location field
-location_field = Field(
-    name="location",
-    type="location",
-    indexed=True,
-    stored=True
-)
+location_field = Field(name="location", type="location", indexed=True, stored=True)
 
 # Update schema
 client.schema.add_field_type(location_type)
@@ -46,20 +39,20 @@ documents = [
         "id": "restaurant1",
         "name": "Joe's Pizza",
         "location": "40.7589,-73.9851",  # lat,lon format
-        "category": "restaurant"
+        "category": "restaurant",
     },
     {
         "id": "hotel1",
         "name": "Grand Hotel",
         "location": "40.7614,-73.9776",
-        "category": "hotel"
+        "category": "hotel",
     },
     {
         "id": "cafe1",
         "name": "Coffee Corner",
         "location": "40.7580,-73.9855",
-        "category": "cafe"
-    }
+        "category": "cafe",
+    },
 ]
 
 client.index(documents)
@@ -77,7 +70,7 @@ from taiyo.parsers import GeoFilterQueryParser
 parser = GeoFilterQueryParser(
     field="location",
     point="40.7589,-73.9851",  # Times Square, NYC
-    distance=5  # 5 km radius
+    distance=5,  # 5 km radius
 )
 
 results = client.search(parser)
@@ -87,16 +80,15 @@ results = client.search(parser)
 
 ```python
 parser = GeoFilterQueryParser(
-    field="location",              # Spatial field name
-    point="lat,lon",              # Center point (lat,lon)
-    distance=10,                  # Radius in km
-    
+    field="location",  # Spatial field name
+    point="lat,lon",  # Center point (lat,lon)
+    distance=10,  # Radius in km
     # Common parameters
     rows=10,
     start=0,
-    fields=["id", "name", "location"],
-    sort="geodist() asc",         # Sort by distance
-    filter_query=["category:restaurant"]
+    field_list=["id", "name", "location"],
+    sort="geodist() asc",  # Sort by distance
+    filters=["category:restaurant"],
 )
 ```
 
@@ -110,7 +102,7 @@ parser = GeoFilterQueryParser(
     point="40.7589,-73.9851",
     distance=5,
     sort="geodist() asc",  # Nearest first
-    field_list=["id", "name", "location", "score"]
+    field_list=["id", "name", "location", "score"],
 )
 
 results = client.search(parser)
@@ -130,7 +122,7 @@ parser = GeoFilterQueryParser(
     point="40.7589,-73.9851",
     distance=10,
     sort="geodist() asc",
-    field_list=["id", "name", "location", "distance:geodist()"]
+    field_list=["id", "name", "location", "distance:geodist()"],
 )
 
 results = client.search(parser)
@@ -139,7 +131,7 @@ for doc in results.docs:
     print(f"{doc.name}: {doc.distance:.2f} km away")
 ```
 
-### Complete Example
+### Example
 
 ```python
 from taiyo.parsers import GeoFilterQueryParser
@@ -147,32 +139,19 @@ from taiyo.parsers import GeoFilterQueryParser
 # User's current location
 user_lat, user_lon = 40.7589, -73.9851
 
-parser = (
-    GeoFilterQueryParser(
-        field="location",
-        point=f"{user_lat},{user_lon}",
-        distance=5,  # 5 km radius
-        rows=20,
-        sort="geodist() asc",  # Nearest first
-        field_list=[
-            "id",
-            "name",
-            "category",
-            "rating",
-            "location",
-            "distance:geodist()"
-        ],
-        filters=[
-            "category:restaurant",
-            "rating:[4 TO *]",  # Highly rated
-            "status:open"
-        ]
-    )
-    .facet(
-        fields=["category", "price_range"],
-        mincount=1
-    )
-)
+parser = GeoFilterQueryParser(
+    field="location",
+    point=f"{user_lat},{user_lon}",
+    distance=5,  # 5 km radius
+    rows=20,
+    sort="geodist() asc",  # Nearest first
+    field_list=["id", "name", "category", "rating", "location", "distance:geodist()"],
+    filters=[
+        "category:restaurant",
+        "rating:[4 TO *]",  # Highly rated
+        "status:open",
+    ],
+).facet(field_list=["category", "price_range"], mincount=1)
 
 results = client.search(parser)
 
@@ -202,10 +181,11 @@ def search_nearby(lat: float, lon: float, radius_km: float = 5, category: str = 
         rows=20,
         field_list=["id", "name", "category", "distance:geodist()"],
         sort="geodist() asc",
-        filters=filters
+        filters=filters,
     )
 
     return client.search(parser)
+
 
 # Usage
 results = search_nearby(40.7589, -73.9851, radius_km=10, category="restaurant")
@@ -221,11 +201,7 @@ The `BBoxQueryParser` finds documents within a rectangular bounding box.
 from taiyo.parsers import BBoxQueryParser
 
 parser = BBoxQueryParser(
-    field="location",
-    min_lat=40.7,
-    min_lon=-74.0,
-    max_lat=40.8,
-    max_lon=-73.9
+    field="location", min_lat=40.7, min_lon=-74.0, max_lat=40.8, max_lon=-73.9
 )
 
 results = client.search(parser)
@@ -235,17 +211,16 @@ results = client.search(parser)
 
 ```python
 parser = BBoxQueryParser(
-    field="location",       # Spatial field name
-    min_lat=40.7,          # Southwest corner latitude
-    min_lon=-74.0,         # Southwest corner longitude
-    max_lat=40.8,          # Northeast corner latitude
-    max_lon=-73.9,         # Northeast corner longitude
-    
+    field="location",  # Spatial field name
+    min_lat=40.7,  # Southwest corner latitude
+    min_lon=-74.0,  # Southwest corner longitude
+    max_lat=40.8,  # Northeast corner latitude
+    max_lon=-73.9,  # Northeast corner longitude
     # Common parameters
     rows=10,
     start=0,
-    fields=["id", "name", "location"],
-    filter_query=["category:restaurant"]
+    field_list=["id", "name", "location"],
+    filters=["category:restaurant"],
 )
 ```
 
@@ -256,9 +231,10 @@ Search within the user's map viewport:
 ```python
 from taiyo.parsers import BBoxQueryParser
 
-def search_in_viewport(sw_lat: float, sw_lon: float, 
-                       ne_lat: float, ne_lon: float,
-                       category: str = None):
+
+def search_in_viewport(
+    sw_lat: float, sw_lon: float, ne_lat: float, ne_lon: float, category: str = None
+):
     """Search within map bounds."""
     parser = BBoxQueryParser(
         field="location",
@@ -268,60 +244,44 @@ def search_in_viewport(sw_lat: float, sw_lon: float,
         max_lon=ne_lon,
         rows=100,  # Return many points for map
         field_list=["id", "name", "location", "category"],
-        filters=["status:active"]
+        filters=["status:active"],
     )
-    
+
     if category:
-        parser = parser.model_copy(update={
-            "filters": [f"category:{category}", "status:active"]
-        })
-    
+        parser = parser.model_copy(
+            update={"filters": [f"category:{category}", "status:active"]}
+        )
+
     return client.search(parser)
+
 
 # User's map viewport (Manhattan)
 results = search_in_viewport(
-    sw_lat=40.7,
-    sw_lon=-74.02,
-    ne_lat=40.8,
-    ne_lon=-73.9,
-    category="restaurant"
+    sw_lat=40.7, sw_lon=-74.02, ne_lat=40.8, ne_lon=-73.9, category="restaurant"
 )
 ```
 
-### Complete Example
+### Example
 
 ```python
 from taiyo.parsers import BBoxQueryParser
 
 # Search area: Central Manhattan
-parser = (
-    BBoxQueryParser(
-        field="location",
-        min_lat=40.75,      # Southwest corner
-        min_lon=-73.99,
-        max_lat=40.77,      # Northeast corner
-        max_lon=-73.97,
-        rows=50,
-        field_list=[
-            "id",
-            "name",
-            "address",
-            "category",
-            "rating",
-            "location"
-        ],
-        sort="rating desc, name asc",
-        filters=[
-            "category:(restaurant OR cafe)",
-            "rating:[4 TO *]",
-            "price_range:[1 TO 3]"
-        ]
-    )
-    .facet(
-        fields=["category", "price_range", "cuisine"],
-        mincount=1
-    )
-)
+parser = BBoxQueryParser(
+    field="location",
+    min_lat=40.75,  # Southwest corner
+    min_lon=-73.99,
+    max_lat=40.77,  # Northeast corner
+    max_lon=-73.97,
+    rows=50,
+    field_list=["id", "name", "address", "category", "rating", "location"],
+    sort="rating desc, name asc",
+    filters=[
+        "category:(restaurant OR cafe)",
+        "rating:[4 TO *]",
+        "price_range:[1 TO 3]",
+    ],
+).facet(field_list=["category", "price_range", "cuisine"], mincount=1)
 
 results = client.search(parser)
 
@@ -340,13 +300,7 @@ for doc in results.docs:
 ```python
 from taiyo.parsers import GeoFilterQueryParser
 
-parser = (
-    GeoFilterQueryParser(
-        field="location",
-        point="40.7589,-73.9851",
-        distance=5
-    )
-)
+parser = GeoFilterQueryParser(field="location", point="40.7589,-73.9851", distance=5)
 params = parser.build()
 params.update(
     {
@@ -354,7 +308,7 @@ params.update(
         "qf": "name^2 description",  # Use eDisMax-style boosts
         "rows": 20,
         "fl": "id,name,description,distance:geodist()",
-        "sort": "geodist() asc"
+        "sort": "geodist() asc",
     }
 )
 
@@ -364,20 +318,14 @@ results = client.search(params)
 ### Spatial with Faceting
 
 ```python
-parser = (
-    GeoFilterQueryParser(
-        field="location",
-        point="40.7589,-73.9851",
-        distance=10,
-        rows=20,
-        field_list=["id", "name", "category", "distance:geodist()"],
-        sort="geodist() asc"
-    )
-    .facet(
-        fields=["category", "price_range", "cuisine"],
-        mincount=1
-    )
-)
+parser = GeoFilterQueryParser(
+    field="location",
+    point="40.7589,-73.9851",
+    distance=10,
+    rows=20,
+    field_list=["id", "name", "category", "distance:geodist()"],
+    sort="geodist() asc",
+).facet(field_list=["category", "price_range", "cuisine"], mincount=1)
 
 results = client.search(parser)
 
@@ -397,16 +345,12 @@ Search near multiple locations:
 from taiyo.parsers import GeoFilterQueryParser
 
 # Find places near either location
-locations = [
-    ("40.7589,-73.9851", "Times Square"),
-    ("40.7614,-73.9776", "Central Park")
-]
+locations = [("40.7589,-73.9851", "Times Square"), ("40.7614,-73.9776", "Central Park")]
 
 # Build filter with OR
-location_filters = " OR ".join([
-    f"{{!geofilt sfield=location pt={loc} d=2}}"
-    for loc, _ in locations
-])
+location_filters = " OR ".join(
+    [f"{{!geofilt sfield=location pt={loc} d=2}}" for loc, _ in locations]
+)
 
 parser = GeoFilterQueryParser(
     field="location",
@@ -414,7 +358,7 @@ parser = GeoFilterQueryParser(
     distance=2,
     filters=[location_filters],  # Near any location
     rows=50,
-    sort="geodist() asc"
+    sort="geodist() asc",
 )
 ```
 
@@ -424,34 +368,21 @@ Use `geodist()` for distance calculations:
 
 ```python
 # Example parser with location filter
-parser = GeoFilterQueryParser(
-    field="location",
-    point="40.7589,-73.9851",
-    distance=5
-)
+parser = GeoFilterQueryParser(field="location", point="40.7589,-73.9851", distance=5)
 
 # Sort by distance
-results = client.search(
-    parser,
-    sort="geodist() asc"
-)
+results = client.search(parser, sort="geodist() asc")
 
 # Return distance as field
-results = client.search(
-    parser,
-    fl="id,name,distance:geodist()"
-)
+results = client.search(parser, fl="id,name,distance:geodist()")
 
 # Boost by proximity (closer = higher score)
-results = client.search(
-    parser,
-    bf="recip(geodist(),2,200,20)"
-)
+results = client.search(parser, bf="recip(geodist(),2,200,20)")
 
 # Filter by distance range
 results = client.search(
     parser,
-    fq="{!frange l=0 u=5}geodist()"  # 0-5 km
+    fq="{!frange l=0 u=5}geodist()",  # 0-5 km
 )
 ```
 
@@ -462,11 +393,7 @@ results = client.search(
 For simple latitude/longitude points:
 
 ```python
-FieldType(
-    name="location",
-    class_name="solr.LatLonPointSpatialField",
-    doc_values=True
-)
+FieldType(name="location", class_name="solr.LatLonPointSpatialField", doc_values=True)
 ```
 
 
@@ -489,7 +416,7 @@ docs = [
 parser = GeoFilterQueryParser(
     field="location",
     point="40.7589,-73.9851",
-    distance=5  # 5 kilometers
+    distance=5,  # 5 kilometers
 )
 
 # For miles, convert
@@ -497,7 +424,7 @@ miles_to_km = 1.60934
 parser = GeoFilterQueryParser(
     field="location",
     point="40.7589,-73.9851",
-    distance=5 * miles_to_km  # 5 miles
+    distance=5 * miles_to_km,  # 5 miles
 )
 ```
 
@@ -511,9 +438,9 @@ parser = GeoFilterQueryParser(
     distance=10,  # Not too large
     filters=[
         "category:restaurant",  # Narrow scope
-        "rating:[4 TO *]"       # Quality filter
+        "rating:[4 TO *]",  # Quality filter
     ],
-    rows=20  # Reasonable limit
+    rows=20,  # Reasonable limit
 )
 ```
 
@@ -528,7 +455,7 @@ parser = BBoxQueryParser(
     max_lat=viewport_ne_lat,
     max_lon=viewport_ne_lon,
     rows=100,  # Many points for map
-    field_list=["id", "name", "location", "category"]
+    field_list=["id", "name", "location", "category"],
 )
 ```
 
@@ -544,13 +471,11 @@ def safe_spatial_search(lat: float, lon: float, radius_km: float):
         raise ValueError("Longitude must be between -180 and 180")
     if radius_km <= 0:
         raise ValueError("Radius must be positive")
-    
+
     parser = GeoFilterQueryParser(
-        field="location",
-        point=f"{lat},{lon}",
-        distance=radius_km
+        field="location", point=f"{lat},{lon}", distance=radius_km
     )
-    
+
     return client.search(parser)
 ```
 
@@ -559,51 +484,46 @@ def safe_spatial_search(lat: float, lon: float, radius_km: float):
 ### Restaurant Finder
 
 ```python
-def find_restaurants(lat: float, lon: float, 
-                    cuisine: str = None,
-                    radius_km: float = 5,
-                    min_rating: float = 3.5):
+def find_restaurants(
+    lat: float,
+    lon: float,
+    cuisine: str = None,
+    radius_km: float = 5,
+    min_rating: float = 3.5,
+):
     """Find restaurants near a location."""
     parser = GeoFilterQueryParser(
-        field="location",
-        point=f"{lat},{lon}",
-        distance=radius_km
+        field="location", point=f"{lat},{lon}", distance=radius_km
     )
-    
-    filters = [
-        "category:restaurant",
-        f"rating:[{min_rating} TO *]",
-        "status:open"
-    ]
-    
+
+    filters = ["category:restaurant", f"rating:[{min_rating} TO *]", "status:open"]
+
     if cuisine:
         filters.append(f"cuisine:{cuisine}")
-    
+
     parser = GeoFilterQueryParser(
         field="location",
         point=f"{lat},{lon}",
         distance=radius_km,
         rows=20,
         field_list=[
-            "id", "name", "cuisine", "rating",
-            "price_range", "distance:geodist()"
+            "id",
+            "name",
+            "cuisine",
+            "rating",
+            "price_range",
+            "distance:geodist()",
         ],
         sort="geodist() asc",
-        filters=filters
-    ).facet(
-        fields=["cuisine", "price_range"],
-        mincount=1
-    )
-    
+        filters=filters,
+    ).facet(field_list=["cuisine", "price_range"], mincount=1)
+
     return client.search(parser)
+
 
 # Usage
 results = find_restaurants(
-    lat=40.7589,
-    lon=-73.9851,
-    cuisine="italian",
-    radius_km=3,
-    min_rating=4.0
+    lat=40.7589, lon=-73.9851, cuisine="italian", radius_km=3, min_rating=4.0
 )
 ```
 
@@ -617,39 +537,36 @@ def find_nearest_stores(lat: float, lon: float, max_results: int = 5):
         point=f"{lat},{lon}",
         distance=50,  # Wide initial search
         rows=max_results,
-        field_list=[
-            "id", "name", "address", "phone",
-            "hours", "distance:geodist()"
-        ],
+        field_list=["id", "name", "address", "phone", "hours", "distance:geodist()"],
         sort="geodist() asc",
-        filters=["type:store", "status:open"]
+        filters=["type:store", "status:open"],
     )
-    
+
     return client.search(parser)
 ```
 
 ### Delivery Zone Check
 
 ```python
-def check_delivery_available(restaurant_id: str, 
-                             delivery_lat: float,
-                             delivery_lon: float):
+def check_delivery_available(
+    restaurant_id: str, delivery_lat: float, delivery_lon: float
+):
     """Check if delivery address is within range."""
     # Get restaurant location
     restaurant = client.get(restaurant_id)
     rest_location = restaurant["location"]  # "lat,lon"
-    
+
     # Check distance
     parser = GeoFilterQueryParser(
         field="location",
         point=rest_location,
         distance=5,  # 5km delivery radius
         field_list=["id", "distance:geodist()"],
-        filters=[f"location:{delivery_lat},{delivery_lon}"]
+        filters=[f"location:{delivery_lat},{delivery_lon}"],
     )
-    
+
     results = client.search(parser)
-    
+
     if results.num_found > 0:
         distance = results.docs[0].distance
         return True, f"Within delivery range ({distance:.1f}km)"
@@ -660,30 +577,28 @@ def check_delivery_available(restaurant_id: str,
 ### Map Clustering
 
 ```python
-def get_map_points(sw_lat: float, sw_lon: float,
-                   ne_lat: float, ne_lon: float,
-                   category: str = None):
+def get_map_points(
+    sw_lat: float, sw_lon: float, ne_lat: float, ne_lon: float, category: str = None
+):
     """Get points for map display with clustering."""
-    parser = (
-        BBoxQueryParser(
-            field="location",
-            min_lat=sw_lat,
-            min_lon=sw_lon,
-            max_lat=ne_lat,
-            max_lon=ne_lon,
-            rows=500,  # Many points for clustering
-            field_list=["id", "name", "location", "category"],
-            filters=["status:active"]
-        )
+    parser = BBoxQueryParser(
+        field="location",
+        min_lat=sw_lat,
+        min_lon=sw_lon,
+        max_lat=ne_lat,
+        max_lon=ne_lon,
+        rows=500,  # Many points for clustering
+        field_list=["id", "name", "location", "category"],
+        filters=["status:active"],
     )
-    
+
     if category:
         parser = parser.model_copy(
             update={"filters": [f"category:{category}", "status:active"]}
         )
-    
+
     results = client.search(parser)
-    
+
     # Return points for client-side clustering
     return [
         {
@@ -691,7 +606,7 @@ def get_map_points(sw_lat: float, sw_lon: float,
             "name": doc.name,
             "lat": float(doc.location.split(",")[0]),
             "lon": float(doc.location.split(",")[1]),
-            "category": doc.category
+            "category": doc.category,
         }
         for doc in results.docs
     ]

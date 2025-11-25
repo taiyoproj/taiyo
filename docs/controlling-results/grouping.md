@@ -19,13 +19,7 @@ from taiyo.params import GroupParamsConfig
 parser = ExtendedDisMaxQueryParser(
     query="python programming",
     query_fields={"title": 2.0, "content": 1.0},
-    configs=[
-        GroupParamsConfig(
-            by="author",
-            limit=3,
-            ngroups=True
-        )
-    ]
+    configs=[GroupParamsConfig(by="author", limit=3, ngroups=True)],
 )
 ```
 
@@ -36,17 +30,9 @@ Use the `.group()` method on the parser:
 ```python
 from taiyo.parsers import ExtendedDisMaxQueryParser
 
-parser = (
-    ExtendedDisMaxQueryParser(
-        query="python programming",
-        query_fields={"title": 2.0, "content": 1.0}
-    )
-    .group(
-        by="author",
-        limit=3,
-        ngroups=True
-    )
-)
+parser = ExtendedDisMaxQueryParser(
+    query="python programming", query_fields={"title": 2.0, "content": 1.0}
+).group(by="author", limit=3, ngroups=True)
 ```
 
 Both approaches produce identical results. Use whichever style fits your codebase better.
@@ -55,16 +41,12 @@ Both approaches produce identical results. Use whichever style fits your codebas
 
 ```python
 # Using chaining
-parser = (
-    ExtendedDisMaxQueryParser(
-        query="python",
-        query_fields={"title": 2.0, "content": 1.0}
-    )
-    .group(
-        by="author",      # Group by author field
-        limit=3,          # Top 3 docs per group
-        ngroups=True      # Return number of groups
-    )
+parser = ExtendedDisMaxQueryParser(
+    query="python", query_fields={"title": 2.0, "content": 1.0}
+).group(
+    by="author",  # Group by author field
+    limit=3,  # Top 3 docs per group
+    ngroups=True,  # Return number of groups
 )
 
 results = client.search(parser)
@@ -85,15 +67,15 @@ if results.grouped:
 from taiyo.params import GroupParamsConfig
 
 group_config = GroupParamsConfig(
-    by="author",              # Field to group by
-    limit=3,                  # Docs per group
-    offset=0,                 # Offset within groups
-    sort="score desc",        # Sort within groups
-    format="grouped",         # Response format: grouped or simple
-    main=False,               # Use main result list
-    ngroups=True,            # Return total group count
-    truncate=True,           # Truncate facets to group leaders
-    facet=True               # Enable group.facet
+    by="author",  # Field to group by
+    limit=3,  # Docs per group
+    offset=0,  # Offset within groups
+    sort="score desc",  # Sort within groups
+    format="grouped",  # Response format: grouped or simple
+    main=False,  # Use main result list
+    ngroups=True,  # Return total group count
+    truncate=True,  # Truncate facets to group leaders
+    facet=True,  # Enable group.facet
 )
 ```
 
@@ -103,16 +85,12 @@ Group results by a single field value:
 
 ```python
 # Group by author
-parser = (
-    ExtendedDisMaxQueryParser(
-        query="web development",
-        query_fields={"title": 2.0, "content": 1.0}
-    )
-    .group(
-        by="author",
-        limit=5,           # Top 5 articles per author
-        ngroups=True       # Count total authors
-    )
+parser = ExtendedDisMaxQueryParser(
+    query="web development", query_fields={"title": 2.0, "content": 1.0}
+).group(
+    by="author",
+    limit=5,  # Top 5 articles per author
+    ngroups=True,  # Count total authors
 )
 
 results = client.search(parser)
@@ -123,7 +101,7 @@ for group in results.grouped["author"]["groups"]:
     author = group["groupValue"]
     total = group["doclist"]["numFound"]
     docs = group["doclist"]["docs"]
-    
+
     print(f"\n{author} ({total} total)")
     for doc in docs:
         print(f"  {doc.title}")
@@ -138,21 +116,21 @@ Control how documents are sorted within each group:
 parser = parser.group(
     by="category",
     limit=3,
-    sort="score desc"  # Most relevant first
+    sort="score desc",  # Most relevant first
 )
 
 # Sort by date within groups
 parser = parser.group(
     by="author",
     limit=5,
-    sort="published_date desc"  # Newest first
+    sort="published_date desc",  # Newest first
 )
 
 # Complex sorting
 parser = parser.group(
     by="category",
     limit=3,
-    sort="rating desc, published_date desc"  # Best rated, then newest
+    sort="rating desc, published_date desc",  # Best rated, then newest
 )
 ```
 
@@ -162,18 +140,10 @@ Paginate through documents within groups:
 
 ```python
 # First 3 docs per group
-parser = parser.group(
-    by="author",
-    limit=3,
-    offset=0
-)
+parser = parser.group(by="author", limit=3, offset=0)
 
 # Next 3 docs per group
-parser = parser.group(
-    by="author",
-    limit=3,
-    offset=3
-)
+parser = parser.group(by="author", limit=3, offset=3)
 ```
 
 ### Number of Groups
@@ -184,7 +154,7 @@ Get the total count of unique groups:
 parser = parser.group(
     by="category",
     limit=5,
-    ngroups=True  # Return total number of categories
+    ngroups=True,  # Return total number of categories
 )
 
 results = client.search(parser)
@@ -199,19 +169,11 @@ print(f"Found {total_categories} categories")
 Group by query matches instead of field values:
 
 ```python
-parser = (
-    ExtendedDisMaxQueryParser(
-        query="technology",
-        query_fields={"content": 1.0}
-    )
-    .group(
-        queries=[
-            "category:programming",
-            "category:databases",
-            "category:networking"
-        ],
-        limit=5
-    )
+parser = ExtendedDisMaxQueryParser(
+    query="technology", query_fields={"content": 1.0}
+).group(
+    queries=["category:programming", "category:databases", "category:networking"],
+    limit=5,
 )
 
 results = client.search(parser)
@@ -235,26 +197,26 @@ parser = parser.group(
         "published_date:[NOW-7DAYS TO NOW]",
         "published_date:[NOW-30DAYS TO NOW-7DAYS]",
         "published_date:[* TO NOW-30DAYS]",
-        
         # By popularity
         "views:[1000 TO *]",
         "views:[100 TO 1000]",
         "views:[* TO 100]",
-        
         # By rating
         "rating:[8 TO *]",
         "rating:[5 TO 8]",
-        "rating:[* TO 5]"
+        "rating:[* TO 5]",
     ],
-    limit=10
+    limit=10,
 )
 
 results = client.search(parser)
 
 # Show results by recency
 print("By Recency:")
-for query in ["published_date:[NOW-7DAYS TO NOW]", 
-              "published_date:[NOW-30DAYS TO NOW-7DAYS]"]:
+for query in [
+    "published_date:[NOW-7DAYS TO NOW]",
+    "published_date:[NOW-30DAYS TO NOW-7DAYS]",
+]:
     count = results.grouped[query]["matches"]
     print(f"  {query}: {count}")
 ```
@@ -268,7 +230,7 @@ Control how grouped results are returned:
 parser = parser.group(
     by="author",
     limit=3,
-    format="grouped"  # Returns nested structure
+    format="grouped",  # Returns nested structure
 )
 
 # Simple format (flat list with group field)
@@ -276,7 +238,7 @@ parser = parser.group(
     by="author",
     limit=3,
     format="simple",  # Returns flat list
-    main=True         # Use main result list
+    main=True,  # Use main result list
 )
 ```
 
@@ -290,7 +252,7 @@ for group in results.grouped["author"]["groups"]:
     author = group["groupValue"]
     docs = group["doclist"]["docs"]
     total = group["doclist"]["numFound"]
-    
+
     print(f"{author}: {len(docs)} of {total}")
 ```
 
@@ -311,19 +273,15 @@ Grouping works well with faceting:
 ```python
 parser = (
     ExtendedDisMaxQueryParser(
-        query="python",
-        query_fields={"title": 2.0, "content": 1.0}
+        query="python", query_fields={"title": 2.0, "content": 1.0}
     )
     .group(
         by="author",
         limit=3,
         truncate=True,  # Facets based on group heads
-        facet=True      # Enable group-aware faceting
+        facet=True,  # Enable group-aware faceting
     )
-    .facet(
-        fields=["category", "year"],
-        mincount=1
-    )
+    .facet(fields=["category", "year"], mincount=1)
 )
 
 results = client.search(parser)
@@ -342,7 +300,7 @@ if category_facet:
         print(f"  {bucket.value}: {bucket.count}")
 ```
 
-## Complete Example
+## Example
 
 ```python
 from taiyo.parsers import ExtendedDisMaxQueryParser
@@ -351,18 +309,15 @@ parser = (
     ExtendedDisMaxQueryParser(
         query="web development",
         query_fields={"title": 3.0, "content": 1.0, "tags": 2.0},
-        rows=100  # Max groups to return
+        rows=100,  # Max groups to return
     )
     .group(
         by="author",
-        limit=3,              # Top 3 articles per author
+        limit=3,  # Top 3 articles per author
         sort="published_date desc",  # Newest first within group
-        ngroups=True          # Count total authors
+        ngroups=True,  # Count total authors
     )
-    .facet(
-        fields=["category", "year"],
-        mincount=1
-    )
+    .facet(fields=["category", "year"], mincount=1)
 )
 
 results = client.search(parser)
@@ -374,7 +329,7 @@ for group in results.grouped["author"]["groups"]:
     doclist = group["doclist"]
     total = doclist["numFound"]
     docs = doclist["docs"]
-    
+
     print(f"\n{author} ({total} articles)")
     for doc in docs:
         print(f"  - {doc.title}")
@@ -397,16 +352,12 @@ Show one result per duplicate group:
 
 ```python
 # Remove duplicate products (same ISBN)
-parser = (
-    ExtendedDisMaxQueryParser(
-        query="python programming",
-        query_fields={"title": 2.0}
-    )
-    .group(
-        by="isbn",
-        limit=1,  # One per ISBN
-        main=True  # Flat result list
-    )
+parser = ExtendedDisMaxQueryParser(
+    query="python programming", query_fields={"title": 2.0}
+).group(
+    by="isbn",
+    limit=1,  # One per ISBN
+    main=True,  # Flat result list
 )
 
 results = client.search(parser)
@@ -422,17 +373,13 @@ Show results grouped by related entity:
 
 ```python
 # Group news articles by company
-parser = (
-    ExtendedDisMaxQueryParser(
-        query="technology merger",
-        query_fields={"headline": 3.0, "body": 1.0}
-    )
-    .group(
-        by="company",
-        limit=5,  # Top 5 articles per company
-        sort="published_date desc",
-        ngroups=True
-    )
+parser = ExtendedDisMaxQueryParser(
+    query="technology merger", query_fields={"headline": 3.0, "body": 1.0}
+).group(
+    by="company",
+    limit=5,  # Top 5 articles per company
+    sort="published_date desc",
+    ngroups=True,
 )
 
 results = client.search(parser)
@@ -440,7 +387,7 @@ results = client.search(parser)
 for group in results.grouped["company"]["groups"]:
     company = group["groupValue"]
     articles = group["doclist"]["docs"]
-    
+
     print(f"\n{company}:")
     for article in articles:
         print(f"  {article.headline} - {article.published_date}")
@@ -452,17 +399,13 @@ Show sample results from each category:
 
 ```python
 # Show top result from each category
-parser = (
-    ExtendedDisMaxQueryParser(
-        query="smartphones",
-        query_fields={"name": 2.0, "description": 1.0}
-    )
-    .group(
-        by="brand",
-        limit=1,  # Top product per brand
-        sort="rating desc, price asc",
-        ngroups=True
-    )
+parser = ExtendedDisMaxQueryParser(
+    query="smartphones", query_fields={"name": 2.0, "description": 1.0}
+).group(
+    by="brand",
+    limit=1,  # Top product per brand
+    sort="rating desc, price asc",
+    ngroups=True,
 )
 
 results = client.search(parser)
@@ -472,7 +415,7 @@ print(f"Found {results.grouped['brand']['ngroups']} brands\n")
 for group in results.grouped["brand"]["groups"]:
     brand = group["groupValue"]
     product = group["doclist"]["docs"][0]
-    
+
     print(f"{brand}: {product.name}")
     print(f"  Rating: {product.rating}/5")
     print(f"  Price: ${product.price}")
@@ -484,17 +427,13 @@ Show author's best work:
 
 ```python
 # Show top articles per author
-parser = (
-    ExtendedDisMaxQueryParser(
-        query="machine learning",
-        query_fields={"title": 3.0, "abstract": 2.0}
-    )
-    .group(
-        by="author",
-        limit=3,  # Top 3 papers per author
-        sort="citations desc",  # Most cited first
-        ngroups=True
-    )
+parser = ExtendedDisMaxQueryParser(
+    query="machine learning", query_fields={"title": 3.0, "abstract": 2.0}
+).group(
+    by="author",
+    limit=3,  # Top 3 papers per author
+    sort="citations desc",  # Most cited first
+    ngroups=True,
 )
 
 results = client.search(parser)
@@ -503,7 +442,7 @@ for group in results.grouped["author"]["groups"]:
     author = group["groupValue"]
     papers = group["doclist"]["docs"]
     total = group["doclist"]["numFound"]
-    
+
     print(f"\n{author} ({total} papers)")
     for paper in papers:
         print(f"  {paper.title}")
@@ -515,12 +454,7 @@ for group in results.grouped["author"]["groups"]:
 ### Balance Group Size
 
 ```python
-parser = parser.group(
-    by="author",
-    limit=3,
-    ngroups=True,
-    truncate=True
-)
+parser = parser.group(by="author", limit=3, ngroups=True, truncate=True)
 ```
 
 ### Choose Appropriate Fields
@@ -537,14 +471,9 @@ Avoid: timestamp, id (too many unique values)
 ### Use with Pagination
 
 ```python
-parser = (
-    ExtendedDisMaxQueryParser(
-        query="search",
-        query_fields={"title": 2.0},
-        rows=20
-    )
-    .group(by="category", limit=5)
-)
+parser = ExtendedDisMaxQueryParser(
+    query="search", query_fields={"title": 2.0}, rows=20
+).group(by="category", limit=5)
 ```
 
 ### Combine with Filters
@@ -552,33 +481,23 @@ parser = (
 Filter before grouping to reduce processing:
 
 ```python
-parser = (
-    ExtendedDisMaxQueryParser(
-        query="products",
-        query_fields={"name": 2.0},
-        filters=[
-            "status:active",
-            "in_stock:true"
-        ]
-    )
-    .group(by="brand", limit=5)
-)
+parser = ExtendedDisMaxQueryParser(
+    query="products",
+    query_fields={"name": 2.0},
+    filters=["status:active", "in_stock:true"],
+).group(by="brand", limit=5)
 ```
 
 ### Optimize Facets
 
 ```python
 # Use truncate=True for better facet performance
-parser = (
-    parser
-    .group(
-        by="author",
-        limit=3,
-        truncate=True,  # Facets only on group heads
-        facet=True
-    )
-    .facet(fields=["category"])
-)
+parser = parser.group(
+    by="author",
+    limit=3,
+    truncate=True,  # Facets only on group heads
+    facet=True,
+).facet(fields=["category"])
 ```
 
 ## Common Patterns
@@ -590,27 +509,22 @@ Show diverse results (one per category):
 ```python
 def diverse_search(query: str):
     """Return diverse results across categories."""
-    parser = (
-        ExtendedDisMaxQueryParser(
-            query=query,
-            query_fields={"title": 3.0, "content": 1.0},
-            rows=10
-        )
-        .group(
-            by="category",
-            limit=1,  # One per category
-            sort="score desc",
-            ngroups=True
-        )
+    parser = ExtendedDisMaxQueryParser(
+        query=query, query_fields={"title": 3.0, "content": 1.0}, rows=10
+    ).group(
+        by="category",
+        limit=1,  # One per category
+        sort="score desc",
+        ngroups=True,
     )
-    
+
     results = client.search(parser)
-    
+
     # Return one result per category
     diverse_results = []
     for group in results.grouped["category"]["groups"]:
         diverse_results.append(group["doclist"]["docs"][0])
-    
+
     return diverse_results
 ```
 
@@ -621,23 +535,18 @@ Show related items grouped by type:
 ```python
 def find_related(item_id: str):
     """Find related items grouped by type."""
-    parser = (
-        StandardParser(query=f"related_to:{item_id}")
-        .group(
-            by="item_type",
-            limit=5,
-            sort="relevance_score desc"
-        )
+    parser = StandardParser(query=f"related_to:{item_id}").group(
+        by="item_type", limit=5, sort="relevance_score desc"
     )
-    
+
     results = client.search(parser)
-    
+
     related = {}
     for group in results.grouped["item_type"]["groups"]:
         item_type = group["groupValue"]
         items = group["doclist"]["docs"]
         related[item_type] = items
-    
+
     return related
 ```
 
@@ -648,30 +557,28 @@ Find and show duplicates:
 ```python
 def find_duplicates(query: str, field: str = "content_hash"):
     """Find duplicate documents."""
-    parser = (
-        ExtendedDisMaxQueryParser(
-            query=query,
-            query_fields={"title": 2.0, "content": 1.0}
-        )
-        .group(
-            by=field,
-            limit=10,  # All duplicates
-            ngroups=True
-        )
+    parser = ExtendedDisMaxQueryParser(
+        query=query, query_fields={"title": 2.0, "content": 1.0}
+    ).group(
+        by=field,
+        limit=10,  # All duplicates
+        ngroups=True,
     )
-    
+
     results = client.search(parser)
-    
+
     # Only show groups with duplicates
     duplicates = []
     for group in results.grouped[field]["groups"]:
         if group["doclist"]["numFound"] > 1:
-            duplicates.append({
-                "hash": group["groupValue"],
-                "count": group["doclist"]["numFound"],
-                "docs": group["doclist"]["docs"]
-            })
-    
+            duplicates.append(
+                {
+                    "hash": group["groupValue"],
+                    "count": group["doclist"]["numFound"],
+                    "docs": group["doclist"]["docs"],
+                }
+            )
+
     return duplicates
 ```
 
