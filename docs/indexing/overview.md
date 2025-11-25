@@ -15,6 +15,7 @@ A collection is a logical index in Solr. Documents are indexed into collections,
 ### Commits
 
 Commits make indexed documents visible for search. Taiyo supports:
+
 - Immediate commits (`commit=True`)
 - Manual commits (`client.commit()`)
 - Batch commits for performance
