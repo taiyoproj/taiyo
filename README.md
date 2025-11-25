@@ -5,7 +5,18 @@
 <h1 align="center">Taiyo</h1>
 
 <p align="center">
-  Modern Python client for Apache Solr with sync and async support, built with httpx and Pydantic.
+  Modern Python client for Apache Solr with type-safety and async support, built with httpx and Pydantic.
+</p>
+<p align="center">
+<a href="https://pypi.org/project/taiyo/">
+    <img src="https://badge.fury.io/py/taiyo.svg" >
+</a>
+<a href="https://github.com/taiyoproj/taiyo/actions">
+    <img src="https://github.com/taiyoproj/taiyo/actions/workflows/unit-tests.yaml/badge.svg">
+</a>
+<a href="https://github.com/taiyoproj/taiyo/actions">
+    <img src="https://github.com/taiyoproj/taiyo/actions/workflows/integration-tests.yml/badge.svg">
+</a>
 </p>
 
 ---
