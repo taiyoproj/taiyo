@@ -135,7 +135,7 @@ class BaseQueryParser(CommonParamsMixin):
             >>> parser.facet(fields=["color"], prefix="bl", mincount=5)
         """
         self.configs.append(
-            FacetParamsConfig(  # type: ignore[arg-type]  # Pydantic converts Literal strings to Enums
+            FacetParamsConfig(
                 queries=queries,
                 fields=fields,
                 prefix=prefix,
@@ -395,7 +395,7 @@ class BaseQueryParser(CommonParamsMixin):
             ...     fragment_size=200
             ... )
         """
-        config = HighlightParamsConfig(  # type: ignore[arg-type]  # Pydantic converts Literal strings to Enums
+        config = HighlightParamsConfig(
             method=method,
             fields=fields,
             query=query,
