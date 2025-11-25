@@ -121,6 +121,6 @@ class GeoFilterQueryParser(SpatialQueryParser):
 
     @computed_field(alias="fq")
     def filter_query(self) -> str:
-        params = self.spatial_params
+        params: str = self.spatial_params()
         params_str = f" {params}" if params else ""
         return f"{{!{self.filter_type} sfield={self.spatial_field}{params_str}}}"

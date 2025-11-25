@@ -1,7 +1,7 @@
 """Authentication module for Taiyo Solr client."""
 
 import base64
-from typing import Optional
+from typing import Optional, Any
 from .base import BaseSolrClient
 from pydantic import SecretStr
 import httpx
@@ -10,7 +10,7 @@ import httpx
 class SolrAuth:
     """Base class for Solr authentication methods."""
 
-    def apply(self, client: BaseSolrClient) -> None:
+    def apply(self, client: BaseSolrClient[Any]) -> None:
         """
         Apply authentication to the client.
 
@@ -44,7 +44,7 @@ class BasicAuth(SolrAuth):
             password if isinstance(password, SecretStr) else SecretStr(password)
         )
 
-    def apply(self, client: BaseSolrClient) -> None:
+    def apply(self, client: BaseSolrClient[Any]) -> None:
         username = self.username.get_secret_value()
         password = self.password.get_secret_value()
         auth_str = base64.b64encode(f"{username}:{password}".encode()).decode()
@@ -69,7 +69,7 @@ class BearerAuth(SolrAuth):
     def __init__(self, token: str | SecretStr):
         self.token = token if isinstance(token, SecretStr) else SecretStr(token)
 
-    def apply(self, client: BaseSolrClient) -> None:
+    def apply(self, client: BaseSolrClient[Any]) -> None:
         client.set_header("Authorization", f"Bearer {self.token.get_secret_value()}")
 
 
@@ -126,9 +126,10 @@ class OAuth2Auth(SolrAuth):
             },
         )
         response.raise_for_status()
-        return response.json()["access_token"]
+        token: str = response.json()["access_token"]
+        return token
 
-    def apply(self, client: BaseSolrClient) -> None:
+    def apply(self, client: BaseSolrClient[Any]) -> None:
         if not self.access_token:
             self.access_token = self.get_access_token()
         client.set_header("Authorization", f"Bearer {self.access_token}")
