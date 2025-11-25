@@ -38,16 +38,13 @@ Use the `.more_like_this()` helper for a fluent style:
 ```python
 from taiyo.parsers import StandardParser
 
-parser = (
-    StandardParser(query="id:article-123", rows=1)
-    .more_like_this(
-        fields=["title", "content"],
-        min_term_freq=1,
-        min_doc_freq=1,
-        max_query_terms=20,
-        boost=True,
-        match_include=False,
-    )
+parser = StandardParser(query="id:article-123", rows=1).more_like_this(
+    fields=["title", "content"],
+    min_term_freq=1,
+    min_doc_freq=1,
+    max_query_terms=20,
+    boost=True,
+    match_include=False,
 )
 ```
 
@@ -56,16 +53,13 @@ parser = (
 The integration test `tests/integration/test_more_like_this.py` demonstrates an end-to-end flow that provisions a temporary collection, indexes sample articles, and asserts the quality of MLT matches. The core search logic looks like:
 
 ```python
-parser = (
-    StandardParser(query=f"id:{target_id}", rows=1)
-    .more_like_this(
-        fields=["title", "content"],
-        min_term_freq=1,
-        min_doc_freq=1,
-        max_query_terms=20,
-        boost=True,
-        match_include=False,
-    )
+parser = StandardParser(query=f"id:{target_id}", rows=1).more_like_this(
+    fields=["title", "content"],
+    min_term_freq=1,
+    min_doc_freq=1,
+    max_query_terms=20,
+    boost=True,
+    match_include=False,
 )
 
 response = client.search(parser, document_model=Article)
@@ -75,17 +69,17 @@ response = client.search(parser, document_model=Article)
 
 ```python
 MoreLikeThisParamsConfig(
-    fields=["title", "content"],      # Fields to analyze for similarity
-    min_term_freq=1,                    # Minimum term frequency in the seed doc
-    min_doc_freq=1,                     # Minimum document frequency across the index
-    max_doc_freq_pct=80,                # (Optional) Percentage threshold for common terms
-    max_query_terms=20,                 # Cap on interesting terms used for the query
-    min_word_len=3,                     # Ignore short tokens
-    max_num_tokens_parsed=5000,         # Limit analysis for non term-vector fields
-    boost=True,                         # Boost by term relevance scores
+    fields=["title", "content"],  # Fields to analyze for similarity
+    min_term_freq=1,  # Minimum term frequency in the seed doc
+    min_doc_freq=1,  # Minimum document frequency across the index
+    max_doc_freq_pct=80,  # (Optional) Percentage threshold for common terms
+    max_query_terms=20,  # Cap on interesting terms used for the query
+    min_word_len=3,  # Ignore short tokens
+    max_num_tokens_parsed=5000,  # Limit analysis for non term-vector fields
+    boost=True,  # Boost by term relevance scores
     query_fields="title^2.0 content",  # Optional boosted query fields
-    interesting_terms="details",       # Include term provenance in the response
-    match_include=False,                # Exclude the seed document from results
+    interesting_terms="details",  # Include term provenance in the response
+    match_include=False,  # Exclude the seed document from results
 )
 ```
 

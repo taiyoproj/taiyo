@@ -12,9 +12,7 @@ All documents in Taiyo inherit from `SolrDocument`, which is a Pydantic `BaseMod
 from taiyo import SolrDocument
 
 doc = SolrDocument(
-    title="Example Document",
-    content="This is the content",
-    tags=["python", "solr"]
+    title="Example Document", content="This is the content", tags=["python", "solr"]
 )
 ```
 
@@ -33,7 +31,7 @@ Define custom document models for type safety and validation:
 
 ```python
 from taiyo import SolrDocument
-from typing import Optional
+
 
 class Article(SolrDocument):
     title: str
@@ -44,6 +42,7 @@ class Article(SolrDocument):
     tags: list[str] = []
     views: int = 0
 
+
 article = Article(
     title="Getting Started with Solr",
     author="John Doe",
@@ -51,7 +50,7 @@ article = Article(
     published_date="2025-01-01",
     category="tutorials",
     tags=["solr", "search", "tutorial"],
-    views=1000
+    views=1000,
 )
 ```
 
@@ -61,16 +60,17 @@ article = Article(
 from taiyo import SolrDocument
 from pydantic import Field, field_validator
 
+
 class User(SolrDocument):
     username: str = Field(min_length=3, max_length=50)
-    email: str = Field(pattern=r'^[\w\.-]+@[\w\.-]+\.\w+$')
+    email: str = Field(pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
     age: int = Field(ge=0, le=150)
     roles: list[str] = []
-    
-    @field_validator('username')
+
+    @field_validator("username")
     @classmethod
     def username_alphanumeric(cls, v):
-        assert v.isalnum(), 'must be alphanumeric'
+        assert v.isalnum(), "must be alphanumeric"
         return v
 ```
 
@@ -85,7 +85,7 @@ doc = Article(
     author="Author",
     content="Content",
     published_date="2025-01-01",
-    category="tech"
+    category="tech",
 )
 
 # From dictionary
@@ -94,12 +94,13 @@ data = {
     "author": "Author",
     "content": "Content",
     "published_date": "2025-01-01",
-    "category": "tech"
+    "category": "tech",
 }
 doc = Article(**data)
 
 # From JSON
 import json
+
 json_str = '{"title": "Title", "author": "Author"}'
 doc = Article(**json.loads(json_str))
 ```
@@ -111,20 +112,18 @@ Map Solr field names to Python field names:
 ```python
 from pydantic import Field
 
+
 class Product(SolrDocument):
     """Product with field aliases."""
+
     name: str
     price: float
     product_id: str = Field(alias="sku")  # Maps to 'sku' in Solr
     in_stock_flag: bool = Field(alias="inStock")  # Maps to 'inStock'
 
+
 # Use Python names in code
-product = Product(
-    name="Laptop",
-    price=999.99,
-    product_id="LAP-001",
-    in_stock_flag=True
-)
+product = Product(name="Laptop", price=999.99, product_id="LAP-001", in_stock_flag=True)
 
 # Solr gets: {"name": "Laptop", price: 999.99, "sku": "LAP-001", "inStock": true}
 ```
@@ -181,11 +180,11 @@ from taiyo import SolrResponse
 results: SolrResponse[Article] = client.search("*:*", document_model=Article)
 
 # Core fields
-print(f"Status: {results.status}")              # HTTP status code
-print(f"Query time: {results.query_time}ms")    # Query execution time
-print(f"Total found: {results.num_found}")      # Total matching docs
-print(f"Start: {results.start}")                # Pagination start
-print(f"Returned: {len(results.docs)}")         # Docs in this response
+print(f"Status: {results.status}")  # HTTP status code
+print(f"Query time: {results.query_time}ms")  # Query execution time
+print(f"Total found: {results.num_found}")  # Total matching docs
+print(f"Start: {results.start}")  # Pagination start
+print(f"Returned: {len(results.docs)}")  # Docs in this response
 
 # Documents (typed)
 for doc in results.docs:
@@ -241,9 +240,9 @@ if results.extra:
 article = Article(...)
 
 # IDE knows all fields
-article.title     # ✓ Autocomplete works
-article.author    # ✓ Autocomplete works
-article.invalid   # ✗ IDE shows error
+article.title  # ✓ Autocomplete works
+article.author  # ✓ Autocomplete works
+article.invalid  # ✗ IDE shows error
 ```
 
 ### Type Checking
@@ -266,7 +265,7 @@ try:
     article = Article(
         title="Title",
         author="Author",
-        views="not a number"  # ✗ Should be int
+        views="not a number",  # ✗ Should be int
     )
 except ValidationError as e:
     print(f"Validation error: {e}")
@@ -279,10 +278,10 @@ Solr's dynamic fields are fully supported:
 ```python
 # SolrDocument allows extra fields
 doc = SolrDocument(
-    title_en="English Title",       # Dynamic field *_en
-    title_es="Título Español",      # Dynamic field *_es
-    price_usd=99.99,                # Dynamic field *_usd
-    tags_ss=["tag1", "tag2"]        # Dynamic field *_ss
+    title_en="English Title",  # Dynamic field *_en
+    title_es="Título Español",  # Dynamic field *_es
+    price_usd=99.99,  # Dynamic field *_usd
+    tags_ss=["tag1", "tag2"],  # Dynamic field *_ss
 )
 
 client.add(doc)
@@ -306,10 +305,11 @@ Models provide type safety and validation. Use generic `SolrDocument` only for d
 ```python
 from typing import Optional
 
+
 class Document(SolrDocument):
-    title: str              # Required
+    title: str  # Required
     description: Optional[str] = None  # Optional
-    tags: list[str] = []   # Default empty list
+    tags: list[str] = []  # Default empty list
 ```
 
 ### Document Your Models
@@ -317,7 +317,7 @@ class Document(SolrDocument):
 ```python
 class Article(SolrDocument):
     """Article document for the blog system.
-    
+
     Attributes:
         title: Article title (required, max 200 chars)
         author: Author name (required)
@@ -326,6 +326,7 @@ class Article(SolrDocument):
         tags: List of tags for categorization
         published: Whether the article is published
     """
+
     title: str = Field(max_length=200, description="Article title")
     author: str = Field(description="Author name")
     content: str = Field(description="Article body")

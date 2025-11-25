@@ -28,12 +28,9 @@ from taiyo import SolrClient, SolrDocument
 
 with SolrClient("http://localhost:8983/solr") as client:
     client.set_collection("my_collection")
-    
-    doc = SolrDocument(
-        title="Document Title",
-        content="Document content"
-    )
-    
+
+    doc = SolrDocument(title="Document Title", content="Document content")
+
     client.add(doc, commit=True)
 ```
 
@@ -97,19 +94,21 @@ Use async clients when indexing from multiple sources concurrently:
 ```python
 import asyncio
 
+
 async def index_source(client, source):
     docs = await fetch_from_source(source)
     await client.add(docs, commit=False)
 
+
 async with AsyncSolrClient(url) as client:
     client.set_collection("my_collection")
-    
+
     await asyncio.gather(
         index_source(client, "source1"),
         index_source(client, "source2"),
-        index_source(client, "source3")
+        index_source(client, "source3"),
     )
-    
+
     await client.commit()
 ```
 
