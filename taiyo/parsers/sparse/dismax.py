@@ -115,10 +115,13 @@ class DisMaxQueryParser(BaseQueryParser):
     )
 
     @computed_field(alias="defType")
-    @property
     def def_type(self) -> Literal["dismax"]:
         return "dismax"
 
     @field_serializer("query_fields", "phrase_fields")
-    def serialize_boost_terms(values) -> str:
+    def serialize_boost_terms(
+        self, values: Optional[Dict[str, float]]
+    ) -> Optional[str]:
+        if values is None:
+            return None
         return " ".join([f"{k}^{v}" for k, v in values.items()])

@@ -169,7 +169,6 @@ class BBoxQueryParser(BaseQueryParser):
         return f"ENVELOPE({minX}, {maxX}, {maxY}, {minY})"
 
     @computed_field(alias="q")
-    @property
     def query(self) -> str:
         """Constructs the BBoxField query with predicate and envelope."""
         envelope_str = self.serialize_envelope(self.envelope)

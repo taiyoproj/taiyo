@@ -116,6 +116,5 @@ class VectorSimilarityQueryParser(DenseVectorSearchQueryParser):
     _def_type: Literal["vectorSimilarity"] = "vectorSimilarity"
 
     @computed_field(alias="q")
-    @property
     def query(self) -> str:
         return f"{{!{self._def_type} minTraverse={self.min_traverse} minReturn={self.min_return} {self.vector_search_params}}}{self.vector}"

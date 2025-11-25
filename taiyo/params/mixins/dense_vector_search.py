@@ -24,10 +24,9 @@ class DenseVectorSearchParamsMixin(ParamsMixin):
     )
 
     @computed_field
-    @property
     def vector_search_params(self) -> str:
         params = self.model_dump(
-            include=DenseVectorSearchParamsMixin.__annotations__.keys(),
+            include=set(DenseVectorSearchParamsMixin.__annotations__.keys()),
             by_alias=True,
             exclude_computed_fields=True,
             exclude_none=True,
@@ -42,7 +41,7 @@ class DenseVectorSearchParamsMixin(ParamsMixin):
         return " ".join(res)
 
     @classmethod
-    def get_mixin_keys(self):
+    def get_mixin_keys(cls) -> List[str]:
         return list(DenseVectorSearchParamsMixin.model_computed_fields.keys()) + list(
             DenseVectorSearchParamsMixin.__annotations__.keys()
         )

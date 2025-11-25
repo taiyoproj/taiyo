@@ -1,11 +1,14 @@
 # Linting and formatting
-.PHONY: format lint lint-fix
+.PHONY: format lint lint-fix mypy
 
 format:
 	uv run ruff format taiyo tests scripts
 
 lint:
 	uv run ruff check taiyo tests scripts
+
+mypy:
+	uv run mypy taiyo
 
 # Testing
 .PHONY: test test-unit solr-up solr-down solr-logs test-integration

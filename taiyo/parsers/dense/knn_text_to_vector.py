@@ -123,6 +123,5 @@ class KNNTextToVectorQueryParser(DenseVectorSearchQueryParser):
     _def_type: Literal["knn_text_to_vector"] = "knn_text_to_vector"
 
     @computed_field(alias="q")
-    @property
     def query(self) -> str:
         return f"{{!{self._def_type} model={self.model} topK={self.top_k} {self.vector_search_params}}}{self.text}"

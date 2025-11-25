@@ -1,4 +1,4 @@
-from typing import Optional, Literal
+from typing import List, Optional, Literal
 from pydantic import Field, field_serializer, computed_field
 from taiyo.params.mixins.base import ParamsMixin
 
@@ -47,11 +47,10 @@ class SpatialSearchParamsMixin(ParamsMixin):
         return ",".join([str(v) for v in values])
 
     @computed_field
-    @property
     def spatial_params(self) -> str:
         """Build the spatial search parameters string for use in filter queries."""
         params = self.model_dump(
-            include=SpatialSearchParamsMixin.__annotations__.keys(),
+            include=set(SpatialSearchParamsMixin.__annotations__.keys()),
             by_alias=True,
             exclude_computed_fields=True,
             exclude_none=True,
@@ -67,7 +66,7 @@ class SpatialSearchParamsMixin(ParamsMixin):
         return " ".join(res)
 
     @classmethod
-    def get_mixin_keys(cls):
+    def get_mixin_keys(cls) -> List[str]:
         return list(SpatialSearchParamsMixin.model_computed_fields.keys()) + list(
             SpatialSearchParamsMixin.__annotations__.keys()
         )

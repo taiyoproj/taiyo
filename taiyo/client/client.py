@@ -1,5 +1,6 @@
 import httpx
 from typing import Any, Dict, List, Optional, Union, Type
+from typing_extensions import Self
 
 from taiyo.parsers.base import BaseQueryParser
 from ..types import SolrDocument, SolrResponse, SolrError, DocumentT
@@ -8,7 +9,7 @@ from .base import BaseSolrClient
 from ..schema import SolrFieldType, SolrField, SolrDynamicField
 
 
-class AsyncSolrClient(BaseSolrClient):
+class AsyncSolrClient(BaseSolrClient[httpx.AsyncClient]):
     """
     Asynchronous Python client for Apache Solr.
 
@@ -57,17 +58,17 @@ class AsyncSolrClient(BaseSolrClient):
         if auth:
             auth.apply(self)
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Self:
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         await self.close()
 
-    async def close(self):
+    async def close(self) -> None:  # type: ignore[override]
         """Close the underlying HTTP client."""
         await self._client.aclose()
 
-    async def _request(
+    async def _request(  # type: ignore[override]
         self,
         method: str,
         endpoint: str,
@@ -84,7 +85,8 @@ class AsyncSolrClient(BaseSolrClient):
                 method=method, url=url, params=params, json=json, **kwargs
             )
             response.raise_for_status()
-            return response.json()
+            result: Dict[str, Any] = response.json()
+            return result
         except httpx.HTTPError as e:
             if hasattr(e, "response") and e.response is not None:
                 try:
@@ -176,12 +178,14 @@ class AsyncSolrClient(BaseSolrClient):
             documents = [documents]
 
         params = {"commit": "true"} if commit else {}
-        return await self._request(
-            method="POST",
-            endpoint="update/json/docs",
+        content = [doc.model_dump(exclude_unset=True) for doc in documents]
+        response = await self._client.post(
+            url=self._build_url("update/json/docs"),
             params=params,
-            json=[doc.model_dump(exclude_unset=True) for doc in documents],
+            json=content,
         )
+        result: Dict[str, Any] = response.json()
+        return result
 
     async def delete(
         self,
@@ -253,7 +257,7 @@ class AsyncSolrClient(BaseSolrClient):
     async def search(
         self,
         query: Union[str, Dict[str, Any], BaseQueryParser],
-        document_model: Type[DocumentT] = SolrDocument,
+        document_model: Type[DocumentT] = SolrDocument,  # type: ignore[assignment]
         **kwargs: Any,
     ) -> SolrResponse[DocumentT]:
         """
@@ -393,7 +397,7 @@ class AsyncSolrClient(BaseSolrClient):
         )
 
 
-class SolrClient(BaseSolrClient):
+class SolrClient(BaseSolrClient[httpx.Client]):
     """
     Synchronous Python client for Apache Solr.
 
@@ -440,13 +444,13 @@ class SolrClient(BaseSolrClient):
         if auth:
             auth.apply(self)
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         """Close the underlying HTTP client."""
         self._client.close()
 
@@ -467,7 +471,8 @@ class SolrClient(BaseSolrClient):
                 method=method, url=url, params=params, json=json, **kwargs
             )
             response.raise_for_status()
-            return response.json()
+            result: Dict[str, Any] = response.json()
+            return result
         except httpx.HTTPError as e:
             if hasattr(e, "response") and e.response is not None:
                 try:
@@ -556,12 +561,15 @@ class SolrClient(BaseSolrClient):
             documents = [documents]
 
         params = {"commit": "true"} if commit else {}
-        return self._request(
-            method="POST",
-            endpoint=f"{self.collection}/update/json/docs",
+        content = [doc.model_dump(exclude_unset=True) for doc in documents]
+        response = self._client.post(
+            url=self._build_url(f"{self.collection}/update/json/docs"),
             params=params,
-            json=[doc.model_dump(exclude_unset=True) for doc in documents],
+            json=content,
         )
+        response.raise_for_status()
+        result: Dict[str, Any] = response.json()
+        return result
 
     def delete(
         self,
@@ -633,7 +641,7 @@ class SolrClient(BaseSolrClient):
     def search(
         self,
         query: Union[str, Dict[str, Any], BaseQueryParser],
-        document_model: Type[DocumentT] = SolrDocument,
+        document_model: Type[DocumentT] = SolrDocument,  # type: ignore[assignment]
         **kwargs: Any,
     ) -> SolrResponse[DocumentT]:
         """

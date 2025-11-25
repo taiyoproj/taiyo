@@ -15,11 +15,11 @@ from taiyo.params.mixins.common import CommonParamsMixin
 class BaseQueryParser(CommonParamsMixin):
     model_config = ConfigDict(validate_by_alias=False, extra="forbid")
 
-    configs: Optional[list[ParamsConfig]] = []
+    configs: list[ParamsConfig] = []
 
-    def serialize_configs(self, params: dict[str, Any]) -> dict:
+    def serialize_configs(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Serialize ParamsConfig objects as top level params."""
-        updates = {}
+        updates: Dict[str, Any] = {}
         for config in self.configs:
             updates[config.enable_key] = True
             updates.update(
@@ -28,14 +28,14 @@ class BaseQueryParser(CommonParamsMixin):
         params.update(updates)
         return params
 
-    def build(self, *args, **kwargs) -> dict[str, Any]:
+    def build(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
         """
         Serialize the parser configuration to Solr-compatible query parameters using Pydantic's model_dump.
         """
         params = self.model_dump(
             by_alias=True,
             exclude_none=True,
-            exclude=["configs"],
+            exclude=["configs"],  # type: ignore[arg-type]
             exclude_unset=True,
             *args,
             **kwargs,

@@ -15,4 +15,6 @@ class ParamsConfig(BaseModel):
 
     enable_key: str
 
-    model_config = ConfigDict(validate_by_name=True, validate_by_alias=False)
+    model_config = ConfigDict(
+        populate_by_name=True, validate_by_name=True, validate_by_alias=False
+    )

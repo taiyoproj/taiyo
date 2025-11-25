@@ -28,9 +28,7 @@ def _coerce_int(value: Any) -> int:
 class SolrDocument(BaseModel):
     """Base model for Solr documents."""
 
-    model_config: ConfigDict = {
-        "extra": "allow",
-    }
+    model_config = ConfigDict(extra="allow")
 
 
 DocumentT = TypeVar("DocumentT", bound=SolrDocument)
@@ -117,8 +115,8 @@ class SolrJsonFacetNode(BaseModel):
                 if not isinstance(bucket, dict):
                     continue
 
-                metrics: Dict[str, Any] = {}
-                facets: Dict[str, SolrJsonFacetNode] = {}
+                bucket_metrics: Dict[str, Any] = {}
+                bucket_facets: Dict[str, SolrJsonFacetNode] = {}
 
                 for key, value in bucket.items():
                     if key in {"val", "count"}:
@@ -126,16 +124,16 @@ class SolrJsonFacetNode(BaseModel):
                     if isinstance(value, dict) and (
                         "buckets" in value or "count" in value
                     ):
-                        facets[key] = cls.from_dict(value)
+                        bucket_facets[key] = cls.from_dict(value)
                     else:
-                        metrics[key] = value
+                        bucket_metrics[key] = value
 
                 buckets.append(
                     SolrJsonFacetBucket(
                         value=bucket.get("val"),
                         count=_coerce_int(bucket.get("count")),
-                        metrics=metrics,
-                        facets=facets,
+                        metrics=bucket_metrics,
+                        facets=bucket_facets,
                     )
                 )
 

@@ -38,7 +38,7 @@ Reference:
     https://solr.apache.org/guide/solr/latest/indexing-guide/schema-api.html
 """
 
-from typing import Optional, List
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from .field import SolrField as SolrField, SolrDynamicField
@@ -175,7 +175,7 @@ class Schema(BaseModel):
         extra="forbid",
     )
 
-    def build(self, format: str = "xml") -> dict | str:
+    def build(self, format: str = "xml") -> Dict[str, Any] | str:
         """Build schema in specified format.
 
         Args:
@@ -192,7 +192,7 @@ class Schema(BaseModel):
             case _:
                 raise ValueError(f"Invalid format: {format}. Use 'xml' or 'json'.")
 
-    def _to_dict(self) -> dict:
+    def _to_dict(self) -> Dict[str, Any]:
         """Serialize into dictionary."""
         data = self.model_dump(by_alias=True, exclude_none=True)
         return {
@@ -229,28 +229,36 @@ class Schema(BaseModel):
         if self.fieldTypes:
             lines.append("  <!-- Field Types -->")
             for ft in self.fieldTypes:
-                lines.append(ft.build(format="xml", indent="  "))
+                result = ft.build(format="xml", indent="  ")
+                assert isinstance(result, str)
+                lines.append(result)
             lines.append("")
 
         # Fields
         if self.fields:
             lines.append("  <!-- Fields -->")
             for f in self.fields:
-                lines.append(f.build(format="xml", indent="  "))
+                result = f.build(format="xml", indent="  ")
+                assert isinstance(result, str)
+                lines.append(result)
             lines.append("")
 
         # Dynamic fields
         if self.dynamicFields:
             lines.append("  <!-- Dynamic Fields -->")
             for df in self.dynamicFields:
-                lines.append(df.build(format="xml", indent="  "))
+                result = df.build(format="xml", indent="  ")
+                assert isinstance(result, str)
+                lines.append(result)
             lines.append("")
 
         # Copy fields
         if self.copyFields:
             lines.append("  <!-- Copy Fields -->")
             for cf in self.copyFields:
-                lines.append(cf.build(format="xml", indent="  "))
+                result = cf.build(format="xml", indent="  ")
+                assert isinstance(result, str)
+                lines.append(result)
             lines.append("")
 
         lines.append("</schema>")

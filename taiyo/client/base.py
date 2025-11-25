@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union, Type, TYPE_CHECKING
+from typing import Any, Dict, Optional, Union, Type, TYPE_CHECKING, TypeVar, Generic
 from abc import abstractmethod
 from urllib.parse import urljoin
 from pydantic import ValidationError
@@ -10,8 +10,10 @@ from httpx import Client, AsyncClient
 if TYPE_CHECKING:
     from .auth import SolrAuth
 
+ClientT = TypeVar("ClientT", Client, AsyncClient)
 
-class BaseSolrClient:
+
+class BaseSolrClient(Generic[ClientT]):
     """
     Base class for Solr clients.
 
@@ -42,8 +44,8 @@ class BaseSolrClient:
         self.timeout = timeout
         self.auth = auth
         self.verify = verify
-        self.collection = None
-        self._client: Client | AsyncClient
+        self.collection: Optional[str] = None
+        self._client: ClientT
 
     def _build_url(self, endpoint: str) -> str:
         """Build the full URL for a Solr API endpoint."""
@@ -151,7 +153,7 @@ class BaseSolrClient:
                 else:
                     doc_interesting_terms = raw_interesting_terms
 
-                more_like_this[doc_id] = SolrMoreLikeThisResult[document_model](
+                more_like_this[doc_id] = SolrMoreLikeThisResult(
                     num_found=payload.get("numFound", 0),
                     start=payload.get("start", 0),
                     num_found_exact=payload.get("numFoundExact"),
@@ -161,9 +163,9 @@ class BaseSolrClient:
 
         facets = SolrFacetResult.from_response(response)
 
-        return SolrResponse[document_model](
+        return SolrResponse(
             status=response.get("responseHeader", {}).get("status", 0),
-            qtime=response.get("responseHeader", {}).get("QTime", 0),
+            query_time=response.get("responseHeader", {}).get("QTime", 0),
             num_found=num_found,
             start=start,
             docs=docs,
@@ -212,6 +214,6 @@ class BaseSolrClient:
         return params
 
     @abstractmethod
-    def close(self):
+    def close(self) -> None:
         """Close the underlying HTTP client."""
         pass

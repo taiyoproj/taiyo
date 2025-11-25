@@ -35,7 +35,7 @@ Reference:
     https://solr.apache.org/guide/solr/latest/indexing-guide/dynamic-fields.html
 """
 
-from typing import Optional, Any
+from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -220,7 +220,7 @@ class SolrField(BaseModel):
         extra="forbid",
     )
 
-    def build(self, format: str = "xml", indent: str = "") -> dict | str:
+    def build(self, format: str = "xml", indent: str = "") -> Dict[str, Any] | str:
         """Build field definition in specified format.
 
         Args:
@@ -238,7 +238,7 @@ class SolrField(BaseModel):
             case _:
                 raise ValueError(f"Invalid format: {format}. Use 'xml' or 'json'.")
 
-    def _to_dict(self) -> dict:
+    def _to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary for JSON Schema API."""
         return self.model_dump(by_alias=True, exclude_none=True)
 
