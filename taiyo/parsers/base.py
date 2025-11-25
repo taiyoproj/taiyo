@@ -17,9 +17,9 @@ class BaseQueryParser(CommonParamsMixin):
 
     configs: Optional[list[ParamsConfig]] = []
 
-    def serialize_configs(self, params: dict[str, Any]) -> dict:
+    def serialize_configs(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Serialize ParamsConfig objects as top level params."""
-        updates = {}
+        updates: Dict[str, Any] = {}
         for config in self.configs:
             updates[config.enable_key] = True
             updates.update(

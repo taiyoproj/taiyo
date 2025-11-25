@@ -2,7 +2,7 @@
 Solr Field Type and Analyzer definitions
 """
 
-from typing import Optional, Literal, Union, List, Dict
+from typing import Any, Optional, Literal, Union, List, Dict
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 from .enums import (
     SolrFieldClass,
@@ -60,7 +60,7 @@ class CharFilter(BaseModel):
         extra="allow",
     )
 
-    def build(self, format: str = "xml") -> dict:
+    def build(self, format: str = "xml") -> Dict[str, Any]:
         """Build char filter definition.
 
         Args:
@@ -71,10 +71,10 @@ class CharFilter(BaseModel):
         """
         return self._to_dict()
 
-    def _to_dict(self) -> dict:
+    def _to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary."""
         data = self.model_dump(by_alias=True, exclude_none=True, exclude_unset=True)
-        if hasattr(self, "__pydantic_extra__"):
+        if hasattr(self, "__pydantic_extra__") and self.__pydantic_extra__:
             data.update(self.__pydantic_extra__)
         return data
 
@@ -123,7 +123,7 @@ class Tokenizer(BaseModel):
         extra="allow",  # Allow additional parameters
     )
 
-    def build(self, format: str = "xml") -> dict:
+    def build(self, format: str = "xml") -> Dict[str, Any]:
         """Build tokenizer definition.
 
         Args:
@@ -134,10 +134,10 @@ class Tokenizer(BaseModel):
         """
         return self._to_dict()
 
-    def _to_dict(self) -> dict:
+    def _to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary."""
         data = self.model_dump(by_alias=True, exclude_none=True, exclude_unset=True)
-        if hasattr(self, "__pydantic_extra__"):
+        if hasattr(self, "__pydantic_extra__") and self.__pydantic_extra__:
             data.update(self.__pydantic_extra__)
         return data
 
@@ -197,7 +197,7 @@ class Filter(BaseModel):
         extra="allow",  # Allow additional parameters
     )
 
-    def build(self, format: str = "xml") -> dict:
+    def build(self, format: str = "xml") -> Dict[str, Any]:
         """Build filter definition.
 
         Args:
@@ -208,10 +208,10 @@ class Filter(BaseModel):
         """
         return self._to_dict()
 
-    def _to_dict(self) -> dict:
+    def _to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary."""
         data = self.model_dump(by_alias=True, exclude_none=True, exclude_unset=True)
-        if hasattr(self, "__pydantic_extra__"):
+        if hasattr(self, "__pydantic_extra__") and self.__pydantic_extra__:
             data.update(self.__pydantic_extra__)
         return data
 
@@ -259,7 +259,7 @@ class Analyzer(BaseModel):
         extra="forbid",
     )
 
-    def build(self, format: str = "xml", indent: str = "  ") -> dict | str:
+    def build(self, format: str = "xml", indent: str = "  ") -> Dict[str, Any] | str:
         """Build analyzer definition in specified format.
 
         Args:
@@ -277,9 +277,9 @@ class Analyzer(BaseModel):
             case _:
                 raise ValueError(f"Invalid format: {format}. Use 'xml' or 'json'.")
 
-    def _to_dict(self) -> dict:
+    def _to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary for JSON Schema API."""
-        result = {}
+        result: Dict[str, Any] = {}
 
         if self.solr_class:
             result["class"] = self.solr_class
@@ -475,7 +475,7 @@ class SolrFieldType(BaseModel):
         extra="allow",  # Allow additional parameters for specific field types
     )
 
-    def build(self, format: str = "xml", indent: str = "") -> dict | str:
+    def build(self, format: str = "xml", indent: str = "") -> Dict[str, Any] | str:
         """Build field type definition in specified format.
 
         Args:
@@ -493,14 +493,14 @@ class SolrFieldType(BaseModel):
             case _:
                 raise ValueError(f"Invalid format: {format}. Use 'xml' or 'json'.")
 
-    def _to_dict(self) -> dict:
+    def _to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary for JSON Schema API."""
         class_name = (
             self.solr_class.value
             if isinstance(self.solr_class, SolrFieldClass)
             else self.solr_class
         )
-        result = {"name": self.name, "class": class_name}
+        result: Dict[str, Any] = {"name": self.name, "class": class_name}
 
         # Add analyzer configurations
         if self.analyzer:
@@ -534,7 +534,7 @@ class SolrFieldType(BaseModel):
         result.update(data)
 
         # Add extra fields
-        if hasattr(self, "__pydantic_extra__"):
+        if hasattr(self, "__pydantic_extra__") and self.__pydantic_extra__:
             result.update(self.__pydantic_extra__)
 
         return result

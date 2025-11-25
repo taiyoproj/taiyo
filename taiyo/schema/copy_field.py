@@ -31,7 +31,7 @@ Reference:
     https://solr.apache.org/guide/solr/latest/indexing-guide/copy-fields.html
 """
 
-from typing import Optional
+from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -108,7 +108,7 @@ class CopyField(BaseModel):
         extra="forbid",
     )
 
-    def build(self, format: str = "xml", indent: str = "") -> dict | str:
+    def build(self, format: str = "xml", indent: str = "") -> Dict[str, Any] | str:
         """Build copy field definition in specified format.
 
         Args:
@@ -126,7 +126,7 @@ class CopyField(BaseModel):
             case _:
                 raise ValueError(f"Invalid format: {format}. Use 'xml' or 'json'.")
 
-    def _to_dict(self) -> dict:
+    def _to_dict(self) -> Dict[str, Any]:
         """Serialize to dictionary for JSON Schema API."""
         return self.model_dump(by_alias=True, exclude_none=True, exclude_unset=True)
 

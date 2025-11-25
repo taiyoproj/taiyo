@@ -38,7 +38,7 @@ Reference:
     https://solr.apache.org/guide/solr/latest/indexing-guide/schema-api.html
 """
 
-from typing import Optional, List
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from .field import SolrField as SolrField, SolrDynamicField
@@ -175,7 +175,7 @@ class Schema(BaseModel):
         extra="forbid",
     )
 
-    def build(self, format: str = "xml") -> dict | str:
+    def build(self, format: str = "xml") -> Dict[str, Any] | str:
         """Build schema in specified format.
 
         Args:
@@ -192,7 +192,7 @@ class Schema(BaseModel):
             case _:
                 raise ValueError(f"Invalid format: {format}. Use 'xml' or 'json'.")
 
-    def _to_dict(self) -> dict:
+    def _to_dict(self) -> Dict[str, Any]:
         """Serialize into dictionary."""
         data = self.model_dump(by_alias=True, exclude_none=True)
         return {
