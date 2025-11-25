@@ -1,56 +1,48 @@
 # MoreLikeThis (MLT)
 
-MoreLikeThis (MLT) surfaces documents that share significant terms with a seed document. It is ideal for recommendation widgets, related content rails, and exploratory search experiences.
+MoreLikeThis (MLT) surfaces documents that share significant terms with a seed document.
 
 **Solr Documentation**: [MoreLikeThis](https://solr.apache.org/guide/solr/latest/query-guide/morelikethis.html)
 
 ## Configuration Approaches
 
-You can enable MLT via config objects or fluent chaining—both styles produce identical request parameters, so choose the one that fits your codebase.
+=== "Constructor"
 
-### Constructor Pattern
+    ```python
+    from taiyo.parsers import StandardParser
+    from taiyo.params import MoreLikeThisParamsConfig
 
-Pass a `MoreLikeThisParamsConfig` instance to the parser constructor:
+    parser = StandardParser(
+        query="id:article-123",
+        configs=[
+            MoreLikeThisParamsConfig(
+                fields=["title", "content"],
+                min_term_freq=1,
+                min_doc_freq=1,
+                max_query_terms=20,
+                boost=True,
+                match_include=False,
+            )
+        ],
+    )
+    ```
 
-```python
-from taiyo.parsers import StandardParser
-from taiyo.params import MoreLikeThisParamsConfig
+=== "Chaining"
 
-parser = StandardParser(
-    query="id:article-123",
-    configs=[
-        MoreLikeThisParamsConfig(
-            fields=["title", "content"],
-            min_term_freq=1,
-            min_doc_freq=1,
-            max_query_terms=20,
-            boost=True,
-            match_include=False,
-        )
-    ],
-)
-```
+    ```python
+    from taiyo.parsers import StandardParser
 
-### Chaining Pattern
+    parser = StandardParser(query="id:article-123", rows=1).more_like_this(
+        fields=["title", "content"],
+        min_term_freq=1,
+        min_doc_freq=1,
+        max_query_terms=20,
+        boost=True,
+        match_include=False,
+    )
+    ```
 
-Use the `.more_like_this()` helper for a fluent style:
-
-```python
-from taiyo.parsers import StandardParser
-
-parser = StandardParser(query="id:article-123", rows=1).more_like_this(
-    fields=["title", "content"],
-    min_term_freq=1,
-    min_doc_freq=1,
-    max_query_terms=20,
-    boost=True,
-    match_include=False,
-)
-```
-
-## Basic Similarity Search
-
-The integration test `tests/integration/test_more_like_this.py` demonstrates an end-to-end flow that provisions a temporary collection, indexes sample articles, and asserts the quality of MLT matches. The core search logic looks like:
+## Basic Usage
 
 ```python
 parser = StandardParser(query=f"id:{target_id}", rows=1).more_like_this(
@@ -118,7 +110,8 @@ if related:
 
 When working with `interesting_terms="details"`, Solr returns a dictionary keyed by term with boost values. Taiyo surfaces those details in the `SolrMoreLikeThisResult` so you can inspect which tokens contributed to the similarity score.
 
-## Debugging & Validation
+## Next Steps
 
-- Inspect `response.extra` if you need raw payloads—typed helpers never strip information, they simply provide easier access.
-- Tune `min_term_freq`, `min_doc_freq`, and `max_doc_freq_pct` to balance precision and recall, especially when indexing heterogeneous content.
+- Learn about [Faceting](faceting.md) for aggregations
+- Explore [Grouping](grouping.md) for result organization
+- See [Highlighting](highlighting.md) for search snippets

@@ -1,54 +1,42 @@
 # Faceting
 
-Faceting provides aggregated counts of field values in search results, enabling powerful filtering and navigation capabilities for your search application.
+Faceting provides aggregated counts of field values in search results, enabling filtering and navigation.
 
 **Solr Documentation**: [Faceting](https://solr.apache.org/guide/solr/latest/query-guide/faceting.html)
 
 ## Configuration Approaches
 
-There are two ways to configure faceting:
+=== "Constructor"
 
-### Constructor Pattern
+    ```python
+    from taiyo.parsers import ExtendedDisMaxQueryParser
+    from taiyo.params import FacetParamsConfig
 
-Pass `FacetParamsConfig` objects directly to the parser constructor:
+    parser = ExtendedDisMaxQueryParser(
+        query="technology",
+        query_fields={"title": 2.0, "content": 1.0},
+        configs=[FacetParamsConfig(fields=["category", "author"], mincount=1)],
+    )
+    ```
+
+=== "Chaining"
+
+    ```python
+    from taiyo.parsers import ExtendedDisMaxQueryParser
+
+    parser = ExtendedDisMaxQueryParser(
+        query="technology", query_fields={"title": 2.0, "content": 1.0}
+    ).facet(fields=["category", "author"], mincount=1)
+    ```
+
+## Basic Usage
 
 ```python
 from taiyo.parsers import ExtendedDisMaxQueryParser
-from taiyo.params import FacetParamsConfig
 
-parser = ExtendedDisMaxQueryParser(
-    query="machine learning",
-    query_fields={"title": 2.0, "content": 1.0},
-    configs=[FacetParamsConfig(fields=["category", "author"], mincount=1, limit=20)],
-)
-```
-
-### Chaining Pattern
-
-Use the `.facet()` method on the parser:
-
-```python
-from taiyo.parsers import ExtendedDisMaxQueryParser
-
-parser = ExtendedDisMaxQueryParser(
-    query="machine learning", query_fields={"title": 2.0, "content": 1.0}
-).facet(fields=["category", "author"], mincount=1, limit=20)
-```
-
-Both approaches produce identical results. Use whichever style fits your codebase better.
-
-Faceting responses are exposed through `SolrResponse.facets`, which returns a
-`SolrFacetResult` object. Field facets map to `SolrFacetFieldResult` instances with typed
-`SolrFacetFieldValue` buckets, range facets return `SolrFacetRangeResult`, and JSON facets are
-available through the `json_facets` tree.
-
-## Basic Faceting
-
-```python
-# Using chaining
 parser = ExtendedDisMaxQueryParser(
     query="python", query_fields={"title": 2.0, "content": 1.0}
-).facet(fields=["category", "author", "year"], mincount=1, limit=20)
+).facet(fields=["category", "author"], mincount=1)
 
 results = client.search(parser)
 
@@ -60,528 +48,70 @@ if results.facets:
             print(f"{bucket.value}: {bucket.count}")
 ```
 
-## Facet Parameters
+## Key Parameters
 
 ```python
-from taiyo.params import FacetParamsConfig
-
-facet_config = FacetParamsConfig(
-    # Basic
+FacetParamsConfig(
     fields=["category", "author"],  # Fields to facet on
     mincount=1,  # Minimum count to include
-    limit=20,  # Max facets per field
-    # Sorting
+    limit=20,  # Max values per field
     sort="count",  # Sort by count or index
-    # Filtering
-    prefix="tech",  # Only values starting with prefix
-    contains="python",  # Only values containing string
-    # Advanced
-    missing=False,  # Include missing/null values
-    method="enum",  # Faceting method: enum, fc, fcs
-    offset=0,  # Pagination offset
+    # Range faceting
+    range_field=["price"],  # Fields for range faceting
+    range_start={"price": "0"},  # Lower bound per field
+    range_end={"price": "1000"},  # Upper bound per field
+    range_gap={"price": "100"},  # Range size per field
+    # Query faceting
+    queries=["price:[0 TO 50]", "price:[50 TO *]"],  # Arbitrary query facets
+    # Pivot faceting
+    pivot_fields=["category,brand"],  # Hierarchical facets
 )
 ```
 
-To customize individual fields, create additional `FacetParamsConfig` objects—each call to `.facet(...)` appends another configuration.
+Refer to the [Apache Solr documentation](https://solr.apache.org/guide/solr/latest/query-guide/faceting.html) for the full list of parameters and defaults.
 
-### Field Facets
+## Handling Results
 
-The most common type of faceting - count documents by field values:
+Facet responses are available through `SolrResponse.facets`:
 
-```python
-parser = ExtendedDisMaxQueryParser(
-    query="programming", query_fields={"title": 2.0, "content": 1.0}
-).facet(
-    fields=["category", "author", "tags"],
-    mincount=1,
-    limit=50,
-    sort="count",  # Most common values first
-)
+- `SolrResponse.facets.fields`: Field facets with term counts
+- `SolrResponse.facets.ranges`: Range facets with bucket counts
+- `SolrResponse.facets.queries`: Query facet counts
+- `SolrResponse.facets.pivots`: Hierarchical pivot facets
 
-results = client.search(parser)
-
-# Show facets
-facet_counts = results.facets
-if facet_counts:
-    for field in ["category", "author", "tags"]:
-        facet = facet_counts.fields.get(field)
-        if not facet:
-            continue
-
-        print(f"\n{field.title()}:")
-        for bucket in facet.buckets:
-            print(f"  {bucket.value}: {bucket.count}")
-```
-
-### Facet Sorting
-
-Control how facet values are sorted:
-
-```python
-# Sort by count (most common first)
-parser = parser.facet(fields=["category"], sort="count", limit=20)
-
-# Sort alphabetically
-parser = parser.facet(fields=["author"], sort="index", limit=20)
-
-# Per-field sorting (apply separate configurations)
-parser = parser.facet(fields=["category"], sort="count", limit=20)
-parser = parser.facet(fields=["author"], sort="index", limit=20)
-```
-
-### Filtering Facets
-
-Narrow down which facet values are returned:
-
-```python
-# Only values starting with a prefix
-parser = parser.facet(
-    fields=["category"],
-    prefix="tech",  # Only categories starting with "tech"
-    mincount=1,
-)
-
-# Only values containing a string
-parser = parser.facet(
-    fields=["title"],
-    contains="python",  # Only titles containing "python"
-    mincount=1,
-)
-
-# Exclude low-count values
-parser = parser.facet(
-    fields=["author"],
-    mincount=5,  # Only authors with 5+ documents
-    limit=20,
-)
-```
-
-### Facet Pagination
-
-Paginate through facet values:
-
-```python
-# Get first 20 facets
-parser = parser.facet(fields=["author"], limit=20, offset=0)
-
-# Get next 20 facets
-parser = parser.facet(fields=["author"], limit=20, offset=20)
-```
-
-### Per-Field Configuration
-
-Apply different settings by adding multiple facet configurations—each call targets a specific field:
-
-```python
-parser = parser.facet(fields=["category"], limit=50, sort="count", mincount=5)
-parser = parser.facet(fields=["author"], limit=20, sort="index", prefix="A")
-parser = parser.facet(fields=["tags"], limit=100, sort="count")
-```
-
-## Range Faceting
-
-Facet on numeric or date ranges:
-
-```python
-# Using constructor
-from taiyo.params import FacetParamsConfig
-
-parser = ExtendedDisMaxQueryParser(
-    query="products",
-    query_fields={"name": 2.0, "description": 1.0},
-    configs=[
-        FacetParamsConfig(
-            range_facets={
-                "price": {"start": 0, "end": 1000, "gap": 100},
-                "published_date": {
-                    "start": "NOW-1YEAR",
-                    "end": "NOW",
-                    "gap": "+1MONTH",
-                },
-            }
-        )
-    ],
-)
-
-results = client.search(parser)
-
-# Access range facets
-price_facet = results.facets.ranges.get("price") if results.facets else None
-if price_facet:
-    for bucket in price_facet.buckets:
-        print(f"${bucket.value}: {bucket.count} products")
-```
-
-### Numeric Ranges
-
-```python
-parser = parser.facet(
-    range_facets={
-        "price": {
-            "start": 0,
-            "end": 1000,
-            "gap": 100,  # $0-100, $100-200, etc.
-        },
-        "rating": {
-            "start": 0,
-            "end": 5,
-            "gap": 0.5,  # 0-0.5, 0.5-1.0, etc.
-        },
-        "views": {"start": 0, "end": 10000, "gap": 1000},
-    }
-)
-
-results = client.search(parser)
-
-# Show price ranges
-print("Price Distribution:")
-price_facet = results.facets.ranges.get("price") if results.facets else None
-if price_facet:
-    for bucket in price_facet.buckets:
-        print(f"  {bucket.value}: {bucket.count}")
-```
-
-### Date Ranges
-
-```python
-parser = parser.facet(
-    range_facets={
-        "published_date": {"start": "NOW-1YEAR", "end": "NOW", "gap": "+1MONTH"},
-        "last_modified": {"start": "NOW-30DAYS", "end": "NOW", "gap": "+1DAY"},
-        "created_date": {
-            "start": "2020-01-01T00:00:00Z",
-            "end": "2025-01-01T00:00:00Z",
-            "gap": "+1YEAR",
-        },
-    }
-)
-
-results = client.search(parser)
-
-# Show date ranges
-print("Published by Month:")
-date_facet = results.facets.ranges.get("published_date") if results.facets else None
-if date_facet:
-    for bucket in date_facet.buckets:
-        print(f"  {bucket.value}: {bucket.count} documents")
-```
-
-## Query Faceting
-
-Facet on arbitrary queries:
-
-```python
-parser = ExtendedDisMaxQueryParser(query="products", query_fields={"name": 2.0}).facet(
-    queries=[
-        "price:[0 TO 50]",
-        "price:[50 TO 100]",
-        "price:[100 TO 500]",
-        "price:[500 TO *]",
-    ]
-)
-
-results = client.search(parser)
-
-# Access query facets
-for query, count in results.facets.queries.items():
-    print(f"{query}: {count}")
-```
-
-### Complex Query Facets
-
-```python
-parser = parser.facet(
-    queries=[
-        # Price tiers
-        "price:[* TO 50] AND rating:[4 TO *]",  # Budget + Highly rated
-        "price:[50 TO 100] AND rating:[3 TO *]",  # Mid-range + Good
-        "price:[100 TO *] AND rating:[4.5 TO *]",  # Premium + Excellent
-        # Recency
-        "published_date:[NOW-7DAYS TO NOW]",  # This week
-        "published_date:[NOW-30DAYS TO NOW-7DAYS]",  # Last month
-        "published_date:[* TO NOW-30DAYS]",  # Older
-        # Popularity
-        "views:[1000 TO *]",  # Popular
-        "views:[100 TO 1000]",  # Moderate
-        "views:[* TO 100]",  # New/Unpopular
-    ]
-)
-
-results = client.search(parser)
-
-# Organize results
-print("Price Tiers:")
-for query, count in results.facets.queries.items():
-    if "price" in query:
-        print(f"  {query}: {count}")
-```
-
-## Pivot Faceting
-
-Create hierarchical facets (nested facets):
-
-```python
-from taiyo.params import FacetParamsConfig
-
-parser = ExtendedDisMaxQueryParser(
-    query="books",
-    query_fields={"title": 2.0},
-    configs=[FacetParamsConfig(pivot=["category,author", "year,category"], mincount=1)],
-)
-
-results = client.search(parser)
-
-# Navigate hierarchical facets
-for pivot in results.facets.pivots.get("category,author", []):
-    category = pivot["value"]
-    category_count = pivot["count"]
-    print(f"{category} ({category_count})")
-
-    for author_pivot in pivot.get("pivot", []):
-        author = author_pivot["value"]
-        author_count = author_pivot["count"]
-        print(f"  {author} ({author_count})")
-```
-
-### Multi-Level Pivots
-
-```python
-parser = parser.facet(
-    pivot=[
-        "category,subcategory,brand",  # Three levels
-        "year,month,day",  # Date hierarchy
-    ],
-    mincount=2,
-)
-
-results = client.search(parser)
-
-
-# Navigate three-level hierarchy
-def print_pivot(pivots, indent=0):
-    for pivot in pivots:
-        value = pivot["value"]
-        count = pivot["count"]
-        print("  " * indent + f"{value} ({count})")
-
-        if "pivot" in pivot:
-            print_pivot(pivot["pivot"], indent + 1)
-
-
-print("Category Hierarchy:")
-print_pivot(results.facets.pivots.get("category,subcategory,brand", []))
-```
-
-## Example
+Example:
 
 ```python
 from taiyo.parsers import ExtendedDisMaxQueryParser
-from taiyo.params import FacetParamsConfig
 
 parser = ExtendedDisMaxQueryParser(
-    query="python programming",
-    query_fields={"title": 3.0, "content": 1.0},
-    configs=[
-        FacetParamsConfig(
-            # Field facets
-            fields=["category", "author", "difficulty"],
-            mincount=1,
-            limit=20,
-            sort="count",
-            # Range facets
-            range_facets={
-                "published_year": {"start": 2015, "end": 2025, "gap": 1},
-                "page_count": {"start": 0, "end": 1000, "gap": 100},
-            },
-            # Query facets
-            queries=["rating:[9 TO *]", "rating:[7 TO 9]", "rating:[* TO 7]"],
-            # Pivot facets
-            pivot=["category,difficulty"],
-        )
-    ],
+    query="products",
+    query_fields={"name": 2.0},
+).facet(
+    fields=["category", "brand"],
+    range_field=["price"],
+    range_start={"price": "0"},
+    range_end={"price": "1000"},
+    range_gap={"price": "100"},
+    mincount=1,
 )
 
 results = client.search(parser)
 
-# Process all facet types
-print("=== Field Facets ===")
-print("\nCategories:")
-facet_counts = results.facets
-if facet_counts:
-    category_facet = facet_counts.fields.get("category")
+if results.facets:
+    # Field facets
+    category_facet = results.facets.fields.get("category")
     if category_facet:
+        print("Categories:")
         for bucket in category_facet.buckets:
             print(f"  {bucket.value}: {bucket.count}")
 
-print("\n=== Range Facets ===")
-print("\nBy Year:")
-year_facet = facet_counts.ranges.get("published_year") if facet_counts else None
-if year_facet:
-    for bucket in year_facet.buckets:
-        print(f"  {bucket.value}: {bucket.count}")
-
-print("\n=== Query Facets ===")
-print("\nBy Rating:")
-if facet_counts:
-    for query, count in facet_counts.queries.items():
-        print(f"  {query}: {count}")
-
-print("\n=== Pivot Facets ===")
-print("\nCategory → Difficulty:")
-category_pivots = (
-    facet_counts.pivots.get("category,difficulty", []) if facet_counts else []
-)
-for category_pivot in category_pivots:
-    category = category_pivot["value"]
-    cat_count = category_pivot["count"]
-    print(f"\n{category} ({cat_count})")
-
-    for diff_pivot in category_pivot.get("pivot", []):
-        difficulty = diff_pivot["value"]
-        diff_count = diff_pivot["count"]
-        print(f"  {difficulty}: {diff_count}")
-```
-
-## Best Practices
-
-### Limit Facet Values
-
-```python
-# Don't request unlimited facets
-parser = parser.facet(
-    fields=["category"],
-    limit=50,  # Top 50 values
-    mincount=1,  # Exclude zero counts
-    sort="count",  # Most common first
-)
-```
-
-### Layer Configurations
-
-```python
-# Different fields need different settings—stack facet configs
-parser = parser.facet(fields=["category"], limit=20, sort="count")
-parser = parser.facet(fields=["author"], limit=10, sort="index")
-parser = parser.facet(fields=["tags"], limit=100, mincount=5)
-```
-
-### Filter Before Faceting
-
-```python
-# Apply filters to reduce faceting work
-parser = ExtendedDisMaxQueryParser(
-    query="programming",
-    query_fields={"title": 2.0},
-    filters=["status:published", "language:en"],
-).facet(fields=["category", "author"], mincount=1)
-```
-
-### Choose Appropriate Facet Methods
-
-```python
-# For low-cardinality fields (few unique values)
-parser = parser.facet(
-    fields=["category"],
-    method="enum",  # Good for low cardinality
-    limit=20,
-)
-
-# For high-cardinality fields (many unique values)
-parser = parser.facet(
-    fields=["author"],
-    method="fc",  # Better for high cardinality
-    limit=50,
-)
-```
-
-### Use Range Facets for Continuous Data
-
-Use range facets for continuous numeric fields:
-
-```python
-parser = parser.facet(range_facets={"price": {"start": 0, "end": 1000, "gap": 50}})
-```
-
-Avoid faceting directly on high-cardinality numeric fields without ranges.
-```
-
-## Common Patterns
-
-### E-commerce Filters
-
-```python
-def search_products(query: str, category: str = None):
-    """Product search with faceted filters."""
-    # Apply category filter if specified
-    filters = ["status:available"]
-    if category:
-        filters.append(f"category:{category}")
-
-    base_parser = ExtendedDisMaxQueryParser(
-        query=query, query_fields={"name": 3.0, "description": 1.0}, filters=filters
-    )
-
-    parser = base_parser.facet(
-        fields=["category", "brand", "color", "size"],
-        range_facets={"price": {"start": 0, "end": 1000, "gap": 50}},
-        queries=[
-            "rating:[4 TO *]",  # Highly rated
-            "in_stock:true",  # Available
-            "on_sale:true",  # On sale
-        ],
-        mincount=1,
-        limit=50,
-    )
-
-    return client.search(parser)
-```
-
-### Document Library
-
-```python
-def search_documents(query: str):
-    """Document search with faceted navigation."""
-    parser = (
-        ExtendedDisMaxQueryParser(
-            query=query, query_fields={"title": 3.0, "content": 1.0, "author": 2.0}
-        )
-        .facet(
-            fields=["category", "author", "document_type"],
-            range_facets={
-                "published_date": {"start": "NOW-5YEARS", "end": "NOW", "gap": "+1YEAR"}
-            },
-            pivot=["category,document_type"],
-            mincount=1,
-        )
-        .facet(fields=["category"], limit=20, sort="count")
-        .facet(fields=["author"], limit=50, sort="index")
-    )
-
-    return client.search(parser)
-```
-
-### Blog/News Site
-
-```python
-def search_articles(query: str):
-    """Article search with temporal facets."""
-    parser = ExtendedDisMaxQueryParser(
-        query=query, query_fields={"title": 3.0, "body": 1.0, "tags": 2.0}
-    ).facet(
-        fields=["category", "author", "tags"],
-        range_facets={
-            "published_date": {"start": "NOW-1YEAR", "end": "NOW", "gap": "+1MONTH"}
-        },
-        queries=[
-            "published_date:[NOW-7DAYS TO NOW]",  # This week
-            "published_date:[NOW-30DAYS TO NOW]",  # This month
-            "featured:true",  # Featured
-            "views:[1000 TO *]",  # Popular
-        ],
-        mincount=1,
-    )
-
-    return client.search(parser)
+    # Range facets
+    price_facet = results.facets.ranges.get("price")
+    if price_facet:
+        print("\nPrice Ranges:")
+        for bucket in price_facet.buckets:
+            print(f"  ${bucket.value}: {bucket.count}")
 ```
 
 ## Next Steps
