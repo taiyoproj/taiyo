@@ -70,15 +70,12 @@ publish:
 	uv publish
 
 # Documentation
-.PHONY: docs docs-serve docs-clean docs-format
+.PHONY: docs docs-serve docs-format
 docs:
-	uv run zensical build
+	uv run zensical build --clean
 
 docs-serve:
 	uv run zensical serve
-
-docs-clean:
-	uv run zensical clean
 
 docs-format:
 	python scripts/format_docs.py
