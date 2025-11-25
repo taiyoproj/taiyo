@@ -1,5 +1,6 @@
 import httpx
 from typing import Any, Dict, List, Optional, Union, Type
+from typing_extensions import Self
 
 from taiyo.parsers.base import BaseQueryParser
 from ..types import SolrDocument, SolrResponse, SolrError, DocumentT
@@ -57,13 +58,13 @@ class AsyncSolrClient(BaseSolrClient):
         if auth:
             auth.apply(self)
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Self:
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         await self.close()
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the underlying HTTP client."""
         await self._client.aclose()
 
@@ -440,13 +441,13 @@ class SolrClient(BaseSolrClient):
         if auth:
             auth.apply(self)
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         """Close the underlying HTTP client."""
         self._client.close()
 

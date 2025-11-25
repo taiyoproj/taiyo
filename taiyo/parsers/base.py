@@ -28,7 +28,7 @@ class BaseQueryParser(CommonParamsMixin):
         params.update(updates)
         return params
 
-    def build(self, *args, **kwargs) -> dict[str, Any]:
+    def build(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
         """
         Serialize the parser configuration to Solr-compatible query parameters using Pydantic's model_dump.
         """

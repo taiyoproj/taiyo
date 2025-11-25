@@ -49,7 +49,7 @@ class CharFilter(BaseModel):
 
     @field_validator("solr_class", mode="before")
     @classmethod
-    def validate_class(cls, v):
+    def validate_class(cls, v: Any) -> Any:
         """Accept both enum and string values."""
         if isinstance(v, SolrCharFilterFactory):
             return v.value
@@ -112,7 +112,7 @@ class Tokenizer(BaseModel):
 
     @field_validator("solr_class", mode="before")
     @classmethod
-    def validate_class(cls, v):
+    def validate_class(cls, v: Any) -> Any:
         """Accept both enum and string values."""
         if isinstance(v, SolrTokenizerFactory):
             return v.value
@@ -186,7 +186,7 @@ class Filter(BaseModel):
 
     @field_validator("solr_class", mode="before")
     @classmethod
-    def validate_class(cls, v):
+    def validate_class(cls, v: Any) -> Any:
         """Accept both enum and string values."""
         if isinstance(v, SolrFilterFactory):
             return v.value
@@ -397,7 +397,7 @@ class SolrFieldType(BaseModel):
 
     @field_validator("solr_class", mode="before")
     @classmethod
-    def validate_field_class(cls, v):
+    def validate_field_class(cls, v: Any) -> Any:
         """Accept both enum and string values."""
         if isinstance(v, SolrFieldClass):
             return v.value

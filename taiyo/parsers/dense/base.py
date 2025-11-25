@@ -1,9 +1,10 @@
+from typing import Any, Dict
 from taiyo.parsers.base import BaseQueryParser
 from taiyo.params import DenseVectorSearchParamsMixin
 
 
 class DenseVectorSearchQueryParser(BaseQueryParser, DenseVectorSearchParamsMixin):
-    def build(self, *args, **kwargs):
+    def build(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
         params = self.model_dump(
             by_alias=True,
             exclude_none=True,

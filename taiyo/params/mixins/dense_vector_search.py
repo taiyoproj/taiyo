@@ -42,7 +42,7 @@ class DenseVectorSearchParamsMixin(ParamsMixin):
         return " ".join(res)
 
     @classmethod
-    def get_mixin_keys(self):
+    def get_mixin_keys(cls) -> List[str]:
         return list(DenseVectorSearchParamsMixin.model_computed_fields.keys()) + list(
             DenseVectorSearchParamsMixin.__annotations__.keys()
         )

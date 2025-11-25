@@ -212,6 +212,6 @@ class BaseSolrClient:
         return params
 
     @abstractmethod
-    def close(self):
+    def close(self) -> None:
         """Close the underlying HTTP client."""
         pass

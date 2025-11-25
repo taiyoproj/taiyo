@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from taiyo.parsers.base import BaseQueryParser
 from taiyo.params import SpatialSearchParamsMixin
 
@@ -5,7 +6,7 @@ from taiyo.params import SpatialSearchParamsMixin
 class SpatialQueryParser(BaseQueryParser, SpatialSearchParamsMixin):
     """Base class for spatial query parsers (geofilt, bbox)."""
 
-    def build(self, *args, **kwargs):
+    def build(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
         """Build query parameters, excluding mixin keys."""
         params = self.model_dump(
             by_alias=True,
