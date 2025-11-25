@@ -47,7 +47,6 @@ class SpatialSearchParamsMixin(ParamsMixin):
         return ",".join([str(v) for v in values])
 
     @computed_field
-    @property
     def spatial_params(self) -> str:
         """Build the spatial search parameters string for use in filter queries."""
         params = self.model_dump(

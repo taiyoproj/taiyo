@@ -115,7 +115,6 @@ class DisMaxQueryParser(BaseQueryParser):
     )
 
     @computed_field(alias="defType")
-    @property
     def def_type(self) -> Literal["dismax"]:
         return "dismax"
 

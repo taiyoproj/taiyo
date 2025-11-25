@@ -125,6 +125,5 @@ class ExtendedDisMaxQueryParser(DisMaxQueryParser):
     )
 
     @computed_field(alias="defType")
-    @property
     def def_type(self) -> Literal["edismax"]:
         return "edismax"

@@ -106,6 +106,5 @@ class KNNQueryParser(DenseVectorSearchQueryParser):
     _def_type: Literal["knn"] = "knn"
 
     @computed_field(alias="q")
-    @property
     def query(self) -> str:
         return f"{{!{self._def_type} topK={self.top_k} {self.vector_search_params}}}{self.vector}"

@@ -116,12 +116,10 @@ class GeoFilterQueryParser(SpatialQueryParser):
     )
 
     @computed_field(alias="q")
-    @property
     def query(self) -> str:
         return "*:*"
 
     @computed_field(alias="fq")
-    @property
     def filter_query(self) -> str:
         params = self.spatial_params
         params_str = f" {params}" if params else ""
