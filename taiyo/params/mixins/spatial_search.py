@@ -50,7 +50,7 @@ class SpatialSearchParamsMixin(ParamsMixin):
     def spatial_params(self) -> str:
         """Build the spatial search parameters string for use in filter queries."""
         params = self.model_dump(
-            include=SpatialSearchParamsMixin.__annotations__.keys(),
+            include=set(SpatialSearchParamsMixin.__annotations__.keys()),
             by_alias=True,
             exclude_computed_fields=True,
             exclude_none=True,

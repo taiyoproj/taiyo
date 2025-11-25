@@ -15,7 +15,7 @@ from taiyo.params.mixins.common import CommonParamsMixin
 class BaseQueryParser(CommonParamsMixin):
     model_config = ConfigDict(validate_by_alias=False, extra="forbid")
 
-    configs: Optional[list[ParamsConfig]] = []
+    configs: list[ParamsConfig] = []
 
     def serialize_configs(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Serialize ParamsConfig objects as top level params."""
