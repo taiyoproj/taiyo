@@ -5,7 +5,7 @@
 <h1 align="center">Taiyo</h1>
 
 <p align="center">
-  Modern Python client for Apache Solr with sync and async support, built with httpx and Pydantic.
+  Modern Python client for Apache Solr with type-safety and async support, built with httpx and Pydantic.
 </p>
 
 ---
