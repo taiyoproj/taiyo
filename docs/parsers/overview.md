@@ -29,6 +29,35 @@ For location-based search:
 - **[GeoFilterQueryParser](spatial.md#geofilterqueryparser)** (`geofilt`): Radial/circle spatial filter
 - **[BBoxQueryParser](spatial.md#bboxqueryparser)** (`bbox`): Bounding box spatial filter
 
+
+### Terms Query Parser
+
+For efficient multi-value term matching (IDs, tags, categories):
+
+- **[TermsQueryParser](terms.md#termsqueryparser)** (`terms`): Efficiently matches documents where a field contains any of a provided list of terms. Supports custom separators, multiple query methods, docValues, and appends the terms filter to any additional filters.
+
+#### Example
+
+```python
+from taiyo.parsers import TermsQueryParser
+
+parser = TermsQueryParser(
+    field="tags",
+    terms=["python", "java", "rust"],
+    query="inStock:true",
+    filters=["category:books"],
+    rows=10,
+    sort="price asc",
+)
+
+results = client.search(parser)
+for doc in results.docs:
+    print(doc.product_id, doc.name)
+```
+
+- Supports method chaining for faceting, grouping, highlighting, and more.
+- See [TermsQueryParser documentation](terms.md#termsqueryparser) for full API, usage, and integration test coverage.
+
 ## Quick Start
 
 ### Basic Query String

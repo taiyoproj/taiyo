@@ -5,6 +5,7 @@ from .dense import (
     VectorSimilarityQueryParser,
 )
 from .spatial import GeoFilterQueryParser
+from .terms import TermsQueryParser
 from .base import BaseQueryParser
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "KNNTextToVectorQueryParser",
     "VectorSimilarityQueryParser",
     "GeoFilterQueryParser",
+    "TermsQueryParser",
 ]

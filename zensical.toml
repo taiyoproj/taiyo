@@ -64,7 +64,8 @@ nav = [
         "parsers/overview.md",
         "parsers/sparse.md",
         "parsers/dense.md",
-        "parsers/spatial.md"
+        "parsers/spatial.md",
+        "parsers/terms.md",
     ]},
     {"Controlling Results" = [
         "controlling-results/grouping.md",
