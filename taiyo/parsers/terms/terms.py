@@ -141,10 +141,14 @@ class TermsQueryParser(BaseQueryParser):
         return params
 
     @computed_field(alias="fq")
-    def filter_query(self) -> str | List[str]:
+    def filter_query(self) -> str | list[str]:
         opts = [f"f={self.field}"]
         if self.method:
             opts.append(f"method={self.method}")
 
         fq = f"{{!terms {' '.join(opts)}}}{self.separator.join(self.terms)}"
-        return self.filters.extend(fq) if self.filters else fq
+        if self.filters:
+            # Return a new list: all filters + terms filter
+            return list(self.filters) + [fq]
+        else:
+            return fq

@@ -191,9 +191,8 @@ class TestTermsQueryParserCommonParams:
         )
         params = parser.build()
 
-        # fq should be a single string for the terms query
-        # Additional filters are added separately
-        assert params["fq"] == "{!terms f=product_id}P123,P456"
+        # fq should be a list: all filters + terms filter
+        assert params["fq"] == ["status:active", "inStock:true", "{!terms f=product_id}P123,P456"]
 
     def test_with_field_list(self):
         """Test with field list."""
@@ -328,7 +327,7 @@ class TestTermsQueryParserCombinations:
         params = parser.build()
 
         assert params["q"] == "status:active"
-        assert params["fq"] == "{!terms f=tags method=booleanQuery}tag1,tag2,tag3"
+        assert params["fq"] == ["inStock:true", "{!terms f=tags method=booleanQuery}tag1,tag2,tag3"]
         # field 'f' is excluded from top-level params (only in fq local params)
         assert params["method"] == "booleanQuery"
         assert params["rows"] == 50
