@@ -63,9 +63,11 @@ for doc in results.docs:
 ### Grouping Example
 
 ```python
-parser = TermsQueryParser(field="category", terms=["books", "electronics"]).group(
-    by="brand", limit=3
-)
+parser = TermsQueryParser(
+    field="category",
+    terms=["books", "electronics"]
+).group(by="brand", limit=3)
+
 results = client.search(parser, document_model=Product)
 if results.extra and "grouped" in results.extra:
     for brand, group_data in results.extra["grouped"].items():
