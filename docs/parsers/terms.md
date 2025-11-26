@@ -5,12 +5,12 @@
 
 The `TermsQueryParser` efficiently matches documents where a specified field contains any of a provided list of terms. It is ideal for filtering by IDs, tags, categories, or batch lookups.
 
-- **Solr Reference:** [Terms Query Parser](https://solr.apache.org/guide/solr/latest/query-guide/other-parsers.html#terms-query-parser)
 - **Supported Features:** Multi-value matching, configurable separator, multiple query methods, docValues support, filter appending.
 
-## API
+**Solr Reference:** [Terms Query Parser](https://solr.apache.org/guide/solr/latest/query-guide/other-parsers.html#terms-query-parser)
 
-### Constructor
+
+## Basic Usage 
 
 ```python
 TermsQueryParser(
@@ -20,10 +20,6 @@ TermsQueryParser(
     separator: str = ",",      # Separator for joining terms (default: ',')
     method: Optional[str] = None,  # Query implementation method
     filters: Optional[list[str]] = None,  # Additional filters (appends terms filter)
-    rows: Optional[int] = None,
-    start: Optional[int] = None,
-    field_list: Optional[list[str]] = None,
-    sort: Optional[str] = None,
 )
 ```
 
@@ -38,7 +34,7 @@ TermsQueryParser(
 | `docValuesTermsFilterPerSegment` | Per-segment docValues filtering               | Large indices, docValues fields |
 | `docValuesTermsFilterTopLevel`   | Top-level docValues filtering                 | Small indices, docValues fields |
 
-## Usage Examples
+## Examples
 
 
 ### Basic Tag Search with Document Model
@@ -97,7 +93,7 @@ parser = TermsQueryParser(
 results = client.search(parser)
 ```
 
-### Product ID Filtering
+### ID Filtering
 
 ```python
 parser = TermsQueryParser(field="product_id", terms=["P001", "P003", "P005"])
