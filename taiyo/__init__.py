@@ -45,6 +45,7 @@ from .parsers import (
     DisMaxQueryParser,
     ExtendedDisMaxQueryParser,
     GeoFilterQueryParser,
+    TermsQueryParser,
 )
 
 __version__ = "0.1.0"
@@ -77,6 +78,7 @@ __all__ = [
     "KNNTextToVectorQueryParser",
     "VectorSimilarityQueryParser",
     "GeoFilterQueryParser",
+    "TermsQueryParser",
     # Configs
     "FacetParamsConfig",
     "FacetMethod",
