@@ -121,9 +121,9 @@ except SolrError as e:
 
 ## Next Steps
 
-- Learn about [Clients](clients.md) for more client configuration options
+- Learn about [Clients](overview.md) for more client configuration options
 - Explore [Data Models](models.md) for type-safe document handling
-- See [Query Parsers](parsers/query-parsers.md) for advanced search capabilities
+- See [Query Parsers](../parsers/overview.md) for advanced search capabilities
 
 
 ## Solr References

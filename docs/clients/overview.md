@@ -881,4 +881,4 @@ Enable HTTP/2 for better performance:
 
 - Learn about [Authentication](auth.md) options
 - Explore [Data Models](models.md) for type-safe documents
-- Master [Query Parsers](parsers/query-parsers.md) for powerful searches
+- Master [Query Parsers](../parsers/overview.md) for powerful searches

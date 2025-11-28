@@ -483,6 +483,6 @@ client.add_field(field)
 
 ## Next Steps
 
-- Learn about [Data Models](models.md) to use your schema with type-safe documents
-- Explore [Query Parsers](parsers/query-parsers.md) to search your indexed data
-- See [Clients](clients.md) for indexing documents with your schema
+- Learn about [Data Models](../clients/models.md) to use your schema with type-safe documents
+- Explore [Query Parsers](../parsers/overview.md) to search your indexed data
+- See [Clients](../clients/overview.md) for indexing documents with your schema
