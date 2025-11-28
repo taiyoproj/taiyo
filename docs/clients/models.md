@@ -337,6 +337,6 @@ class Article(SolrDocument):
 
 ## Next Steps
 
-- Learn about [Schema Management](schema.md) to define your Solr schema
-- Explore [Query Parsers](parsers/query-parsers.md) for searching documents
-- See [Clients](clients.md) for indexing and retrieving documents
+- Learn about [Schema Management](../indexing/schema.md) to define your Solr schema
+- Explore [Query Parsers](../parsers/overview.md) for searching documents
+- See [Clients](overview.md) for indexing and retrieving documents

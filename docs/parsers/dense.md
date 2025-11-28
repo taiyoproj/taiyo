@@ -446,5 +446,5 @@ results = client.search(reranked_parser)
 
 - Learn about [Sparse Parsers](sparse.md) for keyword search
 - Explore [Spatial Parsers](spatial.md) for geographic queries
-- Add [Faceting](../faceting.md) for aggregations
-- Use [Highlighting](../highlighting.md) for result snippets
+- Add [Faceting](../controlling-results/faceting.md) for aggregations
+- Use [Highlighting](../controlling-results/highlighting.md) for result snippets

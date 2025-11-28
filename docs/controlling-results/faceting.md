@@ -118,4 +118,4 @@ if results.facets:
 
 - Learn about [Grouping](grouping.md) for result de-duplication
 - Explore [Highlighting](highlighting.md) for search snippets
-- See [Query Parsers](parsers/query-parsers.md) for search options
+- See [Query Parsers](../parsers/overview.md) for search options

@@ -240,5 +240,5 @@ for doc in results.docs:
 
 - Learn about [Sparse Parsers](sparse.md) for keyword search
 - Explore [Dense Parsers](dense.md) for vector similarity search
-- Add [Faceting](../faceting.md) for filtering options
-- Use [Grouping](../grouping.md) for organizing results
+- Add [Faceting](../controlling-results/faceting.md) for filtering options
+- Use [Grouping](../controlling-results/grouping.md) for organizing results

@@ -494,6 +494,6 @@ parser = DisMaxQueryParser(
 
 - Learn about [Dense Parsers](dense.md) for vector similarity search
 - Explore [Spatial Parsers](spatial.md) for geographic queries
-- Add [Faceting](../faceting.md) for aggregations and filters
-- Use [Grouping](../grouping.md) for result organization
-- Enable [Highlighting](../highlighting.md) for search snippets
+- Add [Faceting](../controlling-results/faceting.md) for aggregations and filters
+- Use [Grouping](../controlling-results/grouping.md) for result organization
+- Enable [Highlighting](../controlling-results/highlighting.md) for search snippets

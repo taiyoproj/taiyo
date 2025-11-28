@@ -123,4 +123,4 @@ for doc in results.docs:
 
 - Learn about [Faceting](faceting.md) for aggregations
 - Explore [Grouping](grouping.md) for result organization
-- See [Query Parsers](parsers/query-parsers.md) for search options
+- See [Query Parsers](../parsers/overview.md) for search options

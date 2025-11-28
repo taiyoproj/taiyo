@@ -311,4 +311,4 @@ Dive deeper into specific parser types:
 - **[Sparse Parsers](sparse.md)**: Standard, DisMax, and Extended DisMax
 - **[Dense Parsers](dense.md)**: KNN and vector similarity
 - **[Spatial Parsers](spatial.md)**: Geographic and location-based search
-- **[Mixins and Configs](../mixins-and-configs.md)**: Faceting, grouping, highlighting
+- **[Controlling Results](../controlling-results/faceting.md)**: Faceting, grouping, highlighting
