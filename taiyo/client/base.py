@@ -90,6 +90,7 @@ class BaseSolrClient(Generic[ClientT]):
         docs: list[DocumentT] = []
         num_found: int = 0
         start: int = 0
+        grouping_result = None
 
         if "response" in response:
             # Standard search response
@@ -103,11 +104,41 @@ class BaseSolrClient(Generic[ClientT]):
             num_found = response["response"]["numFound"]
             start = response["response"]["start"]
         elif "grouped" in response:
-            # Grouped response; flatten docs for convenience
-            for _group_field, grouped_data in response["grouped"].items():
-                groups = grouped_data.get("groups", [])
-                for g in groups:
-                    doclist = g.get("doclist", {})
+            from taiyo.types import SolrGroup, SolrGroupedField, SolrGroupingResult
+
+            grouped_fields = {}
+            for group_field, grouped_data in response["grouped"].items():
+                groups = []
+                if "groups" in grouped_data:
+                    for g in grouped_data.get("groups", []):
+                        doclist = g.get("doclist", {})
+                        for doc in doclist.get("docs", []):
+                            try:
+                                docs.append(
+                                    document_model.model_validate(doc, by_name=True)
+                                )
+                            except ValidationError:
+                                docs.append(
+                                    document_model.model_validate(doc, by_alias=True)
+                                )
+                            except Exception:
+                                raise
+                        num_found += int(doclist.get("numFound", 0))
+                        groups.append(
+                            SolrGroup(
+                                group_value=g.get("groupValue"),
+                                doclist=doclist,
+                                group_offset=g.get("groupOffset"),
+                            )
+                        )
+                    grouped_fields[group_field] = SolrGroupedField(
+                        matches=grouped_data.get("matches", 0),
+                        groups=groups,
+                        ngroups=grouped_data.get("ngroups"),
+                        facet=grouped_data.get("facet"),
+                    )
+                elif "doclist" in grouped_data:
+                    doclist = grouped_data.get("doclist", {})
                     for doc in doclist.get("docs", []):
                         try:
                             docs.append(
@@ -120,6 +151,21 @@ class BaseSolrClient(Generic[ClientT]):
                         except Exception:
                             raise
                     num_found += int(doclist.get("numFound", 0))
+                    grouped_fields[group_field] = SolrGroupedField(
+                        matches=grouped_data.get("matches", 0),
+                        doclist=doclist,
+                        ngroups=grouped_data.get("ngroups"),
+                        facet=grouped_data.get("facet"),
+                    )
+            # Top-level grouping params
+            grouping_result = SolrGroupingResult(
+                grouped=grouped_fields,
+                group_sort=response.get("group.sort"),
+                group_limit=response.get("group.limit"),
+                group_offset=response.get("group.offset"),
+                group_format=response.get("group.format"),
+                distributed_caveats=response.get("distributed_caveats"),
+            )
             start = 0
         else:
             # Unknown format; attempt to be graceful
@@ -172,7 +218,7 @@ class BaseSolrClient(Generic[ClientT]):
             facets=facets,
             highlighting=response.get("highlighting"),
             more_like_this=more_like_this or None,
-            extra=response,
+            grouping=grouping_result,
         )
 
     @staticmethod
