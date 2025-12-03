@@ -234,7 +234,8 @@ client = SolrClient(
 ## See Also
 
 - [Query Parsers](parsers/overview.md) - Advanced query syntax and parser configuration
+- [Grouping](controlling-results/grouping.md) - Grouping results
 - [Faceting](controlling-results/faceting.md) - Result aggregation and filtering
-- [Highlighting](controlling-results/highlighting.md) - Text snippet highlighting  
+- [Highlighting](controlling-results/highlighting.md) - Text snippet highlighting
 - [Schema Management](schema.md) - Field and type definitions
 - [Clients Guide](clients/overview.md) - Client configuration and authentication

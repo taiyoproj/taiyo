@@ -42,14 +42,15 @@ parser = ExtendedDisMaxQueryParser(
 
 results = client.search(parser)
 
-# Access grouped results
-if results.extra and "grouped" in results.extra:
-    for group in results.extra["grouped"]["author"]["groups"]:
-        author = group["groupValue"]
-        docs = group["doclist"]["docs"]
+# Access grouped results (typed)
+if results.grouping:
+    author_group = results.grouping.grouped["author"]
+    for group in author_group.groups:
+        author = group.group_value
+        docs = group.doclist["docs"]
         print(f"\n{author} ({len(docs)} results)")
         for doc in docs:
-            print(f"  - {doc.title}")
+            print(f"  - {doc['title']}")
 ```
 
 ## Key Parameters
@@ -76,18 +77,16 @@ Refer to the [Apache Solr documentation](https://solr.apache.org/guide/solr/late
 
 ## Handling Results
 
-Grouping responses are available through `SolrResponse.extra["grouped"]`:
+Grouping responses are available through `SolrResponse.grouping`:
 
 - `SolrResponse.docs`: Flattened list of all documents across groups
-- `SolrResponse.extra["grouped"][field_name]`: Grouped results by field
-- Each group contains `groupValue`, `doclist` with nested documents and counts
+- `SolrResponse.grouping.grouped[field_name]`: Grouped results by field (typed)
+- Each group is a `SolrGroup` with `group_value`, `doclist` (with nested docs/counts)
 - `ngroups`: Total number of unique groups when enabled
 
 Example:
 
 ```python
-from taiyo.parsers import ExtendedDisMaxQueryParser
-
 parser = ExtendedDisMaxQueryParser(
     query="python", query_fields={"title": 2.0, "content": 1.0}
 ).group(
@@ -99,20 +98,17 @@ parser = ExtendedDisMaxQueryParser(
 
 results = client.search(parser)
 
-if results.extra and "grouped" in results.extra:
-    grouped_data = results.extra["grouped"]["author"]
-
+if results.grouping:
+    author_group = results.grouping.grouped["author"]
     # Total number of groups
-    if "ngroups" in grouped_data:
-        print(f"Found {grouped_data['ngroups']} authors\n")
-
+    if author_group.ngroups is not None:
+        print(f"Found {author_group.ngroups} authors\n")
     # Iterate through groups
-    for group in grouped_data["groups"]:
-        author = group["groupValue"]
-        doclist = group["doclist"]
+    for group in author_group.groups:
+        author = group.group_value
+        doclist = group.doclist
         total = doclist["numFound"]
         docs = doclist["docs"]
-
         print(f"\n{author} ({total} total)")
         for doc in docs:
             print(f"  - {doc['title']}")
@@ -127,10 +123,10 @@ parser = ExtendedDisMaxQueryParser(
 
 results = client.search(parser)
 
-if results.extra and "grouped" in results.extra:
+if results.grouping:
     for query_str in ["category:programming", "category:databases"]:
-        group = results.extra["grouped"][query_str]
-        print(f"{query_str}: {group['matches']} matches")
+        group = results.grouping.grouped[query_str]
+        print(f"{query_str}: {group.matches} matches")
 ```
 
 ## Next Steps
