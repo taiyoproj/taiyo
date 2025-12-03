@@ -1,6 +1,6 @@
 [project]
 name = "taiyo"
-version = "0.1.4"
+version = "0.1.5"
 description = "Modern Python client for Apache Solr with type safety and async support, built with httpx and Pydantic"
 authors = [
     {name = "KengoA", email = "kengo@hey.com"}
