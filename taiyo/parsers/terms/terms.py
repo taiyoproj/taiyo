@@ -1,4 +1,4 @@
-from typing import List, Optional, Literal, Any, Dict
+from typing import Optional, Literal, Any, Dict
 from pydantic import Field, computed_field
 from taiyo.parsers.base import BaseQueryParser
 

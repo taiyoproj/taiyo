@@ -111,8 +111,7 @@ def test_more_like_this_returns_related_articles():
             response = client.search(parser, document_model=Article)
             assert response.status == 0
 
-            extra = response.extra or {}
-
+            # Use typed response fields for MoreLikeThis
             assert response.more_like_this is not None
             assert target_id in response.more_like_this
 
@@ -126,21 +125,6 @@ def test_more_like_this_returns_related_articles():
             assert docs[2].id not in similar_ids
             assert docs[0].id not in similar_ids
 
-            params = (extra.get("responseHeader") or {}).get("params", {})
-            assert params.get("mlt") == "true"
-
-            mlt_fields_raw = params.get("mlt.fl")
-            if isinstance(mlt_fields_raw, str):
-                tokens = {
-                    token.strip()
-                    for token in mlt_fields_raw.replace(",", " ").split()
-                    if token.strip()
-                }
-            elif isinstance(mlt_fields_raw, list):
-                tokens = {str(token) for token in mlt_fields_raw}
-            else:
-                tokens = set()
-            assert {"title", "content"}.issubset(tokens)
         finally:
             if collection:
                 try:

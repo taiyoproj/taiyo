@@ -382,7 +382,7 @@ class SolrResponse(BaseModel, Generic[DocumentT]):
     more_like_this: Optional[Dict[str, SolrMoreLikeThisResult[DocumentT]]] = Field(
         default=None, alias="moreLikeThis"
     )
-    extra: Optional[Dict[str, Any]] = None
+    grouping: Optional[SolrGroupingResult] = None
 
     model_config = ConfigDict(populate_by_name=True, validate_by_name=True)
 
@@ -399,3 +399,98 @@ class SolrError(Exception):
         super().__init__(message)
         self.status_code = status_code
         self.response = response
+
+
+class SolrGroup(BaseModel):
+    """
+    Represents a single group in a Solr grouping response.
+
+    Fields:
+        group_value: The value of the group (e.g., the field value grouped by).
+        doclist: Document list and metadata for this group, including:
+            - numFound: Number of documents in this group.
+            - start: Offset of the first document in this group.
+            - docs: List of documents in this group.
+        group_offset: Optional offset for the document list of this group (from group.offset param).
+    """
+
+    group_value: Optional[Any] = Field(
+        default=None,
+        alias="groupValue",
+        description="The value of the group (e.g., the field value grouped by)",
+    )
+    doclist: Dict[str, Any] = Field(
+        description="Document list and metadata for this group, including numFound, start, docs"
+    )
+    group_offset: Optional[int] = Field(
+        default=None,
+        description="Offset for the document list of this group (from group.offset param)",
+    )
+
+
+class SolrGroupedField(BaseModel):
+    """
+    Represents the grouping result for a single field or query.
+
+    Fields:
+        matches: Number of matching documents for this group field or query.
+        groups: List of groups for this field (present for field grouping).
+        doclist: Document list for this group (present for query grouping).
+        ngroups: Number of groups that matched the query (if group.ngroups=true).
+        facet: Facet counts for this group (if group.facet=true).
+    """
+
+    matches: int = Field(
+        description="Number of matching documents for this group field or query"
+    )
+    groups: Optional[List[SolrGroup]] = Field(
+        default=None,
+        description="List of groups for this field (present for field grouping)",
+    )
+    doclist: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Document list for this group (present for query grouping)",
+    )
+    ngroups: Optional[int] = Field(
+        default=None,
+        description="Number of groups that matched the query (if group.ngroups=true)",
+    )
+    facet: Optional[Dict[str, Any]] = Field(
+        default=None, description="Facet counts for this group (if group.facet=true)"
+    )
+
+
+class SolrGroupingResult(BaseModel):
+    """
+    Top-level model for Solr grouping responses.
+
+    Fields:
+        grouped: Dictionary mapping group field names or queries to their grouping results.
+        group_sort: Sort order for groups (from group.sort param).
+        group_limit: Number of results to return for each group (from group.limit param).
+        group_offset: Initial offset for the document list of each group (from group.offset param).
+        group_format: Format of the grouping response (from group.format param).
+        distributed_caveats: Notes about distributed grouping limitations.
+    """
+
+    grouped: Dict[str, SolrGroupedField] = Field(
+        description="Dictionary mapping group field names or queries to their grouping results"
+    )
+    group_sort: Optional[str] = Field(
+        default=None, description="Sort order for groups (from group.sort param)"
+    )
+    group_limit: Optional[int] = Field(
+        default=None,
+        description="Number of results to return for each group (from group.limit param)",
+    )
+    group_offset: Optional[int] = Field(
+        default=None,
+        description="Initial offset for the document list of each group (from group.offset param)",
+    )
+    group_format: Optional[str] = Field(
+        default=None,
+        description="Format of the grouping response (from group.format param)",
+    )
+    distributed_caveats: Optional[str] = Field(
+        default=None, description="Notes about distributed grouping limitations"
+    )
