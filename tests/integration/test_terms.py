@@ -320,9 +320,10 @@ def test_terms_query_with_grouping(solr_client):
     results = solr_client.search(parser, document_model=Product)
 
     print("[DEBUG] test_terms_query_with_grouping results:", results)
-    # Grouped results are in results.extra['grouped']
-    assert "grouped" in results.extra
-    assert "brand" in results.extra["grouped"]
+    # Grouped results are now in results.grouping.grouped
+    assert results.grouping is not None
+    grouped = results.grouping.grouped
+    assert "brand" in grouped
 
 
 def test_terms_query_with_highlighting(solr_client):

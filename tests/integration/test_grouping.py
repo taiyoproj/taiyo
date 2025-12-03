@@ -94,12 +94,12 @@ def test_grouping():
         res = client.search(parser, document_model=Movie)
         assert res.status == 0
         assert all(isinstance(doc, Movie) for doc in res.docs)
-        extra = getattr(res, "extra", {})
-        assert "grouped" in extra
-        grouped = extra["grouped"]
+        assert res.grouping is not None
+        grouped = res.grouping.grouped
         assert "director" in grouped
-        assert "groups" in grouped["director"]
-        assert len(grouped["director"]["groups"]) >= 1
+        director_group = grouped["director"]
+        assert director_group.groups is not None
+        assert len(director_group.groups) >= 1
 
         # Cleanup
         try:
