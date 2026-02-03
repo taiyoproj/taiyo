@@ -35,4 +35,4 @@
 - [Indexing](indexing/overview.md) - Document indexing and batch operations
 - [Query Parsers](parsers/overview.md) - Query parser reference and examples
 - [Controlling Results](controlling-results/faceting.md) - Faceting, grouping, highlighting, and MoreLikeThis
-
+- [API Reference](api-reference.md) - Full API documentation and usage examples
