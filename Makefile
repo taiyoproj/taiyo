@@ -69,12 +69,22 @@ publish-test:
 publish:
 	uv publish
 
+
 # Documentation
-.PHONY: docs docs-serve docs-format
-docs:
+.PHONY: docs docs-serve docs-format docs-install docs-build docs-serve-only
+
+docs-install:
+	uv pip install -e ".[docs]"
+
+docs-build:
 	uv run zensical build --clean
 
+docs:
+	$(MAKE) docs-install
+	$(MAKE) docs-build
+
 docs-serve:
+	$(MAKE) docs-install
 	uv run zensical serve
 
 docs-format:
