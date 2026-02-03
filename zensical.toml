@@ -72,6 +72,13 @@ nav = [
         "controlling-results/faceting.md",
         "controlling-results/highlighting.md",
         "controlling-results/more-like-this.md"
+    ]},
+    {"API Reference" = [
+        "api-reference/index.md",
+        "api-reference/clients.md",
+        "api-reference/schemas.md",
+        "api-reference/parsers.md",
+        "api-reference/params.md"
     ]}
 ]
 # With the "extra_css" option you can add your own CSS styling to customize
@@ -347,3 +354,12 @@ alternate_style = true
 
 [project.markdown_extensions.admonition]
 [project.markdown_extensions.pymdownx.details]
+
+[project.plugins.mkdocstrings.handlers.python]
+inventories = ["https://docs.python.org/3/objects.inv"]
+paths = ["taiyo"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "google"
+inherited_members = true
+show_source = false
