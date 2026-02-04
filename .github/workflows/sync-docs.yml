@@ -23,15 +23,13 @@ jobs:
           rsync -av --delete source/docs/ target/docs/
           rsync -av --delete source/taiyo/ target/taiyo/
           cp source/zensical.toml target/zensical.toml
-          cp source/pyproject.toml target/pyproject.toml
-          cp source/README.md target/README.md
 
       - name: Commit and push changes
         working-directory: target
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/ taiyo/ zensical.toml pyproject.toml README.md
+          git add docs/ taiyo/ zensical.toml
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
