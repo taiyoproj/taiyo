@@ -875,7 +875,7 @@ docs = [
 requires-dist = [
     { name = "black", marker = "extra == 'dev'", specifier = ">=23.0.0" },
     { name = "httpx", specifier = ">=0.24.0" },
-    { name = "mkdocstrings-python", marker = "extra == 'docs'" },
+    { name = "mkdocstrings-python", marker = "extra == 'docs'", specifier = ">=2.0.1" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
@@ -883,7 +883,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.0.270" },
     { name = "typing-extensions", specifier = ">=4.5.0" },
-    { name = "zensical", marker = "extra == 'docs'", specifier = ">=0.0.11" },
+    { name = "zensical", marker = "extra == 'docs'", specifier = ">=0.0.20" },
 ]
 provides-extras = ["dev", "docs"]
 
