@@ -18,9 +18,10 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           path: target
 
-      - name: Copy documentation files
+      - name: Copy documentation files and source code
         run: |
           rsync -av --delete source/docs/ target/docs/
+          rsync -av --delete source/taiyo/ target/taiyo/
           cp source/zensical.toml target/zensical.toml
 
       - name: Commit and push changes
